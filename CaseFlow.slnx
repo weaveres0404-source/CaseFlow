@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="caseflow.client/caseflow.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="CaseFlow.Server/CaseFlow.Server.csproj" />
+</Solution>

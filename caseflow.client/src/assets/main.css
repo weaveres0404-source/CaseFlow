@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* base.css variables only – no layout overrides */
+@import './base.css';
+
+/* reset #app so it never constrains the grid */
+#app {
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  max-width: none;
+}

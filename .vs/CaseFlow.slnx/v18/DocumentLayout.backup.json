@@ -1,0 +1,238 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\CaseFlow\\CaseFlow\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|d:\\caseflow\\caseflow\\caseflow.client\\vite.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|solutionrelative:caseflow.client\\vite.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC0F240-05B1-4270-861C-D421D3EC0C18}|CaseFlow.Server\\CaseFlow.Server.csproj|d:\\caseflow\\caseflow\\caseflow.server\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{8FC0F240-05B1-4270-861C-D421D3EC0C18}|CaseFlow.Server\\CaseFlow.Server.csproj|solutionrelative:caseflow.server\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|d:\\caseflow\\caseflow\\caseflow.client\\src\\app.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|solutionrelative:caseflow.client\\src\\app.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|d:\\caseflow\\caseflow\\caseflow.client\\src\\components\\helloworld.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|solutionrelative:caseflow.client\\src\\components\\helloworld.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|d:\\caseflow\\caseflow\\caseflow.client\\src\\components\\usefetch.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|solutionrelative:caseflow.client\\src\\components\\usefetch.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|d:\\caseflow\\caseflow\\caseflow.client\\src\\components\\login.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|solutionrelative:caseflow.client\\src\\components\\login.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC0F240-05B1-4270-861C-D421D3EC0C18}|CaseFlow.Server\\CaseFlow.Server.csproj|d:\\caseflow\\caseflow\\caseflow.server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC0F240-05B1-4270-861C-D421D3EC0C18}|CaseFlow.Server\\CaseFlow.Server.csproj|solutionrelative:caseflow.server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|d:\\caseflow\\caseflow\\caseflow.client\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{9797172A-3505-D0BA-AD09-C61932216660}|caseflow.client\\caseflow.client.esproj|solutionrelative:caseflow.client\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 246,
+          "SelectedChildIndex": 18,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\CaseFlow.Server\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "CaseFlow.Server\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\CaseFlow.Server\\Properties\\launchSettings.json",
+              "RelativeToolTip": "CaseFlow.Server\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-16T07:27:41.247Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e506b91c-c606-466a-90a9-123d1d1e12b3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:4:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:8:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:7:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:14:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:15:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:13:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:16:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:10:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:14:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:16:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:15:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "vite.config.js",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\vite.config.js",
+              "RelativeDocumentMoniker": "caseflow.client\\vite.config.js",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\vite.config.js",
+              "RelativeToolTip": "caseflow.client\\vite.config.js",
+              "ViewState": "AgIAACMAAAAAAAAAAADgvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-04-16T06:55:10.627Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "HelloWorld.vue",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\components\\HelloWorld.vue",
+              "RelativeDocumentMoniker": "caseflow.client\\src\\components\\HelloWorld.vue",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\components\\HelloWorld.vue",
+              "RelativeToolTip": "caseflow.client\\src\\components\\HelloWorld.vue",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAwwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2026-04-16T06:47:24.094Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "useFetch.js",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\components\\useFetch.js",
+              "RelativeDocumentMoniker": "caseflow.client\\src\\components\\useFetch.js",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\components\\useFetch.js",
+              "RelativeToolTip": "caseflow.client\\src\\components\\useFetch.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-04-16T06:47:17.443Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Login.vue",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\components\\Login.vue",
+              "RelativeDocumentMoniker": "caseflow.client\\src\\components\\Login.vue",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\components\\Login.vue",
+              "RelativeToolTip": "caseflow.client\\src\\components\\Login.vue",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2026-04-16T06:47:14.094Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "App.vue",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\App.vue",
+              "RelativeDocumentMoniker": "caseflow.client\\src\\App.vue",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\src\\App.vue",
+              "RelativeToolTip": "caseflow.client\\src\\App.vue",
+              "ViewState": "AgIAACEAAAAAAAAAAAAuwD0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2026-04-16T06:47:04.257Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "package.json",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\package.json",
+              "RelativeDocumentMoniker": "caseflow.client\\package.json",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\caseflow.client\\package.json",
+              "RelativeToolTip": "caseflow.client\\package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-16T06:46:17.557Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\CaseFlow\\CaseFlow\\CaseFlow.Server\\Program.cs",
+              "RelativeDocumentMoniker": "CaseFlow.Server\\Program.cs",
+              "ToolTip": "D:\\CaseFlow\\CaseFlow\\CaseFlow.Server\\Program.cs",
+              "RelativeToolTip": "CaseFlow.Server\\Program.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-16T06:38:40.889Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 154,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
