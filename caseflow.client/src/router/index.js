@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const Login = () => import('../components/Login.vue')
+const SetupPassword = () => import('../views/SetupPassword.vue')
 const MainLayout = () => import('../layouts/MainLayout.vue')
 const Dashboard = () => import('../views/Dashboard.vue')
 const CaseList = () => import('../views/CaseList.vue')
@@ -14,6 +15,7 @@ const ProblemCategories = () => import('../views/ProblemCategories.vue')
 
 const routes = [
   { path: '/login', name: 'Login', component: Login },
+  { path: '/setup-password', name: 'SetupPassword', component: SetupPassword },
   {
     path: '/',
     component: MainLayout,

@@ -2,7 +2,6 @@ namespace CaseFlow.Server.Models
 {
     public class LoginRequest
     {
-        // Use Email for login identifier (as requested)
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }

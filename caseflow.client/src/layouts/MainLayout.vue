@@ -1,131 +1,270 @@
 <template>
-  <!-- Root: single col on mobile, [260px + 1fr] on desktop -->
-  <div class="grid min-h-screen lg:grid-cols-[260px_1fr]">
-
-    <!-- ═══ SIDEBAR (hidden on mobile, flex column on desktop) ═══ -->
-    <aside class="hidden lg:flex flex-col w-64 bg-slate-900 text-white sticky top-0 h-screen overflow-y-auto">
-      <!-- Brand -->
-      <div class="flex items-center gap-3 px-5 py-5 border-b border-slate-700/60">
-        <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-500 shrink-0">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+  <div class="min-h-screen bg-slate-50 text-slate-800">
+    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <div class="flex h-14 items-center gap-3 px-4">
+        <button @click="toggleNav" class="rounded-md p-2 text-slate-600 hover:bg-slate-100" aria-label="切換選單">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
-        </div>
-        <div class="min-w-0">
-          <p class="text-sm font-bold text-white leading-tight truncate">叫修管理系統</p>
-          <p class="text-xs text-slate-400">CaseFlow</p>
-        </div>
-      </div>
+        </button>
 
-      <!-- Nav -->
-      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <router-link v-for="item in menuItems" :key="item.path" :to="item.path"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 select-none"
-          :class="isActive(item.path)
-            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-            : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-          <span class="text-base w-5 text-center shrink-0">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
-          <span v-if="item.path === '/notifications' && unreadCount > 0"
-            class="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
-            {{ unreadCount > 9 ? '9+' : unreadCount }}
+        <router-link to="/dashboard" class="flex shrink-0 items-center gap-2.5">
+          <div class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-700 text-white shadow-sm shadow-indigo-700/20">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h7" />
+              <circle cx="18" cy="18" r="3" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="hidden leading-tight sm:block">
+            <div class="text-sm font-semibold tracking-tight text-slate-900">CaseFlow</div>
+            <div class="text-[10px] text-slate-400">任務追蹤系統</div>
+          </div>
+        </router-link>
+
+        <div class="flex-1"></div>
+
+        <div class="hidden items-center gap-1 rounded-lg bg-amber-50 p-1 text-xs ring-1 ring-amber-200 xl:flex">
+          <span class="rounded bg-amber-600 px-1.5 py-0.5 text-[10px] text-white">目前角色</span>
+          <span class="rounded bg-white px-2.5 py-1 font-medium text-slate-900 shadow-sm">{{ roleShortLabel }}</span>
+        </div>
+
+        <router-link
+          to="/cases"
+          class="hidden h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white pl-2.5 pr-2 text-xs text-slate-500 hover:border-slate-300 md:inline-flex"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+          </svg>
+          <span>快速搜尋案件</span>
+          <span class="ml-2 rounded bg-slate-100 px-1 text-[10px] text-slate-500">Ctrl+K</span>
+        </router-link>
+
+        <router-link
+          to="/notifications"
+          class="relative grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100"
+          aria-label="通知中心"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.25 18.75a2.25 2.25 0 01-4.5 0M4.5 16.5h15c-.75-.75-1.5-2.625-1.5-6a6 6 0 10-12 0c0 3.375-.75 5.25-1.5 6z" />
+          </svg>
+          <span
+            v-if="unreadCount > 0"
+            class="absolute right-0.5 top-0.5 flex min-w-[1rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] leading-4 text-white"
+          >
+            {{ unreadCount > 99 ? '99+' : unreadCount }}
           </span>
         </router-link>
-      </nav>
 
-      <!-- User footer -->
-      <div class="px-3 py-4 border-t border-slate-700/60 space-y-1">
-        <div class="flex items-center gap-3 px-3 py-2">
-          <div class="w-8 h-8 rounded-full bg-indigo-500/30 flex items-center justify-center text-sm font-bold text-indigo-300 shrink-0">
-            {{ auth.user?.full_name?.[0] || 'U' }}
+        <router-link to="/profile" class="flex items-center gap-2 rounded-lg p-1 pr-2.5 hover:bg-slate-100">
+          <div class="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-sm font-semibold text-white">
+            {{ userInitial }}
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-white truncate">{{ auth.user?.full_name || auth.user?.username }}</p>
-            <p class="text-xs text-slate-400 truncate">{{ roleLabel }}</p>
+          <div class="hidden text-left leading-tight sm:block">
+            <div class="text-xs font-medium text-slate-900">{{ displayName }}</div>
+            <div class="text-[10px] text-slate-500">{{ roleLabel }}</div>
           </div>
-        </div>
-        <button @click="handleLogout"
-          class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          <svg class="hidden h-3.5 w-3.5 text-slate-400 sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
           </svg>
-          登出
-        </button>
-      </div>
-    </aside>
-
-    <!-- ─── Main Content Area ─────────────────────────────── -->
-    <div class="flex flex-col min-h-screen">
-
-      <!-- Mobile header (< lg) -->
-      <header class="lg:hidden flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 shrink-0">
-        <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-        </button>
-        <span class="text-sm font-bold text-indigo-600">叫修管理系統</span>
-        <router-link to="/notifications" class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-600">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-          </svg>
-          <span v-if="unreadCount > 0" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
         </router-link>
-      </header>
+      </div>
+    </header>
 
-      <!-- Mobile slide-in menu -->
-      <transition name="slide">
-        <div v-if="mobileMenuOpen" class="lg:hidden fixed inset-0 z-50 flex" @click="mobileMenuOpen = false">
-          <aside class="w-72 h-full bg-slate-900 shadow-xl flex flex-col" @click.stop>
-            <div class="flex items-center gap-3 px-5 py-5 border-b border-slate-700/60">
-              <div class="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+    <div class="flex">
+      <aside
+        class="hidden shrink-0 border-r border-slate-200 bg-white transition-[width] duration-200 lg:block"
+        :class="desktopNavCollapsed ? 'w-14' : 'w-48'"
+      >
+        <nav class="sticky top-14 min-h-[calc(100vh-3.5rem)] px-2.5 py-3 text-sm">
+          <div class="px-3 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wider text-slate-400" :class="desktopNavCollapsed ? 'hidden' : ''">工作區</div>
+
+          <div class="space-y-1">
+            <router-link
+              v-for="item in primaryItems"
+              :key="item.path"
+              :to="item.path"
+              class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
+              :class="navItemClass(item.path)"
+            >
+              <span v-if="isActive(item.path)" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+              <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+              </svg>
+              <span v-if="!desktopNavCollapsed" class="flex-1">{{ item.label }}</span>
+            </router-link>
+          </div>
+
+          <div class="mt-3">
+            <div class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm" :class="reportsGroupActive ? 'bg-indigo-50 font-medium text-indigo-800' : 'text-slate-600'">
+              <span v-if="reportsGroupActive" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+              <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath('reports')" />
+              </svg>
+              <span v-if="!desktopNavCollapsed" class="flex-1">統計報表</span>
+            </div>
+
+            <div v-if="!desktopNavCollapsed" class="mt-1 space-y-1">
+              <router-link
+                v-for="item in reportItems"
+                :key="item.path"
+                :to="item.path"
+                class="group relative flex items-center gap-3 rounded-lg px-3 py-2 pl-10 text-sm transition"
+                :class="navItemClass(item.path)"
+              >
+                <span v-if="isActive(item.path)" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+                </svg>
+                <span class="flex-1">{{ item.label }}</span>
+              </router-link>
+            </div>
+          </div>
+
+          <div class="px-3 pb-1 pt-4 text-[10px] font-medium uppercase tracking-wider text-slate-400" :class="desktopNavCollapsed ? 'hidden' : ''">系統</div>
+
+          <div class="space-y-1">
+            <router-link
+              v-for="item in systemItems"
+              :key="item.path"
+              :to="item.path"
+              class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
+              :class="navItemClass(item.path)"
+            >
+              <span v-if="isActive(item.path)" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+              <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+              </svg>
+              <span v-if="!desktopNavCollapsed" class="flex-1">{{ item.label }}</span>
+              <span
+                v-if="item.path === '/notifications' && unreadCount > 0 && !desktopNavCollapsed"
+                class="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] leading-none text-white"
+              >
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+              </span>
+            </router-link>
+          </div>
+
+          <div v-if="!desktopNavCollapsed" class="mx-1 mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div class="text-[10px] font-medium uppercase tracking-wider text-slate-400">登入資訊</div>
+            <div class="mt-2 text-sm font-medium text-slate-900">{{ displayName }}</div>
+            <div class="text-[11px] text-slate-500">{{ roleLabel }}</div>
+            <button @click="handleLogout" class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 hover:text-rose-700">
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath('logout')" />
+              </svg>
+              登出
+            </button>
+          </div>
+        </nav>
+      </aside>
+
+      <transition name="fade">
+        <div v-if="mobileMenuOpen" class="fixed inset-0 z-40 lg:hidden" @click="closeMobileMenu">
+          <div class="absolute inset-0 bg-slate-900/35"></div>
+          <aside class="relative h-full w-72 border-r border-slate-200 bg-white shadow-xl" @click.stop>
+            <div class="flex items-center gap-2.5 border-b border-slate-200 px-4 py-4">
+              <div class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-700 text-white shadow-sm shadow-indigo-700/20">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h7" />
+                  <circle cx="18" cy="18" r="3" stroke-width="2" />
                 </svg>
               </div>
-              <span class="text-sm font-bold text-white">叫修管理系統</span>
+              <div class="leading-tight">
+                <div class="text-sm font-semibold tracking-tight text-slate-900">CaseFlow</div>
+                <div class="text-[10px] text-slate-400">任務追蹤系統</div>
+              </div>
             </div>
-            <nav class="flex-1 px-3 py-4 space-y-1">
-              <router-link v-for="item in menuItems" :key="item.path" :to="item.path" @click="mobileMenuOpen = false"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"
-                :class="isActive(item.path) ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'">
-                <span class="text-base w-5 text-center">{{ item.icon }}</span>
-                <span>{{ item.label }}</span>
-              </router-link>
+
+            <nav class="px-2.5 py-3 text-sm">
+              <div class="px-3 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wider text-slate-400">工作區</div>
+
+              <div class="space-y-1">
+                <router-link
+                  v-for="item in primaryItems"
+                  :key="`mobile-${item.path}`"
+                  :to="item.path"
+                  class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
+                  :class="navItemClass(item.path)"
+                  @click="closeMobileMenu"
+                >
+                  <span v-if="isActive(item.path)" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+                  <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+                  </svg>
+                  <span class="flex-1">{{ item.label }}</span>
+                </router-link>
+              </div>
+
+              <div class="mt-3">
+                <div class="relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm" :class="reportsGroupActive ? 'bg-indigo-50 font-medium text-indigo-800' : 'text-slate-600'">
+                  <span v-if="reportsGroupActive" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+                  <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath('reports')" />
+                  </svg>
+                  <span class="flex-1">統計報表</span>
+                </div>
+
+                <div class="mt-1 space-y-1">
+                  <router-link
+                    v-for="item in reportItems"
+                    :key="`mobile-${item.path}`"
+                    :to="item.path"
+                    class="group relative flex items-center gap-3 rounded-lg px-3 py-2 pl-10 text-sm transition"
+                    :class="navItemClass(item.path)"
+                    @click="closeMobileMenu"
+                  >
+                    <span v-if="isActive(item.path)" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+                    </svg>
+                    <span class="flex-1">{{ item.label }}</span>
+                  </router-link>
+                </div>
+              </div>
+
+              <div class="px-3 pb-1 pt-4 text-[10px] font-medium uppercase tracking-wider text-slate-400">系統</div>
+
+              <div class="space-y-1">
+                <router-link
+                  v-for="item in systemItems"
+                  :key="`mobile-${item.path}`"
+                  :to="item.path"
+                  class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
+                  :class="navItemClass(item.path)"
+                  @click="closeMobileMenu"
+                >
+                  <span v-if="isActive(item.path)" class="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-indigo-700"></span>
+                  <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+                  </svg>
+                  <span class="flex-1">{{ item.label }}</span>
+                  <span
+                    v-if="item.path === '/notifications' && unreadCount > 0"
+                    class="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] leading-none text-white"
+                  >
+                    {{ unreadCount > 99 ? '99+' : unreadCount }}
+                  </span>
+                </router-link>
+              </div>
+
+              <div class="mx-1 mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div class="text-[10px] font-medium uppercase tracking-wider text-slate-400">登入資訊</div>
+                <div class="mt-2 text-sm font-medium text-slate-900">{{ displayName }}</div>
+                <div class="text-[11px] text-slate-500">{{ roleLabel }}</div>
+                <button @click="handleLogout" class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 hover:text-rose-700">
+                  <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath('logout')" />
+                  </svg>
+                  登出
+                </button>
+              </div>
             </nav>
           </aside>
-          <div class="flex-1 bg-black/50"></div>
         </div>
       </transition>
 
-      <!-- Desktop topbar (lg+) -->
-      <header class="hidden lg:flex items-center justify-between px-8 h-16 bg-white border-b border-gray-200 shrink-0">
-        <h1 class="text-lg font-semibold text-gray-900">{{ currentPageTitle }}</h1>
-        <div class="flex items-center gap-4">
-          <router-link to="/notifications"
-            class="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-            </svg>
-            <span v-if="unreadCount > 0"
-              class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1 leading-none">
-              {{ unreadCount > 9 ? '9+' : unreadCount }}
-            </span>
-          </router-link>
-          <div class="flex items-center gap-2 pl-4 border-l border-gray-200">
-            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">
-              {{ auth.user?.full_name?.[0] || 'U' }}
-            </div>
-            <span class="text-sm font-medium text-gray-700">{{ auth.user?.full_name || auth.user?.username }}</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- Main content -->
-      <main class="flex-1 bg-slate-50 p-6 lg:p-10 overflow-y-auto">
-        <div class="w-full">
+      <main class="min-w-0 flex-1 overflow-x-hidden">
+        <div class="px-5 py-6 lg:px-6">
           <router-view />
         </div>
       </main>
@@ -145,50 +284,113 @@ const route = useRoute()
 const auth = useAuthStore()
 const meta = useMetaStore()
 
-const menuItems = [
-  { path: '/dashboard', label: '儀表板', icon: '📊' },
-  { path: '/cases', label: '案件管理', icon: '📋' },
-  { path: '/reports/hours', label: '工時統計', icon: '⏱️' },
-  { path: '/reports/cases', label: '案件統計', icon: '📈' },
-  { path: '/notifications', label: '通知中心', icon: '🔔' },
-  { path: '/profile', label: '個人設定', icon: '👤' }
+const mobileMenuOpen = ref(false)
+const desktopNavCollapsed = ref(false)
+const unreadCount = ref(0)
+let pollTimer = null
+
+const primaryItems = computed(() => {
+  const items = [
+    { path: '/dashboard', label: '儀表板', icon: 'dashboard' },
+    { path: '/cases', label: '案件列表', icon: 'cases' }
+  ]
+
+  if (auth.user?.role !== 'SE') {
+    items.push({ path: '/cases/new', label: '新增案件', icon: 'new' })
+  }
+
+  return items
+})
+
+const reportItems = [
+  { path: '/reports/hours', label: '工時統計', icon: 'hours' },
+  { path: '/reports/cases', label: '案件數量統計', icon: 'casesReport' }
 ]
 
+const systemItems = [
+  { path: '/notifications', label: '通知中心', icon: 'notifications' },
+  { path: '/profile', label: '個人設定', icon: 'profile' }
+]
+
+const roleLabel = computed(() =>
+  ({ ADMIN: '系統管理員', SysAdmin: '系統管理員', PM: '專案經理', SE: '工程師' }[auth.user?.role] || auth.user?.role || '未登入')
+)
+
+const roleShortLabel = computed(() => auth.user?.role || 'Guest')
+const displayName = computed(() => auth.user?.full_name || auth.user?.username || '使用者')
+const userInitial = computed(() => (displayName.value || 'U').trim().charAt(0).toUpperCase())
+const reportsGroupActive = computed(() => reportItems.some((item) => isActive(item.path)))
+
 function isActive(path) {
-  if (path === '/dashboard') return route.path === '/dashboard' || route.path === '/'
+  if (path === '/dashboard') return route.path === '/' || route.path === '/dashboard'
   return route.path === path || route.path.startsWith(path + '/')
 }
 
-const currentPageTitle = computed(() => {
-  const item = menuItems.find(m => isActive(m.path))
-  return item?.label || '叫修管理系統'
-})
+function navItemClass(path) {
+  return isActive(path)
+    ? 'bg-indigo-50 font-medium text-indigo-800'
+    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+}
 
-const roleLabel = computed(() =>
-  ({ SysAdmin: '系統管理員', PM: '專案經理', SE: '工程師' }[auth.user?.role] || auth.user?.role || '')
-)
+function iconPath(icon) {
+  return {
+    dashboard: 'M3.75 4.5h6.75v6.75H3.75V4.5zm9.75 0h6.75V9h-6.75V4.5zM3.75 14.25h6.75V21H3.75v-6.75zm9.75-3.75h6.75V21h-6.75V10.5z',
+    cases: 'M8.25 3.75h7.5v1.5h.75A2.25 2.25 0 0118.75 7.5v10.5a2.25 2.25 0 01-2.25 2.25h-9A2.25 2.25 0 015.25 18V7.5A2.25 2.25 0 017.5 5.25h.75v-1.5zm-1.5 6h10.5m-10.5 3h6.75m-6.75 3h8.25',
+    new: 'M12 9v6m3-3H9m11.25 0a8.25 8.25 0 11-16.5 0 8.25 8.25 0 0116.5 0z',
+    reports: 'M6.75 3.75h7.5l3.75 3.75v9.75a2.25 2.25 0 01-2.25 2.25h-9A2.25 2.25 0 014.5 17.25V6A2.25 2.25 0 016.75 3.75zm1.5 10.5V16.5m3-4.5v4.5m3-7.5v7.5',
+    hours: 'M12 7.5v4.5l3 1.5m6-1.5a9 9 0 11-18 0 9 9 0 0118 0z',
+    casesReport: 'M4.5 19.5h15M7.5 16.5V10.5m4.5 6V7.5m4.5 9v-3.75',
+    notifications: 'M14.25 18.75a2.25 2.25 0 01-4.5 0M4.5 16.5h15c-.75-.75-1.5-2.625-1.5-6a6 6 0 10-12 0c0 3.375-.75 5.25-1.5 6z',
+    profile: 'M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.118a7.5 7.5 0 0115 0A17.93 17.93 0 0112 21.75c-2.676 0-5.216-.584-7.5-1.632z',
+    logout: 'M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M18 12H9m9 0l-3-3m3 3l-3 3'
+  }[icon] || ''
+}
 
-const mobileMenuOpen = ref(false)
-const unreadCount = ref(0)
-let pollTimer = null
+function toggleNav() {
+  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    mobileMenuOpen.value = !mobileMenuOpen.value
+    return
+  }
+
+  desktopNavCollapsed.value = !desktopNavCollapsed.value
+}
+
+function closeMobileMenu() {
+  mobileMenuOpen.value = false
+}
 
 async function fetchUnread() {
   try {
     const { data: res } = await api.get('/notifications', { params: { is_read: false, page_size: 1 } })
     if (res.success) unreadCount.value = res.meta?.total ?? 0
-  } catch { /* ignore */ }
+  } catch {
+    // ignore fetch errors to keep layout stable
+  }
 }
 
 function handleLogout() {
+  mobileMenuOpen.value = false
   auth.logout()
   router.push('/login')
 }
 
 onMounted(async () => {
-  if (!meta.loaded) await meta.fetchDropdowns()
-  if (auth.token && !auth.user?.email) {
-    try { await auth.fetchMe() } catch { /* ignore */ }
+  if (!meta.loaded) {
+    try {
+      await meta.fetchDropdowns()
+    } catch {
+      // 401 handled by api interceptor
+    }
   }
+
+  if (auth.token && !auth.user?.email) {
+    try {
+      await auth.fetchMe()
+    } catch {
+      // ignore current-user refresh errors
+    }
+  }
+
   fetchUnread()
   pollTimer = setInterval(fetchUnread, 30000)
 })
@@ -199,6 +401,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.slide-enter-active, .slide-leave-active { transition: opacity 0.2s; }
-.slide-enter-from, .slide-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

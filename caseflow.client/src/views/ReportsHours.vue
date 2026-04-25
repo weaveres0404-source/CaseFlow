@@ -52,7 +52,15 @@
       <div class="flex-1 bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
           <span class="text-sm text-gray-500">共 {{ rows.length }} 筆</span>
-          <button @click="exportCsv" class="text-sm text-indigo-600 font-medium hover:underline">匯出 CSV</button>
+          <div class="flex items-center gap-3">
+            <select v-model="exportType" class="text-sm border border-gray-300 rounded-lg px-2 py-1 focus:ring-1 focus:ring-indigo-500">
+              <option value="hours">完整匯出 (Excel)</option>
+              <option value="hours_gsheets">Google Sheets 格式</option>
+            </select>
+            <button @click="exportExcel" :disabled="exporting" class="text-sm text-indigo-600 font-medium hover:underline disabled:opacity-50">
+              {{ exporting ? '匯出中...' : '匯出 Excel' }}
+            </button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -87,6 +95,8 @@ import api from '../utils/api'
 
 const meta = useMetaStore()
 const rows = ref([])
+const exporting = ref(false)
+const exportType = ref('hours')
 
 const now = new Date()
 const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
@@ -113,7 +123,31 @@ async function fetchReport() {
   if (!params.customer_id) delete params.customer_id
   const { data: res } = await api.get('/reports/hours', { params })
   if (res.success) {
-    rows.value = (res.data || []).map(r => ({ label: r.label, value: r.value }))
+    const isHours = filters.value.metric === 'hours'
+    rows.value = (res.data || []).map(r => ({
+      label: r.dimension,
+      value: isHours ? (r.total_hours ?? 0) : (r.count ?? r.case_count ?? 0)
+    }))
+  }
+}
+
+async function exportExcel() {
+  exporting.value = true
+  try {
+    const params = { ...filters.value, report_type: exportType.value }
+    if (!params.project_id) delete params.project_id
+    if (!params.customer_id) delete params.customer_id
+    const res = await api.post('/reports/export', params, { responseType: 'blob' })
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `report_${filters.value.group_by}_${filters.value.date_from}_${filters.value.date_to}.xlsx`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  } catch (e) {
+    alert('匯出失敗，請稍後再試')
+  } finally {
+    exporting.value = false
   }
 }
 

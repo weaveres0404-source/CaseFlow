@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:56002",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "D:\\CaseFlow\\CaseFlow\\CaseFlow.Server\\..\\caseflow.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

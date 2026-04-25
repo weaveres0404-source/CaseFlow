@@ -35,7 +35,11 @@ namespace CaseFlow.Server.Controllers
             [FromQuery] int? se_user_id = null,
             [FromQuery] DateTime? date_from = null,
             [FromQuery] DateTime? date_to = null,
-            [FromQuery] string? sort = null)
+            [FromQuery] string? sort = null,
+            [FromQuery] bool assigned_to_me = false,
+            [FromQuery] bool created_by_me = false,
+            [FromQuery] bool open_only = false,
+            [FromQuery] int? created_by_id = null)
         {
             if (page <= 0) page = 1;
             if (page_size <= 0 || page_size > 100) page_size = 20;
@@ -43,12 +47,15 @@ namespace CaseFlow.Server.Controllers
             var userId = User.GetUserId();
             var role = User.GetRole();
 
+            // created_by_id is an alias for created_by
+            if (created_by_id.HasValue && !created_by.HasValue) created_by = created_by_id;
+
             var query = _db.Cases.AsNoTracking()
                 .Include(c => c.Project)
                 .Include(c => c.Customer)
                 .Include(c => c.CreatedByNavigation)
                 .Include(c => c.AssignedPm)
-                .Include(c => c.CaseAssignments.Where(a => a.IsActive && a.IsPrimary))
+                .Include(c => c.CaseAssignments.Where(a => a.IsActive))
                     .ThenInclude(a => a.SeUser)
                 .AsQueryable();
 
@@ -81,6 +88,14 @@ namespace CaseFlow.Server.Controllers
                 query = query.Where(c => c.CaseAssignments.Any(a => a.SeUserId == se_user_id.Value && a.IsActive));
             if (date_from.HasValue) query = query.Where(c => c.CreatedAt >= date_from.Value);
             if (date_to.HasValue) query = query.Where(c => c.CreatedAt <= date_to.Value);
+
+            // 快速分頁篩選
+            if (assigned_to_me)
+                query = query.Where(c => c.CaseAssignments.Any(a => a.SeUserId == userId && a.IsActive));
+            if (created_by_me)
+                query = query.Where(c => c.CreatedBy == userId);
+            if (open_only)
+                query = query.Where(c => c.Status != 50 && c.Status != 60);
 
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -117,7 +132,7 @@ namespace CaseFlow.Server.Controllers
                     status = c.Status,
                     created_by = new { id = c.CreatedByNavigation.UserId, full_name = c.CreatedByNavigation.FullName },
                     assigned_pm = c.AssignedPm != null ? new { id = c.AssignedPm.UserId, full_name = c.AssignedPm.FullName } : null,
-                    primary_se = c.CaseAssignments.Where(a => a.IsActive && a.IsPrimary).Select(a => new { id = a.SeUser.UserId, full_name = a.SeUser.FullName }).FirstOrDefault(),
+                    assigned_ses = c.CaseAssignments.Where(a => a.IsActive).Select(a => new { id = a.SeUser.UserId, full_name = a.SeUser.FullName }),
                     updated_at = c.UpdatedAt
                 })
                 .ToListAsync();
@@ -149,15 +164,19 @@ namespace CaseFlow.Server.Controllers
             if (c == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
-            // SE 只能查看被分派給自己的案件
-            if (User.GetRole() == "SE")
+            // 權限檢查
+            var viewerUserId = User.GetUserId();
+            var viewerRole = User.GetRole();
+            if (viewerRole == "PM")
             {
-                var viewerUserId = User.GetUserId();
-                if (!c.CaseAssignments.Any(a => a.SeUserId == viewerUserId && a.IsActive))
-                    return StatusCode(403, new { success = false, error = new { code = "FORBIDDEN", message = "您未被分派至此案件" } });
+                if (!await HasProjectAccessAsync(c.ProjectId, viewerUserId))
+                    return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您無權存取此案件" } });
             }
-
-            // 附件需另查 (多態關聯)
+            else if (viewerRole == "SE")
+            {
+                if (!await HasCaseAssignmentAsync(id, viewerUserId))
+                    return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您未被派工至此案件" } });
+            }
             var attachments = await _db.Attachments.AsNoTracking()
                 .Include(a => a.UploadedByNavigation)
                 .Where(a => (a.EntityType == "case" && a.EntityId == id) ||
@@ -260,15 +279,23 @@ namespace CaseFlow.Server.Controllers
             return Ok(new { success = true, data = result });
         }
 
-        // POST /api/v1/cases — 建立案件（PM / SysAdmin / Admin 才能立案，SE 無權限）
+        // POST /api/v1/cases — 建立案件
         [HttpPost]
-        [Authorize(Roles = "PM,SysAdmin,Admin")]
         public async Task<IActionResult> Create([FromBody] CaseCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.ReporterName) || string.IsNullOrWhiteSpace(dto.Description))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "reporter_name and description are required" } });
 
             var userId = User.GetUserId();
+            var creatorRole = User.GetRole();
+
+            // SE 無權建立案件
+            if (creatorRole == "SE")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "SE 無法建立新案件" } });
+
+            // PM 只能對所屬專案立案
+            if (creatorRole == "PM" && !await HasProjectAccessAsync(dto.ProjectId, userId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能對所屬專案立案" } });
 
             // 自動產生案件編號: 專案代碼-YYYYMM-流水號
             var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.ProjectId == dto.ProjectId);
@@ -293,45 +320,11 @@ namespace CaseFlow.Server.Controllers
             var caseNumber = $"{prefix}{seq:D3}";
 
             var now = DateTime.UtcNow;
-
-            // 解析客戶 id：若傳入新客戶名稱則建立
-            int resolvedCustomerId;
-            if (dto.CustomerId.HasValue && dto.CustomerId.Value > 0)
-            {
-                resolvedCustomerId = dto.CustomerId.Value;
-            }
-            else if (!string.IsNullOrWhiteSpace(dto.CustomerName))
-            {
-                // 查找同名客戶，沒有則建立
-                var existing = await _db.Customers.FirstOrDefaultAsync(c => c.CustomerName == dto.CustomerName.Trim());
-                if (existing != null)
-                {
-                    resolvedCustomerId = existing.CustomerId;
-                }
-                else
-                {
-                    var newCustomer = new Customer
-                    {
-                        CustomerName = dto.CustomerName.Trim(),
-                        IsActive = true,
-                        CreatedAt = now,
-                        UpdatedAt = now
-                    };
-                    _db.Customers.Add(newCustomer);
-                    await _db.SaveChangesAsync();
-                    resolvedCustomerId = newCustomer.CustomerId;
-                }
-            }
-            else
-            {
-                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "客戶為必選欄位，請選擇現有客戶或輸入新客戶名稱" } });
-            }
-
             var entity = new Case
             {
                 CaseNumber = caseNumber,
                 ProjectId = dto.ProjectId,
-                CustomerId = resolvedCustomerId,
+                CustomerId = dto.CustomerId,
                 CategoryId = dto.CategoryId,
                 ModuleId = dto.ModuleId,
                 ReporterName = dto.ReporterName.Trim(),
@@ -349,6 +342,9 @@ namespace CaseFlow.Server.Controllers
             };
 
             _db.Cases.Add(entity);
+
+            // 確保立案人在 project_members 中有效紀錄
+            await UpsertProjectMemberAsync(dto.ProjectId, userId, "PM", now);
 
             // 發送 CASE_CREATED 通知給專案所有 PM
             var projectPms = await _db.ProjectMembers.AsNoTracking()
@@ -421,20 +417,28 @@ namespace CaseFlow.Server.Controllers
 
         #region RPC 狀態流轉
 
-        // POST|PATCH /api/v1/cases/:id/assign — 派工（PM / SysAdmin / Admin 才能派工）
+        // POST /api/v1/cases/:id/assign — 派工
         [HttpPost("{id:int}/assign")]
-        [HttpPatch("{id:int}/assign")]
-        [Authorize(Roles = "PM,SysAdmin,Admin")]
         public async Task<IActionResult> Assign(int id, [FromBody] AssignDto dto)
         {
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
-            if (entity.Status != 10 && entity.Status != 20 && entity.Status != 35)
+            // 允許來源：10(待處理)、20(已派工)、30(處理中)、35(已退回)
+            if (entity.Status == 50 || entity.Status == 60)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot assign from current status", details = new { current_status = entity.Status } } });
 
+            // 角色檢查：僅 PM / SysAdmin 可執行派工
             var userId = User.GetUserId();
+            var assignerRole = User.GetRole();
+            if (assignerRole != "PM" && assignerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 PM / SysAdmin 可執行派工" } });
+
+            // PM 權限範圍：僅能操作所屬專案的案件
+            if (assignerRole == "PM" && !await HasProjectAccessAsync(entity.ProjectId, userId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能操作所屬專案的案件" } });
+
             var now = DateTime.UtcNow;
 
             // 將既有 active assignments 設為 inactive
@@ -470,9 +474,14 @@ namespace CaseFlow.Server.Controllers
                 });
             }
 
-            entity.Status = 20;
+            // 僅從 status=10 才推進到 20；改派時維持現狀（不回推）
+            if (entity.Status == 10) entity.Status = 20;
             entity.AssignedPmId = userId;
             entity.UpdatedAt = now;
+
+            // 確保被派工的 SE 在 project_members 中有效紀錄
+            foreach (var seId in dto.SeUserIds)
+                await UpsertProjectMemberAsync(entity.ProjectId, seId, "SE", now);
 
             _db.AuditLogs.Add(new AuditLog
             {
@@ -489,26 +498,6 @@ namespace CaseFlow.Server.Controllers
             return Ok(new { success = true, data = new { id, status = entity.Status } });
         }
 
-        // POST /api/v1/cases/:id/start
-        [HttpPost("{id:int}/start")]
-        public async Task<IActionResult> Start(int id)
-        {
-            var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
-            if (entity == null)
-                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
-
-            if (entity.Status != 20 && entity.Status != 35)
-                return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot start from current status", details = new { current_status = entity.Status } } });
-
-            entity.Status = 30;
-            entity.UpdatedAt = DateTime.UtcNow;
-
-            _db.AuditLogs.Add(new AuditLog { UserId = User.GetUserId(), CaseId = id, Action = "CASE_STARTED", EntityType = "case", EntityId = id, CreatedAt = DateTime.UtcNow });
-
-            await _db.SaveChangesAsync();
-            return Ok(new { success = true, data = new { id, status = 30 } });
-        }
-
         // POST /api/v1/cases/:id/complete
         [HttpPost("{id:int}/complete")]
         public async Task<IActionResult> Complete(int id)
@@ -517,7 +506,17 @@ namespace CaseFlow.Server.Controllers
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
-            if (entity.Status != 30)
+            // 角色檢查：僅 SE / SysAdmin 可回報完工
+            var completerId = User.GetUserId();
+            var completerRole = User.GetRole();
+            if (completerRole != "SE" && completerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 SE / SysAdmin 可回報完工" } });
+            if (completerRole == "SE" && !await HasCaseAssignmentAsync(id, completerId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您未被派工至此案件" } });
+
+            // v3.6: 來源擴充至 {20, 30, 35}
+            var completeAllowed = new short[] { 20, 30, 35 };
+            if (!completeAllowed.Contains(entity.Status))
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot complete from current status", details = new { current_status = entity.Status } } });
 
             var now = DateTime.UtcNow;
@@ -545,14 +544,21 @@ namespace CaseFlow.Server.Controllers
             return Ok(new { success = true, data = new { id, status = 40 } });
         }
 
-        // POST /api/v1/cases/:id/return — 退回（PM / SysAdmin / Admin 才能退回）
+        // POST /api/v1/cases/:id/return — 退回
         [HttpPost("{id:int}/return")]
-        [Authorize(Roles = "PM,SysAdmin,Admin")]
         public async Task<IActionResult> Return(int id, [FromBody] ReturnDto? dto)
         {
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
+            // 角色檢查：僅 PM / SysAdmin
+            var returnerId = User.GetUserId();
+            var returnerRole = User.GetRole();
+            if (returnerRole != "PM" && returnerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 PM / SysAdmin 可執行退回" } });
+            if (returnerRole == "PM" && !await HasProjectAccessAsync(entity.ProjectId, returnerId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能操作所屬專案的案件" } });
 
             if (entity.Status != 40)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot return from current status", details = new { current_status = entity.Status } } });
@@ -583,14 +589,21 @@ namespace CaseFlow.Server.Controllers
             return Ok(new { success = true, data = new { id, status = 35 } });
         }
 
-        // POST /api/v1/cases/:id/close — 結案（PM / SysAdmin / Admin 才能結案）
+        // POST /api/v1/cases/:id/close — 結案
         [HttpPost("{id:int}/close")]
-        [Authorize(Roles = "PM,SysAdmin,Admin")]
         public async Task<IActionResult> Close(int id)
         {
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
+            // 角色檢查：僅 PM / SysAdmin
+            var closerId = User.GetUserId();
+            var closerRole = User.GetRole();
+            if (closerRole != "PM" && closerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 PM / SysAdmin 可結案" } });
+            if (closerRole == "PM" && !await HasProjectAccessAsync(entity.ProjectId, closerId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能操作所屬專案的案件" } });
 
             if (entity.Status != 40)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot close from current status", details = new { current_status = entity.Status } } });
@@ -615,13 +628,21 @@ namespace CaseFlow.Server.Controllers
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
+            // 角色檢查：僅 PM / SysAdmin
+            var cancellerId = User.GetUserId();
+            var cancellerRole = User.GetRole();
+            if (cancellerRole != "PM" && cancellerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 PM / SysAdmin 可取消案件" } });
+            if (cancellerRole == "PM" && !await HasProjectAccessAsync(entity.ProjectId, cancellerId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能操作所屬專案的案件" } });
+
             var allowed = new short[] { 10, 20, 30, 35, 40 };
             if (!allowed.Contains(entity.Status))
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot cancel from current status", details = new { current_status = entity.Status } } });
 
             var now = DateTime.UtcNow;
             entity.Status = 60;
-            entity.CancelledBy = User.GetUserId();
+            entity.CancelledBy = cancellerId;
             entity.CancelledAt = now;
             entity.UpdatedAt = now;
 
@@ -645,7 +666,7 @@ namespace CaseFlow.Server.Controllers
                 });
             }
 
-            _db.AuditLogs.Add(new AuditLog { UserId = User.GetUserId(), CaseId = id, Action = "CASE_CANCELLED", EntityType = "case", EntityId = id, CreatedAt = now });
+            _db.AuditLogs.Add(new AuditLog { UserId = cancellerId, CaseId = id, Action = "CASE_CANCELLED", EntityType = "case", EntityId = id, CreatedAt = now });
 
             await _db.SaveChangesAsync();
             return Ok(new { success = true, data = new { id, status = 60 } });
@@ -659,10 +680,16 @@ namespace CaseFlow.Server.Controllers
             if (original == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
+            // 角色檢查：僅 PM / SysAdmin
+            var reopenerId = User.GetUserId();
+            var reopenerRole = User.GetRole();
+            if (reopenerRole != "PM" && reopenerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 PM / SysAdmin 可重開案件" } });
+            if (reopenerRole == "PM" && !await HasProjectAccessAsync(original.ProjectId, reopenerId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能操作所屬專案的案件" } });
+
             if (original.Status != 50 && original.Status != 60)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Only closed or cancelled cases can be reopened" } });
-
-            var userId = User.GetUserId();
 
             // 使用相同建案邏輯
             var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.ProjectId == original.ProjectId);
@@ -696,7 +723,7 @@ namespace CaseFlow.Server.Controllers
                 Priority = original.Priority,
                 Description = original.Description,
                 Status = 10,
-                CreatedBy = userId,
+                CreatedBy = reopenerId,
                 RelatedCaseId = id,
                 RelationType = "REOPEN",
                 CreatedAt = now,
@@ -704,6 +731,10 @@ namespace CaseFlow.Server.Controllers
             };
 
             _db.Cases.Add(newCase);
+
+            // 確保重開人在 project_members 中有效紀錄
+            await UpsertProjectMemberAsync(original.ProjectId, reopenerId, "PM", now);
+
             await _db.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetById), new { id = newCase.CaseId },
@@ -714,7 +745,7 @@ namespace CaseFlow.Server.Controllers
 
         #region 子資源寫入
 
-        // POST /api/v1/cases/:id/logs
+        // POST /api/v1/cases/:id/logs  — 建立處理紀錄（含 §4.1 狀態轉換副作用）
         [HttpPost("{id:int}/logs")]
         public async Task<IActionResult> CreateLog(int id, [FromBody] CaseLogDto dto)
         {
@@ -722,19 +753,36 @@ namespace CaseFlow.Server.Controllers
             if (caseEntity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
-            // SE 只能在被分派給自己的案件上新增處理紀錄
-            var handlerRole = User.GetRole();
+            // 終態不可再建 log
+            if (caseEntity.Status == 50 || caseEntity.Status == 60)
+                return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot add log to closed or cancelled case", details = new { current_status = caseEntity.Status } } });
+
             var handlerUserId = User.GetUserId();
-            if (handlerRole == "SE")
+            var role = User.GetRole();
+
+            // SE 權限檢查：必須在有效派工名單內，或為立案人 / Admin / SysAdmin
+            if (role == "SE")
             {
                 var isAssigned = await _db.CaseAssignments
                     .AnyAsync(a => a.CaseId == id && a.SeUserId == handlerUserId && a.IsActive);
-                if (!isAssigned)
-                    return StatusCode(403, new { success = false, error = new { code = "FORBIDDEN", message = "您未被分派至此案件" } });
+                if (!isAssigned && caseEntity.CreatedBy != handlerUserId)
+                    return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "You are not assigned to this case" } });
             }
+
             var now = DateTime.UtcNow;
-            // 若呼叫端未指定 status_after，維持現有案件狀態
-            var statusAfter = dto.StatusAfter > 0 ? dto.StatusAfter : caseEntity.Status;
+            var isCompletion = dto.IsCompleted;
+
+            // §4.1 狀態轉換矩陣（同 transaction）
+            var prevStatus = caseEntity.Status;
+            short newStatus = prevStatus;
+            if (prevStatus == 10 || prevStatus == 20 || prevStatus == 35)
+                newStatus = isCompletion ? (short)40 : (short)30;
+            else if (prevStatus == 30)
+                newStatus = isCompletion ? (short)40 : (short)30;
+            // status=40: 維持 40（不回推）
+
+            var statusAfterValue = isCompletion ? (short)40 : newStatus;
+
             var log = new CaseLog
             {
                 CaseId = id,
@@ -744,52 +792,49 @@ namespace CaseFlow.Server.Controllers
                 HandlingResult = dto.HandlingResult,
                 HoursSpent = dto.HoursSpent,
                 Headcount = dto.Headcount > 0 ? dto.Headcount : (short)1,
-                StatusAfter = statusAfter,
+                StatusAfter = statusAfterValue,
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
             _db.CaseLogs.Add(log);
+            caseEntity.Status = newStatus;
+            caseEntity.UpdatedAt = now;
 
-            // ── 工時動態累計（TotalHours 為 NotMapped，不寫 DB）──────────
-            var existingHours = await _db.CaseLogs.Where(l => l.CaseId == id).SumAsync(l => l.HoursSpent);
-            var currentTotalHours = existingHours + dto.HoursSpent;
+            // 維護 total_hours 聚合欄位
+            var currentTotalHours = await _db.CaseLogs
+                .Where(l => l.CaseId == id)
+                .SumAsync(l => (decimal?)l.HoursSpent) ?? 0m;
+            caseEntity.TotalHours = currentTotalHours + log.HoursSpent;
 
-            // ── 依 status_after 自動更新案件狀態（狀態流轉）──────────────
-            if (statusAfter != caseEntity.Status)
+            // 首次到達 40 才發 WORK_COMPLETED 通知（多人派工僅首位觸發）
+            if (prevStatus < 40 && newStatus == 40 && caseEntity.AssignedPmId.HasValue)
             {
-                caseEntity.Status = statusAfter;
-
-                // SE 回報完工 (40 已完工) → 通知轉派 PM
-                if (statusAfter == 40 && caseEntity.AssignedPmId.HasValue)
+                _db.Notifications.Add(new Notification
                 {
-                    _db.Notifications.Add(new Notification
-                    {
-                        RecipientUserId = caseEntity.AssignedPmId.Value,
-                        CaseId = id,
-                        NotificationType = "WORK_COMPLETED",
-                        Title = $"案件完工 {caseEntity.CaseNumber}",
-                        Message = "案件已完工，請確認是否結案",
-                        IsRead = false,
-                        CreatedAt = now
-                    });
-                }
+                    RecipientUserId = caseEntity.AssignedPmId.Value,
+                    CaseId = id,
+                    NotificationType = "WORK_COMPLETED",
+                    Title = $"案件完工 {caseEntity.CaseNumber}",
+                    Message = "案件已完工，請確認是否結案",
+                    IsRead = false,
+                    CreatedAt = now
+                });
             }
 
             _db.AuditLogs.Add(new AuditLog
             {
                 UserId = handlerUserId,
                 CaseId = id,
-                Action = "LOG_ADDED",
+                Action = isCompletion ? "WORK_COMPLETED" : "LOG_CREATED",
                 EntityType = "case_log",
                 EntityId = id,
                 CreatedAt = now
             });
 
-            caseEntity.UpdatedAt = now;
             await _db.SaveChangesAsync();
 
-            return Created($"/api/v1/cases/{id}/logs/{log.LogId}", new { success = true, data = new { id = log.LogId, status = caseEntity.Status, total_hours = currentTotalHours } });
+            return Created($"/api/v1/cases/{id}/logs/{log.LogId}", new { success = true, data = new { id = log.LogId, case_status = newStatus } });
         }
 
         // PATCH /api/v1/cases/:id/logs/:logId
@@ -805,10 +850,15 @@ namespace CaseFlow.Server.Controllers
             if (dto.HandlingResult != null) log.HandlingResult = dto.HandlingResult;
             if (dto.HoursSpent > 0) log.HoursSpent = dto.HoursSpent;
             if (dto.Headcount > 0) log.Headcount = dto.Headcount;
-            if (dto.StatusAfter > 0) log.StatusAfter = dto.StatusAfter;
             log.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
+
+            // 重新計算 total_hours
+            var recalc = await _db.CaseLogs.Where(l => l.CaseId == id).SumAsync(l => (decimal?)l.HoursSpent) ?? 0m;
+            var caseForUpdate = await _db.Cases.FirstOrDefaultAsync(c => c.CaseId == id);
+            if (caseForUpdate != null) { caseForUpdate.TotalHours = recalc; await _db.SaveChangesAsync(); }
+
             return Ok(new { success = true, data = new { id = log.LogId } });
         }
 
@@ -927,6 +977,43 @@ namespace CaseFlow.Server.Controllers
         }
 
         #endregion
+
+        #region 私有輔助方法
+
+        /// <summary>確保使用者在 project_members 中存在有效紀錄；若不存在則新建，若停用則重啟。</summary>
+        private async Task UpsertProjectMemberAsync(int projectId, int userId, string memberRole, DateTime now)
+        {
+            var existing = await _db.ProjectMembers
+                .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
+            if (existing == null)
+            {
+                _db.ProjectMembers.Add(new ProjectMember
+                {
+                    ProjectId = projectId,
+                    UserId = userId,
+                    MemberRole = memberRole,
+                    JoinedAt = DateOnly.FromDateTime(now),
+                    IsActive = true,
+                    CreatedAt = now
+                });
+            }
+            else if (!existing.IsActive)
+            {
+                existing.IsActive = true;
+            }
+        }
+
+        /// <summary>PM 是否具有該專案的存取權（project_members is_active=TRUE）</summary>
+        private async Task<bool> HasProjectAccessAsync(int projectId, int userId)
+            => await _db.ProjectMembers.AnyAsync(pm =>
+                pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive);
+
+        /// <summary>SE 是否有該案件的有效派工（case_assignments is_active=TRUE）</summary>
+        private async Task<bool> HasCaseAssignmentAsync(int caseId, int userId)
+            => await _db.CaseAssignments.AnyAsync(a =>
+                a.CaseId == caseId && a.SeUserId == userId && a.IsActive);
+
+        #endregion
     }
 
     #region DTOs
@@ -934,8 +1021,7 @@ namespace CaseFlow.Server.Controllers
     public class CaseCreateDto
     {
         public int ProjectId { get; set; }
-        public int? CustomerId { get; set; }   // nullable：儲存現有客戶 id
-        public string? CustomerName { get; set; } // 新客戶名稱
+        public int CustomerId { get; set; }
         public int CategoryId { get; set; }
         public int? ModuleId { get; set; }
         public string ReporterName { get; set; } = "";
@@ -979,7 +1065,8 @@ namespace CaseFlow.Server.Controllers
         public string? HandlingResult { get; set; }
         public decimal HoursSpent { get; set; }
         public short Headcount { get; set; }
-        public short StatusAfter { get; set; }
+        /// <summary>true = 此筆 log 視為完工，觸發 → 40 狀態轉換（§4.1）</summary>
+        public bool IsCompleted { get; set; } = false;
     }
 
     public class EstimationDto

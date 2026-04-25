@@ -49,6 +49,9 @@ public partial class User
     [Column("updated_at", TypeName = "timestamp without time zone")]
     public DateTime UpdatedAt { get; set; }
 
+    [Column("must_change_password")]
+    public bool MustChangePassword { get; set; } = false;
+
     [InverseProperty("UploadedByNavigation")]
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 

@@ -13,17 +13,19 @@ export const useMetaStore = defineStore('meta', () => {
   const loaded = ref(false)
 
   async function fetchDropdowns() {
-    const { data: res } = await api.get('/meta/dropdowns')
-    if (res.success) {
-      customers.value = res.data.customers
-      projects.value = res.data.projects
-      categories.value = res.data.categories
-      modules.value = res.data.modules
-      users.value = res.data.users
-      projectMembers.value = res.data.project_members
-      enums.value = res.data.enums
-      loaded.value = true
-    }
+    try {
+      const { data: res } = await api.get('/meta/dropdowns')
+      if (res.success) {
+        customers.value = res.data.customers
+        projects.value = res.data.projects
+        categories.value = res.data.categories
+        modules.value = res.data.modules
+        users.value = res.data.users
+        projectMembers.value = res.data.project_members
+        enums.value = res.data.enums
+        loaded.value = true
+      }
+    } catch { /* 401 由 api 攔截器處理，其餘靜默 */ }
   }
 
   function getModulesByProject(projectId) {
@@ -49,13 +51,13 @@ export const useMetaStore = defineStore('meta', () => {
   }
 
   const statusMap = {
-    10: { label: '待處理', color: 'bg-gray-100 text-gray-800' },
-    20: { label: '待派工', color: 'bg-blue-100 text-blue-800' },
-    30: { label: '處理中', color: 'bg-yellow-100 text-yellow-800' },
-    35: { label: '已退回', color: 'bg-red-100 text-red-800' },
-    40: { label: '已完工', color: 'bg-green-100 text-green-800' },
-    50: { label: '已結案', color: 'bg-emerald-100 text-emerald-800' },
-    60: { label: '已取消', color: 'bg-gray-200 text-gray-500' }
+    10: { label: '待處理', color: 'bg-slate-100 text-slate-600' },
+    20: { label: '已派工', color: 'bg-blue-100 text-blue-700' },
+    30: { label: '處理中', color: 'bg-amber-100 text-amber-700' },
+    35: { label: '已退回', color: 'bg-red-100 text-red-700' },
+    40: { label: '已完工', color: 'bg-green-100 text-green-700' },
+    50: { label: '已結案', color: 'bg-violet-100 text-violet-700' },
+    60: { label: '已取消', color: 'bg-rose-100 text-rose-600' }
   }
 
   const priorityMap = {
@@ -66,7 +68,7 @@ export const useMetaStore = defineStore('meta', () => {
 
   const caseTypeMap = {
     REPAIR: { label: '叫修', color: 'bg-orange-100 text-orange-800' },
-    INQUIRY: { label: '提問', color: 'bg-blue-100 text-blue-800' },
+    INQUIRY: { label: '功能諮詢', color: 'bg-blue-100 text-blue-800' },
     EVALUATION: { label: '評估需求', color: 'bg-purple-100 text-purple-800' }
   }
 

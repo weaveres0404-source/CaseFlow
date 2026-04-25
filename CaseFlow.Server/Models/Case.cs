@@ -87,8 +87,8 @@ public partial class Case
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
 
-    /// <summary>累計工時（小時），不寫入 DB，由 API 透過 CaseLog.Sum 動態計算</summary>
-    [NotMapped]
+    [Column("total_hours")]
+    [Microsoft.EntityFrameworkCore.Precision(7, 2)]
     public decimal TotalHours { get; set; }
 
     [ForeignKey("AssignedPmId")]
