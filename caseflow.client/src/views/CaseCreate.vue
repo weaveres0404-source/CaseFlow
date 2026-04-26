@@ -607,7 +607,7 @@ function appendReferencedDescription(sourceCase) {
   form.value.description = body
 }
 
-function applySelectedSimilar(mode) {
+async function applySelectedSimilar(mode) {
   const selected = similarCases.value.find(item => item.id === selectedSimilarCaseId.value)
   if (!selected) {
     window.alert('請先選擇要引用的案件')
@@ -615,18 +615,31 @@ function applySelectedSimilar(mode) {
   }
 
   if (mode === 'full') {
-    form.value.project_id = selected.project_id
-    form.value.customer_id = selected.customer_id
-    form.value.category_id = selected.category_id
-    form.value.module_id = selected.module_id
-    form.value.reporter_name = selected.reporter_name || form.value.reporter_name
-    form.value.reporter_phone = selected.reporter_phone || ''
-    form.value.reporter_email = selected.reporter_email || ''
-    form.value.case_type = selected.case_type || form.value.case_type
+    // 必須取完整 detail，list API 不含 reporter_name、phone、email、category_id、module_id
+    try {
+      const { data: res } = await api.get(`/cases/${selected.id}`)
+      if (res.success) {
+        const detail = res.data
+        form.value.project_id  = detail.project?.id   ?? null
+        form.value.customer_id = detail.customer?.id  ?? null
+        form.value.category_id = detail.category?.id  ?? null
+        form.value.module_id   = detail.module?.id    ?? null
+        form.value.reporter_name  = detail.reporter_name  || form.value.reporter_name
+        form.value.reporter_phone = detail.reporter_phone || ''
+        form.value.reporter_email = detail.reporter_email || ''
+        form.value.case_type = detail.case_type || form.value.case_type
+        appendReferencedDescription(detail)
+        citedFrom.value = detail.case_number
+      }
+    } catch {
+      window.alert('引用失敗，請稍後再試')
+      return
+    }
+  } else {
+    appendReferencedDescription(selected)
+    citedFrom.value = selected.case_number
   }
 
-  appendReferencedDescription(selected)
-  citedFrom.value = selected.case_number
   closeSimilarModal()
 }
 
