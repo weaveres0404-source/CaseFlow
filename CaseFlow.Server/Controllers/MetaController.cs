@@ -63,7 +63,7 @@ namespace CaseFlow.Server.Controllers
             {
                 case_types = new[] {
                     new { value = "REPAIR", label = "叫修" },
-                    new { value = "INQUIRY", label = "功能諮詢" },
+                    new { value = "INQUIRY", label = "提問" },
                     new { value = "EVALUATION", label = "評估需求" }
                 },
                 priorities = new[] {

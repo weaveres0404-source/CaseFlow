@@ -628,7 +628,7 @@ function toggleAssignSe(userId) {
 }
 
 function activeSEs(c) {
-  return (c.assignments || []).filter(a => a.is_active).map(a => a.se)
+  return c.assigned_ses || []
 }
 
 function slaText(c) {

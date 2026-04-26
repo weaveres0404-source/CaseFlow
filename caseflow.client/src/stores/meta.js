@@ -68,7 +68,7 @@ export const useMetaStore = defineStore('meta', () => {
 
   const caseTypeMap = {
     REPAIR: { label: '叫修', color: 'bg-orange-100 text-orange-800' },
-    INQUIRY: { label: '功能諮詢', color: 'bg-blue-100 text-blue-800' },
+    INQUIRY: { label: '提問', color: 'bg-blue-100 text-blue-800' },
     EVALUATION: { label: '評估需求', color: 'bg-purple-100 text-purple-800' }
   }
 
