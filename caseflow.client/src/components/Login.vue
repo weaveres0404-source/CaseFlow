@@ -78,7 +78,7 @@
 
     <!-- ===== Right form panel ===== -->
     <main class="flex items-center justify-center p-6 sm:p-10 bg-white">
-      <div class="w-full max-w-sm">
+      <div class="w-full max-w-sm grid gap-3">
 
         <!-- Mobile brand -->
         <div class="lg:hidden flex items-center gap-2 mb-8">
@@ -108,24 +108,24 @@
           </div>
         </div>
 
-        <form @submit.prevent="submit" class="mt-6 space-y-4">
-          <!-- Email / 電子信箱 -->
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1.5">電子信箱</label>
+        <form @submit.prevent="submit" class="mt-6 space-y-4 grid gap-y-2">
+          <!-- 帳號 -->
+          <div class="grid gap-2">
+            <label class="block text-xs font-medium text-slate-600 mb-1.5">帳號</label>
             <div class="input-wrap flex items-center h-11 px-3 rounded-lg border border-slate-300 bg-white transition"
-              :class="{ 'border-brand-500 ring-4 ring-brand-700/10': emailFocused }">
+              :class="{ 'border-brand-500 ring-4 ring-brand-700/10': usernameFocused }">
               <svg class="w-4 h-4 text-slate-400 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
-              <input v-model="email" type="email" autocomplete="email"
+              <input v-model="username" type="text" autocomplete="username"
                 class="flex-1 outline-none text-sm bg-transparent placeholder:text-slate-400"
-                placeholder="user@company.com"
-                @focus="emailFocused = true" @blur="emailFocused = false" />
+                placeholder="請輸入帳號"
+                @focus="usernameFocused = true" @blur="usernameFocused = false" />
             </div>
           </div>
 
           <!-- Password -->
-          <div>
+          <div class="grid gap-2">
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-xs font-medium text-slate-600">密碼</label>
               <button type="button" class="text-xs text-slate-500 hover:text-brand-700" @click="handleForgotPassword">忘記密碼？</button>
@@ -163,7 +163,7 @@
 
           <!-- Submit -->
           <button type="submit" :disabled="loading"
-            class="w-full h-11 rounded-lg bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-white text-sm font-medium shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            class="w-full h-11 rounded-lg bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-sm font-medium shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
             <svg v-if="loading" class="animate-spin w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="9" opacity=".3"/><path d="M21 12a9 9 0 0 1-9 9"/>
             </svg>
@@ -207,13 +207,13 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const error = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
-const emailFocused = ref(false)
+const usernameFocused = ref(false)
 const pwFocused = ref(false)
 
 function handleForgotPassword() {
@@ -224,7 +224,7 @@ async function submit() {
   error.value = ''
   loading.value = true
   try {
-    const result = await auth.login(email.value, password.value)
+    const result = await auth.login(username.value, password.value)
     if (result?.mustChangePassword) {
       sessionStorage.setItem('setup_token', result.setupToken)
       router.push('/setup-password')

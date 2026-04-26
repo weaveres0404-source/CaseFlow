@@ -27,12 +27,12 @@ namespace CaseFlow.Server.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
-            var email = req?.Email?.Trim();
+            var username = req?.Username?.Trim();
 
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(req?.Password))
-                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Email and password required" } });
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(req?.Password))
+                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Username and password required" } });
 
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.IsActive && u.Email == email);
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.IsActive && u.Username == username);
             if (user == null)
                 return Ok(new { success = false, error = new { code = "UNAUTHORIZED", message = "Invalid credentials" } });
 
