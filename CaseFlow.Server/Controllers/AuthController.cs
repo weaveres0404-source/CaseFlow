@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -40,7 +40,7 @@ namespace CaseFlow.Server.Controllers
                 return Ok(new { success = false, error = new { code = "UNAUTHORIZED", message = "Invalid credentials" } });
 
             // Update last login
-            user.LastLoginAt = DateTime.UtcNow;
+            user.LastLoginAt = TimeHelper.Now;
             await _db.SaveChangesAsync();
 
             // 首次登入強制改密碼：回 setup_token（scope=setup, 10 分鐘有效）
@@ -120,7 +120,7 @@ namespace CaseFlow.Server.Controllers
 
             user.PasswordHash = req.NewPassword;
             user.MustChangePassword = false;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = TimeHelper.Now;
             await _db.SaveChangesAsync();
 
             var accessToken = GenerateJwt(user);

@@ -4,4 +4,5 @@
     <Deploy />
   </Project>
   <Project Path="CaseFlow.Server/CaseFlow.Server.csproj" />
+  <Project Path="CaseFlow.Tests/CaseFlow.Tests.csproj" />
 </Solution>

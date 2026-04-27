@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Suppress assembly-version conflict warning caused by Npgsql 10.0.1 (EF 10.0.4)
+         vs InMemory 10.0.6; MSBuild resolves to the higher version automatically. -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      只引用 Server 的組件輸出，不引發 SPA 建置；
+      ReferenceOutputAssembly=true 讓測試專案取得 CaseFlow.Server.dll。
+    -->
+    <ProjectReference Include="..\CaseFlow.Server\CaseFlow.Server.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <!-- 排除 SPA Proxy，避免測試觸發前端建置 -->
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

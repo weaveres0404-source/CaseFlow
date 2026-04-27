@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
@@ -47,7 +47,7 @@ namespace CaseFlow.Server.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var attachment = new Attachment
             {
                 FileName = file.FileName,

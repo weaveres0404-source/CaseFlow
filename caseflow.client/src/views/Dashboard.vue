@@ -168,6 +168,8 @@ import { useAuthStore } from '../stores/auth'
 import { useMetaStore } from '../stores/meta'
 import api from '../utils/api'
 
+defineOptions({ name: 'DashboardView' })
+
 const router = useRouter()
 const auth = useAuthStore()
 const meta = useMetaStore()
@@ -186,7 +188,6 @@ const lastSyncTime = ref(now.toLocaleTimeString('zh-TW', { hour: '2-digit', minu
 const statusSummary = ref({ pending: 0, assigned: 0, in_progress: 0, returned: 0, completed: 0, closed: 0, cancelled: 0 })
 const thisMonth = ref({ total_hours: 0, completed_cases: 0 })
 
-const statusKeyMap = { 10: 'pending', 20: 'assigned', 30: 'in_progress', 35: 'returned', 40: 'completed', 50: 'closed', 60: 'cancelled' }
 const openCaseStatuses = new Set([10, 20, 30, 35, 40])
 
 function getCount(statusKey) {

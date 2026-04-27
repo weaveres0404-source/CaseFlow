@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
@@ -116,7 +116,7 @@ namespace CaseFlow.Server.Controllers
             if (string.IsNullOrWhiteSpace(dto.ProjectCode) || string.IsNullOrWhiteSpace(dto.ProjectName))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "project_code and project_name are required" } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var entity = new Project
             {
                 ProjectCode = dto.ProjectCode.Trim(),
@@ -150,7 +150,7 @@ namespace CaseFlow.Server.Controllers
             if (dto.Description != null) entity.Description = dto.Description;
             if (dto.StartDate.HasValue) entity.StartDate = dto.StartDate;
             if (dto.EndDate.HasValue) entity.EndDate = dto.EndDate;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
 
@@ -166,7 +166,7 @@ namespace CaseFlow.Server.Controllers
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Project not found" } });
 
             entity.IsActive = false;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
             await _db.SaveChangesAsync();
 
             return Ok(new { success = true });

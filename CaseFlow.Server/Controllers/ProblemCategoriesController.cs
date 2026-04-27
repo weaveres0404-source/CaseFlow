@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CaseFlow.Server.Helpers;
 using CaseFlow.Server.Models;
 
 namespace CaseFlow.Server.Controllers
@@ -90,7 +91,7 @@ namespace CaseFlow.Server.Controllers
             if (dto == null || string.IsNullOrWhiteSpace(dto.CategoryName))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "CategoryName is required" } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var entity = new ProblemCategory
             {
                 CategoryName = dto.CategoryName.Trim(),
@@ -140,7 +141,7 @@ namespace CaseFlow.Server.Controllers
             entity.Description = dto.Description;
             entity.SortOrder = dto.SortOrder;
             entity.IsActive = dto.IsActive;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
 
             try
             {
@@ -177,7 +178,7 @@ namespace CaseFlow.Server.Controllers
                 return BadRequest(new { success = false, error = new { code = "CONFLICT", message = "Already deleted" } });
 
             entity.IsActive = false;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
 

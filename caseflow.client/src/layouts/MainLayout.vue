@@ -244,7 +244,6 @@ const roleLabel = computed(() =>
   ({ ADMIN: '系統管理員', SysAdmin: '系統管理員', PM: '專案經理', SE: '工程師' }[auth.user?.role] || auth.user?.role || '未登入')
 )
 
-const roleShortLabel = computed(() => auth.user?.role || 'Guest')
 const displayName = computed(() => auth.user?.full_name || auth.user?.username || '使用者')
 const userInitial = computed(() => (displayName.value || 'U').trim().charAt(0).toUpperCase())
 

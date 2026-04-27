@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniExcelLibs;
@@ -49,7 +49,7 @@ namespace CaseFlow.Server.Controllers
 
             int Get(short s) => statusCounts.FirstOrDefault(x => x.status == s)?.count ?? 0;
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
             IQueryable<CaseLog> logsQuery = _db.CaseLogs.AsNoTracking();
@@ -173,7 +173,7 @@ namespace CaseFlow.Server.Controllers
             await stream.SaveAsAsync(rows);
             stream.Position = 0;
 
-            var filename = string.Format("CaseFlow_{0}_{1}.xlsx", dto.ReportType, DateTime.UtcNow.ToString("yyyyMMdd_HHmmss"));
+            var filename = string.Format("CaseFlow_{0}_{1}.xlsx", dto.ReportType, TimeHelper.Now.ToString("yyyyMMdd_HHmmss"));
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename);
         }
 

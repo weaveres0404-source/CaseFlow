@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
@@ -90,7 +90,7 @@ namespace CaseFlow.Server.Controllers
             if (string.IsNullOrWhiteSpace(dto.CustomerName))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "customer_name is required" } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var entity = new Customer
             {
                 CustomerName = dto.CustomerName.Trim(),
@@ -123,7 +123,7 @@ namespace CaseFlow.Server.Controllers
             if (dto.ContactEmail != null) entity.ContactEmail = dto.ContactEmail;
             if (dto.Address != null) entity.Address = dto.Address;
             if (dto.Remarks != null) entity.Remarks = dto.Remarks;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
 
@@ -138,7 +138,7 @@ namespace CaseFlow.Server.Controllers
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Customer not found" } });
 
             entity.IsActive = false;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
             await _db.SaveChangesAsync();
 
             return Ok(new { success = true });

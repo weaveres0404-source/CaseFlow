@@ -457,11 +457,19 @@ const auth = useAuthStore()
 const caseData = ref(null)
 const activeTab = ref('info')
 
+// 回傳本地時區的 YYYY-MM-DD（避免 UTC midnight 跨日問題）
+function localDateStr(d = new Date()) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 const showLogForm = ref(false)
 const showEstForm = ref(false)
 const showReplyForm = ref(false)
 
-const logForm = ref({ log_date: new Date().toISOString().slice(0, 10), handling_method: '', handling_result: '', hours_spent: 0 })
+const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 })
 
 const assignModal = ref({
   show: false,
@@ -472,8 +480,8 @@ const assignModal = ref({
   submitting: false,
   error: ''
 })
-const estForm = ref({ request_date: new Date().toISOString().slice(0, 10), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' })
-const replyForm = ref({ reply_date: new Date().toISOString().slice(0, 10), reply_content: '' })
+const estForm = ref({ request_date: localDateStr(), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' })
+const replyForm = ref({ reply_date: localDateStr(), reply_content: '' })
 const confirmDialog = ref({ show: false, title: '', message: '', onConfirm: () => {}, btnClass: 'bg-indigo-600', loading: false, error: '' })
 
 const caseId = computed(() => route.params.id)
@@ -621,7 +629,7 @@ async function handleConfirm() {
 async function submitLog() {
   await api.post(`/cases/${caseId.value}/logs`, logForm.value)
   showLogForm.value = false
-  logForm.value = { log_date: new Date().toISOString().slice(0, 10), handling_method: '', handling_result: '', hours_spent: 0 }
+  logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 }
   await fetchCase()
 }
 
@@ -653,14 +661,14 @@ async function submitAssign() {
 async function submitEstimation() {
   await api.post(`/cases/${caseId.value}/estimations`, estForm.value)
   showEstForm.value = false
-  estForm.value = { request_date: new Date().toISOString().slice(0, 10), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' }
+  estForm.value = { request_date: localDateStr(), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' }
   await fetchCase()
 }
 
 async function submitReply() {
   await api.post(`/cases/${caseId.value}/replies`, replyForm.value)
   showReplyForm.value = false
-  replyForm.value = { reply_date: new Date().toISOString().slice(0, 10), reply_content: '' }
+  replyForm.value = { reply_date: localDateStr(), reply_content: '' }
   await fetchCase()
 }
 

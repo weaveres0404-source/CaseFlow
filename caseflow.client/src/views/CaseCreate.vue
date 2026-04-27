@@ -569,7 +569,7 @@ function buildSimilarSearchParams() {
     const rangeDays = Number(citeFilters.value.range)
     const start = new Date()
     start.setDate(start.getDate() - rangeDays)
-    params.date_from = start.toISOString().slice(0, 10)
+    params.date_from = [start.getFullYear(), String(start.getMonth()+1).padStart(2,'0'), String(start.getDate()).padStart(2,'0')].join('-')
   }
 
   return params

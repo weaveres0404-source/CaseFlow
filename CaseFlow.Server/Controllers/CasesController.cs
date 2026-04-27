@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
@@ -302,7 +302,7 @@ namespace CaseFlow.Server.Controllers
             if (project == null)
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Invalid project_id" } });
 
-            var yearMonth = DateTime.UtcNow.ToString("yyyyMM");
+            var yearMonth = TimeHelper.Now.ToString("yyyyMM");
             var prefix = $"{project.ProjectCode}-{yearMonth}-";
             var lastCase = await _db.Cases.AsNoTracking()
                 .Where(c => c.CaseNumber.StartsWith(prefix))
@@ -319,7 +319,7 @@ namespace CaseFlow.Server.Controllers
 
             var caseNumber = $"{prefix}{seq:D3}";
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var entity = new Case
             {
                 CaseNumber = caseNumber,
@@ -408,7 +408,7 @@ namespace CaseFlow.Server.Controllers
             if (!string.IsNullOrWhiteSpace(dto.CaseType)) entity.CaseType = dto.CaseType;
             if (!string.IsNullOrWhiteSpace(dto.Priority)) entity.Priority = dto.Priority;
             if (!string.IsNullOrWhiteSpace(dto.Description)) entity.Description = dto.Description;
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
 
@@ -439,7 +439,7 @@ namespace CaseFlow.Server.Controllers
             if (assignerRole == "PM" && !await HasProjectAccessAsync(entity.ProjectId, userId))
                 return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能操作所屬專案的案件" } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
 
             // 將既有 active assignments 設為 inactive
             var existingAssignments = await _db.CaseAssignments.Where(a => a.CaseId == id && a.IsActive).ToListAsync();
@@ -519,7 +519,7 @@ namespace CaseFlow.Server.Controllers
             if (!completeAllowed.Contains(entity.Status))
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot complete from current status", details = new { current_status = entity.Status } } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             entity.Status = 40;
             entity.UpdatedAt = now;
 
@@ -563,7 +563,7 @@ namespace CaseFlow.Server.Controllers
             if (entity.Status != 40)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot return from current status", details = new { current_status = entity.Status } } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             entity.Status = 35;
             entity.UpdatedAt = now;
 
@@ -608,7 +608,7 @@ namespace CaseFlow.Server.Controllers
             if (entity.Status != 40)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot close from current status", details = new { current_status = entity.Status } } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             entity.Status = 50;
             entity.ClosedBy = User.GetUserId();
             entity.ClosedAt = now;
@@ -640,7 +640,7 @@ namespace CaseFlow.Server.Controllers
             if (!allowed.Contains(entity.Status))
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot cancel from current status", details = new { current_status = entity.Status } } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             entity.Status = 60;
             entity.CancelledBy = cancellerId;
             entity.CancelledAt = now;
@@ -693,7 +693,7 @@ namespace CaseFlow.Server.Controllers
 
             // 使用相同建案邏輯
             var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.ProjectId == original.ProjectId);
-            var yearMonth = DateTime.UtcNow.ToString("yyyyMM");
+            var yearMonth = TimeHelper.Now.ToString("yyyyMM");
             var prefix = $"{project!.ProjectCode}-{yearMonth}-";
             var lastCase = await _db.Cases.AsNoTracking()
                 .Where(c => c.CaseNumber.StartsWith(prefix))
@@ -708,7 +708,7 @@ namespace CaseFlow.Server.Controllers
                     seq = lastSeq + 1;
             }
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var newCase = new Case
             {
                 CaseNumber = $"{prefix}{seq:D3}",
@@ -769,7 +769,7 @@ namespace CaseFlow.Server.Controllers
                     return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "You are not assigned to this case" } });
             }
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var isCompletion = dto.IsCompleted;
 
             // §4.1 狀態轉換矩陣（同 transaction）
@@ -787,7 +787,7 @@ namespace CaseFlow.Server.Controllers
             {
                 CaseId = id,
                 HandlerUserId = handlerUserId,
-                LogDate = dto.LogDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                LogDate = dto.LogDate ?? DateOnly.FromDateTime(TimeHelper.Now),
                 HandlingMethod = dto.HandlingMethod,
                 HandlingResult = dto.HandlingResult,
                 HoursSpent = dto.HoursSpent,
@@ -850,7 +850,7 @@ namespace CaseFlow.Server.Controllers
             if (dto.HandlingResult != null) log.HandlingResult = dto.HandlingResult;
             if (dto.HoursSpent > 0) log.HoursSpent = dto.HoursSpent;
             if (dto.Headcount > 0) log.Headcount = dto.Headcount;
-            log.UpdatedAt = DateTime.UtcNow;
+            log.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
 
@@ -872,13 +872,13 @@ namespace CaseFlow.Server.Controllers
 
             var seqNo = await _db.CaseEstimations.Where(e => e.CaseId == id).CountAsync() + 1;
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var est = new CaseEstimation
             {
                 CaseId = id,
                 EstimatorUserId = dto.EstimatorUserId,
                 SeqNo = seqNo,
-                RequestDate = dto.RequestDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                RequestDate = dto.RequestDate ?? DateOnly.FromDateTime(TimeHelper.Now),
                 Summary = dto.Summary,
                 EstimatedHours = dto.EstimatedHours,
                 ReplyDate = dto.ReplyDate,
@@ -909,7 +909,7 @@ namespace CaseFlow.Server.Controllers
             if (dto.ReplyDate.HasValue) est.ReplyDate = dto.ReplyDate;
             if (dto.EstimationStatus > 0) est.EstimationStatus = dto.EstimationStatus;
             if (dto.Remarks != null) est.Remarks = dto.Remarks;
-            est.UpdatedAt = DateTime.UtcNow;
+            est.UpdatedAt = TimeHelper.Now;
 
             // 如果變更為已回覆 (30)，發通知給轉派 PM
             if (est.EstimationStatus == 30 && oldStatus != 30)
@@ -925,7 +925,7 @@ namespace CaseFlow.Server.Controllers
                         Title = $"工時評估完成 {caseEntity.CaseNumber}",
                         Message = "SE 已完成工時評估，請審閱",
                         IsRead = false,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = TimeHelper.Now
                     });
                 }
             }
@@ -942,12 +942,12 @@ namespace CaseFlow.Server.Controllers
             if (caseEntity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
-            var now = DateTime.UtcNow;
+            var now = TimeHelper.Now;
             var reply = new CaseReply
             {
                 CaseId = id,
                 ReplierUserId = User.GetUserId(),
-                ReplyDate = dto.ReplyDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                ReplyDate = dto.ReplyDate ?? DateOnly.FromDateTime(TimeHelper.Now),
                 ReplyContent = dto.ReplyContent,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -970,7 +970,7 @@ namespace CaseFlow.Server.Controllers
 
             if (!string.IsNullOrWhiteSpace(dto.ReplyContent)) reply.ReplyContent = dto.ReplyContent;
             if (dto.ReplyDate.HasValue) reply.ReplyDate = dto.ReplyDate.Value;
-            reply.UpdatedAt = DateTime.UtcNow;
+            reply.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
             return Ok(new { success = true, data = new { id = reply.ReplyId } });

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
@@ -70,7 +70,7 @@ namespace CaseFlow.Server.Controllers
                     .Where(n => dto.NotificationIds.Contains(n.NotificationId) && n.RecipientUserId == userId && !n.IsRead)
                     .ToListAsync();
 
-                var now = DateTime.UtcNow;
+                var now = TimeHelper.Now;
                 foreach (var n in notifications)
                 {
                     n.IsRead = true;
@@ -83,7 +83,7 @@ namespace CaseFlow.Server.Controllers
                     .Where(n => n.RecipientUserId == userId && !n.IsRead)
                     .ToListAsync();
 
-                var now = DateTime.UtcNow;
+                var now = TimeHelper.Now;
                 foreach (var n in notifications)
                 {
                     n.IsRead = true;

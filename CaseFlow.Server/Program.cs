@@ -23,6 +23,9 @@ namespace CaseFlow.Server
                 {
                     o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
                     o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                    // 讓所有 DateTime 序列化時帶 Z 後綴，前端才能正確識別為 UTC
+                    o.JsonSerializerOptions.Converters.Add(new CaseFlow.Server.Helpers.UtcDateTimeConverter());
+                    o.JsonSerializerOptions.Converters.Add(new CaseFlow.Server.Helpers.UtcNullableDateTimeConverter());
                 });
 
             builder.Services.AddOpenApi();

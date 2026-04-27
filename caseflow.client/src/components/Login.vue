@@ -166,6 +166,8 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+defineOptions({ name: 'LoginView' })
+
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
