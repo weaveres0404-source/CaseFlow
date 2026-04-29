@@ -31,6 +31,10 @@
               :class="meta.statusMap[caseData.status]?.color || 'bg-slate-100 text-slate-700'">
               {{ meta.statusMap[caseData.status]?.label }}
             </span>
+            <span v-if="caseData.case_type" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              :class="meta.caseTypeMap[caseData.case_type]?.color || 'bg-blue-50 text-blue-700'">
+              {{ meta.caseTypeMap[caseData.case_type]?.label }}
+            </span>
             <span v-if="slaBadge"
               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
               :class="slaUrgent ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'">

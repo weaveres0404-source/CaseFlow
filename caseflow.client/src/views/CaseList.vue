@@ -432,7 +432,7 @@ const authRoleLabel = computed(() => {
 const scopeHint = computed(() => {
   const r = auth.role
   if (r === 'SE') return '僅顯示指派給您的案件'
-  if (r === 'PM') return '僅顯示所屬專案的案件'
+  if (r === 'PM') return '僅顯示與自己相關的案件（轉派給我 / 我立案）'
   return '可見系統全部案件'
 })
 
