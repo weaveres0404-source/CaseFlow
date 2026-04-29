@@ -302,11 +302,6 @@
       </div>
     </section>
 
-    <p class="text-xs text-slate-400 mt-2">
-      <span class="inline-block px-2 py-0.5 rounded bg-amber-50 text-amber-700 ring-1 ring-amber-200 text-[10px] mr-1.5">原型註記</span>
-      P-04 案件列表 · 欄位改為「立案人 / SE」，多位 SE 以 +N 顯示，批次操作列依勾選結果出現。
-    </p>
-
     <div v-if="assignModalOpen" class="fixed inset-0 z-50 bg-slate-950/45 flex items-center justify-center p-4" @click.self="closeAssignModal">
       <div class="w-full max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">

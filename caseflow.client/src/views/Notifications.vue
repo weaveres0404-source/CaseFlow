@@ -146,8 +146,11 @@ async function markAllRead() {
   await fetchNotifications()
 }
 
-function goToCase(n) {
-  if (!n.is_read) api.patch('/notifications/read', { notification_ids: [n.id] })
+async function goToCase(n) {
+  if (!n.is_read) {
+    await api.patch('/notifications/read', { notification_ids: [n.id] })
+    n.is_read = true
+  }
   if (n.case_id) router.push(`/cases/${n.case_id}`)
 }
 

@@ -39,7 +39,7 @@ namespace CaseFlow.Server.Controllers
             var categories = await _db.ProblemCategories.AsNoTracking()
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.SortOrder)
-                .Select(c => new { id = c.CategoryId, name = c.CategoryName })
+                .Select(c => new { id = c.CategoryId, name = c.CategoryName, case_type_filter = c.CaseTypeFilter })
                 .ToListAsync();
 
             var modules = await _db.SystemModules.AsNoTracking()
@@ -62,9 +62,10 @@ namespace CaseFlow.Server.Controllers
             var enums = new
             {
                 case_types = new[] {
-                    new { value = "REPAIR", label = "叫修" },
-                    new { value = "INQUIRY", label = "提問" },
-                    new { value = "EVALUATION", label = "評估需求" }
+                    new { value = "REPAIR",      label = "障礙調查" },
+                    new { value = "EVALUATION",  label = "工時評估" },
+                    new { value = "MAINTENANCE", label = "日常維運" },
+                    new { value = "UHD",         label = "UHD協助" }
                 },
                 priorities = new[] {
                     new { value = "HIGH", label = "高" },

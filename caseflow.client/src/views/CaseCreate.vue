@@ -44,15 +44,14 @@
               <label class="field-label">專案 <span class="req">*</span></label>
               <select v-model="form.project_id" class="input-base" required @change="onProjectChange">
                 <option :value="null">請選擇…</option>
-                <option v-for="project in meta.projects" :key="project.id" :value="project.id">{{ project.code }} {{ project.name }}</option>
+                <option v-for="project in availableProjects" :key="project.id" :value="project.id">{{ project.code }} {{ project.name }}</option>
               </select>
             </div>
             <div>
-              <label class="field-label">客戶 <span class="req">*</span></label>
-              <select v-model="form.customer_id" class="input-base" required>
-                <option :value="null">請選擇…</option>
-                <option v-for="customer in meta.customers" :key="customer.id" :value="customer.id">{{ customer.name }}</option>
-              </select>
+              <label class="field-label">客戶</label>
+              <div class="input-base bg-slate-50 text-slate-600 cursor-default select-none">
+                {{ selectedCustomerName || '（請先選擇專案）' }}
+              </div>
             </div>
 
             <div>
@@ -73,7 +72,7 @@
             <div class="md:col-span-2">
               <label class="field-label">案件類型 <span class="req">*</span></label>
               <div class="grid gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                <button v-for="type in caseTypes" :key="type.value" type="button" class="seg-btn" :class="{ active: form.case_type === type.value }" @click="form.case_type = type.value">
+                <button v-for="type in caseTypes" :key="type.value" type="button" class="seg-btn" :class="{ active: form.case_type === type.value }" @click="onCaseTypeChange(type.value)">
                   <span class="seg-dot"></span>{{ type.label }}
                 </button>
               </div>
@@ -83,8 +82,16 @@
               <label class="field-label">問題分類 <span class="req">*</span></label>
               <select v-model="form.category_id" class="input-base" required>
                 <option :value="null">請選擇…</option>
-                <option v-for="category in meta.categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                <option v-for="category in filteredCategories" :key="category.id" :value="category.id">{{ category.name }}</option>
               </select>
+            </div>
+            <div>
+              <label class="field-label">優先度 <span class="req">*</span></label>
+              <div class="grid grid-cols-3 gap-2">
+                <button v-for="p in priorities" :key="p.value" type="button" class="seg-btn" :class="{ active: form.priority === p.value }" @click="form.priority = p.value">
+                  <span class="seg-dot"></span>{{ p.label }}
+                </button>
+              </div>
             </div>
             <div>
               <label class="field-label">系統 / 模組 <span class="text-slate-400 text-[10px] font-normal">（依所選專案自動載入）</span></label>
@@ -168,10 +175,7 @@
 
       <div class="sticky bottom-0 -mx-4 px-4 py-3 md:-mx-6 md:px-6 lg:-mx-6 lg:px-6 bg-gradient-to-t from-[#fff7ed] via-[#fff7ed] to-[#fff7ed]/0">
         <div class="card-section grid gap-3 px-4 py-3 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div class="text-xs text-slate-400">
-            <span class="inline-block px-2 py-0.5 rounded bg-amber-50 text-amber-700 ring-1 ring-amber-200 text-[10px] mr-1.5">原型註記</span>
-            送出後案件進入 <b class="text-slate-600">10 待處理</b> 狀態；系統通知所屬專案全部啟用 PM
-          </div>
+
           <div class="grid gap-2 sm:grid-flow-col sm:auto-cols-max sm:justify-end">
             <router-link to="/cases" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg px-4 text-sm text-slate-600 hover:bg-slate-100">取消</router-link>
             <button type="button" @click="saveDraft" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-700 hover:bg-slate-50">
@@ -187,7 +191,7 @@
       </div>
     </form>
 
-    <p class="text-[11px] text-slate-400 mt-5">P-05 案件立案 · 對應 API：POST /cases · POST /attachments</p>
+
 
     <div v-if="showSimilarModal" class="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-5" @click.self="closeSimilarModal">
       <div class="modal-panel">
@@ -285,10 +289,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMetaStore } from '../stores/meta'
+import { useAuthStore } from '../stores/auth'
 import api from '../utils/api'
 
 const router = useRouter()
 const meta = useMetaStore()
+const auth = useAuthStore()
 
 const draftStorageKey = 'caseflow-case-create-draft'
 const maxDescriptionLength = 5000
@@ -314,18 +320,27 @@ const citeFilters = ref({
   date_to: ''
 })
 
-const VALID_CASE_TYPES = ['REPAIR', 'EVALUATION', 'INQUIRY']
+const VALID_CASE_TYPES = ['REPAIR', 'EVALUATION', 'MAINTENANCE', 'UHD', 'INQUIRY']
 
 const caseTypes = [
-  { value: 'REPAIR', label: '障礙調查' },
-  { value: 'EVALUATION', label: '工時評估' },
-  { value: 'INQUIRY', label: '查詢協助' }
+  { value: 'REPAIR',      label: '障礙調查' },
+  { value: 'EVALUATION',  label: '工時評估' },
+  { value: 'MAINTENANCE', label: '日常維運' },
+  { value: 'UHD',         label: 'UHD協助' }
+]
+
+const priorities = [
+  { value: 'HIGH',   label: '高' },
+  { value: 'MEDIUM', label: '中' },
+  { value: 'LOW',    label: '低' }
 ]
 
 const sec2Map = {
-  REPAIR: { title: '障礙描述', hint: '描述清楚可讓 SE 更快排查', placeholder: '請描述發生的障礙、發生頻率、預期行為、實際行為…' },
-  EVALUATION: { title: '評估需求', hint: '說明評估範圍與目標，供 SE 回報工時', placeholder: '請描述要評估的範圍、預期產出、交付期限…' },
-  INQUIRY: { title: '詢問內容', hint: '查詢操作方式或資料確認等', placeholder: '請描述要詢問的問題或希望協助確認的內容…' }
+  REPAIR:      { title: '障礙描述',   hint: '描述清楚可讓 SE 更快排查',           placeholder: '請描述發生的障礙、發生頻率、預期行為、實際行為…' },
+  EVALUATION:  { title: '評估需求',   hint: '說明評估範圍與目標，供 SE 回報工時', placeholder: '請描述要評估的範圍、預期產出、交付期限…' },
+  MAINTENANCE: { title: '維運內容',   hint: '詳述需要執行的日常維運項目',  placeholder: '請描述維運作業內容、影響範圍、預期完成時間…' },
+  UHD:         { title: 'UHD 申請內容', hint: 'UHD 協助作業說明',                    placeholder: '請描述需要協助的作業內容、相關帳號或資料範圍…' },
+  INQUIRY:     { title: '詢問內容',   hint: '查詢操作方式或資料確認等',       placeholder: '請描述要詢問的問題或希望協助確認的內容…' }
 }
 
 const dateRanges = [
@@ -357,7 +372,27 @@ const form = ref({
   description: ''
 })
 
+const availableProjects = computed(() => {
+  if (auth.role === 'SysAdmin') return meta.projects
+  const userId = auth.user?.user_id
+  const myProjectIds = new Set(
+    meta.projectMembers.filter(pm => pm.user_id === userId).map(pm => pm.project_id)
+  )
+  return meta.projects.filter(p => myProjectIds.has(p.id))
+})
+
 const filteredModules = computed(() => form.value.project_id ? meta.getModulesByProject(form.value.project_id) : [])
+const filteredCategories = computed(() => {
+  const type = form.value.case_type
+  if (!type) return meta.categories
+  return meta.categories.filter(c => !c.case_type_filter || c.case_type_filter === type)
+})
+const selectedCustomerName = computed(() => {
+  if (!form.value.project_id) return ''
+  const project = meta.projects.find(p => p.id === form.value.project_id)
+  if (!project?.customer_id) return ''
+  return meta.customers.find(c => c.id === project.customer_id)?.name ?? ''
+})
 const sec2Title = computed(() => sec2Map[form.value.case_type]?.title || sec2Map.REPAIR.title)
 const sec2Hint = computed(() => sec2Map[form.value.case_type]?.hint || sec2Map.REPAIR.hint)
 const sec2Placeholder = computed(() => sec2Map[form.value.case_type]?.placeholder || sec2Map.REPAIR.placeholder)
@@ -431,6 +466,11 @@ function similarCaseSeLabel(item) {
     return item.assigned_ses.map(se => se.full_name).join('、')
   }
   return '—'
+}
+
+function onCaseTypeChange(type) {
+  form.value.case_type = type
+  form.value.category_id = null
 }
 
 function onProjectChange() {

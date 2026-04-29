@@ -25,6 +25,10 @@ public partial class ProblemCategory
     [Column("sort_order")]
     public int SortOrder { get; set; }
 
+    [Column("case_type_filter")]
+    [StringLength(20)]
+    public string? CaseTypeFilter { get; set; }
+
     [Column("is_active")]
     public bool IsActive { get; set; }
 

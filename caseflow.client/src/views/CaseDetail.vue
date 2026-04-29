@@ -31,10 +31,6 @@
               :class="meta.statusMap[caseData.status]?.color || 'bg-slate-100 text-slate-700'">
               {{ meta.statusMap[caseData.status]?.label }}
             </span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-              :class="meta.caseTypeMap[caseData.case_type]?.color || 'bg-blue-50 text-blue-700'">
-              {{ meta.caseTypeMap[caseData.case_type]?.label }}
-            </span>
             <span v-if="slaBadge"
               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
               :class="slaUrgent ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'">
@@ -46,9 +42,6 @@
             </router-link>
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ caseData.case_number }}</h1>
-          <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-            {{ caseData.description?.substring(0, 120) }}<span v-if="(caseData.description?.length || 0) > 120">…</span>
-          </p>
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-xs text-slate-500">
             <span class="inline-flex items-center gap-1">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l3 9 6-4 6 4 3-9H3z"/></svg>
@@ -59,13 +52,6 @@
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
               {{ caseData.customer?.name }}
             </span>
-            <template v-if="caseData.category">
-              <span>·</span>
-              <span class="inline-flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                {{ caseData.category?.name }}
-              </span>
-            </template>
           </div>
         </div>
 
@@ -113,19 +99,28 @@
 
     <!-- Action bar -->
     <div v-if="availableActions.length" class="rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-2.5 flex items-center gap-3 flex-wrap">
-      <div class="flex items-center gap-1.5 text-xs text-amber-800">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        <span class="font-medium">可執行動作</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 grid place-items-center shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="leading-tight">
+          <div class="text-[12px] font-semibold text-amber-900">可執行動作</div>
+          <div class="text-[10.5px] text-amber-800/80">依當前狀態 <b>{{ meta.statusMap[caseData.status]?.label }}</b> × 角色 <b>{{ auth.role }}</b> 動態顯示</div>
+        </div>
       </div>
       <div class="flex-1"></div>
       <div class="flex flex-wrap gap-2">
         <button v-for="action in availableActions" :key="action.label"
           @click="action.handler()"
-          class="h-8 px-3.5 rounded-lg text-xs font-medium transition"
+          class="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg border text-[13px] font-medium transition"
           :class="action.class">
+          <svg v-if="action.icon" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="action.icon"/>
           {{ action.label }}
         </button>
       </div>
+      <button class="h-8 px-2 inline-flex items-center rounded-lg hover:bg-amber-100 text-amber-800" title="更多">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 12h.01M12 12h.01M7 12h.01"/></svg>
+      </button>
     </div>
 
     <!-- Tabs container -->
@@ -549,41 +544,55 @@ const availableActions = computed(() => {
   const r = auth.role
   const actions = []
 
+  const I = {
+    wrench:  '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    userPlus:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2" fill="none"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 8v6M22 11h-6"/>',
+    check:   '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 4 12 14.01l-3-3"/>',
+    msg:     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    flag:    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15" stroke-linecap="round" stroke-width="2"/>',
+    undo:    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14 4 9l5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    ban:     '<circle cx="12" cy="12" r="10" stroke-width="2" fill="none"/><path stroke-linecap="round" stroke-width="2" d="M4.93 4.93l14.14 14.14"/>',
+    rotate:  '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v5h5"/>'
+  }
+
   // 新增處理紀錄: [10,20,30,35], PM/SE/SysAdmin — status 30 時降格為 outline
   if ([10, 20, 30, 35].includes(s) && ['PM', 'SE', 'SysAdmin'].includes(r))
     actions.push({
       label: '新增處理紀錄',
+      icon: I.wrench,
       handler: () => { activeTab.value = 'logs'; showLogForm.value = true },
-      class: s === 30
-        ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-        : 'bg-brand-700 text-white hover:bg-brand-800'
+      class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
     })
 
   // 轉派 SE: [10,35], PM/SysAdmin
   if ([10, 35].includes(s) && ['PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '轉派 SE', handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'bg-blue-600 text-white hover:bg-blue-700' })
+    actions.push({ label: '轉派 SE', icon: I.userPlus, handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   // 回報完工: [30], SE/SysAdmin — 綠色 + pulse
   if (s === 30 && ['SE', 'SysAdmin'].includes(r))
-    actions.push({ label: '回報完工', handler: () => doAction('complete', '確認此案件已完工？'), class: 'bg-green-600 text-white hover:bg-green-700 animate-pulse' })
+    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm animate-pulse' })
+
+  // 回報完工: [20,35], SE/SysAdmin — outline
+  if ([20, 35].includes(s) && ['SE', 'SysAdmin'].includes(r))
+    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50' })
 
   // 回覆客戶: [10,30], PM/SysAdmin
   if ([10, 30].includes(s) && ['PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '回覆客戶', handler: () => { activeTab.value = 'replies'; showReplyForm.value = true }, class: 'bg-teal-600 text-white hover:bg-teal-700' })
+    actions.push({ label: '回覆客戶', icon: I.msg, handler: () => { activeTab.value = 'replies'; showReplyForm.value = true }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   // 確認結案 + 退回: [40], PM/SysAdmin
   if (s === 40 && ['PM', 'SysAdmin'].includes(r)) {
-    actions.push({ label: '確認結案', handler: () => doAction('close', '確認結案？'), class: 'bg-emerald-600 text-white hover:bg-emerald-700' })
-    actions.push({ label: '退回', handler: () => doAction('return', '確認退回此案件？'), class: 'bg-red-500 text-white hover:bg-red-600' })
+    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800 shadow-sm' })
+    actions.push({ label: '退回', icon: I.undo, handler: () => doAction('return', '確認退回此案件？'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
   }
 
   // 取消: [10,20,30,35,40], PM/SysAdmin
   if ([10, 20, 30, 35, 40].includes(s) && ['PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '取消', handler: () => doAction('cancel', '確認取消此案件？此操作不可逆'), class: 'bg-gray-600 text-white hover:bg-gray-700' })
+    actions.push({ label: '取消', icon: I.ban, handler: () => doAction('cancel', '確認取消此案件？此操作不可逆'), class: 'border-rose-200 bg-white text-rose-700 hover:bg-rose-50' })
 
   // 重開: [50,60], PM/SysAdmin
   if ([50, 60].includes(s) && ['PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '重開', handler: () => doAction('reopen', '將以舊案為範本建立新案件'), class: 'bg-indigo-600 text-white hover:bg-indigo-700' })
+    actions.push({ label: '重開', icon: I.rotate, handler: () => doAction('reopen', '將以舊案為範本建立新案件'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   return actions
 })
