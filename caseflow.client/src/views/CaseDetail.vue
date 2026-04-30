@@ -46,13 +46,13 @@
             </router-link>
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ caseData.case_number }}</h1>
-          <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-xs text-slate-500">
-            <span class="inline-flex items-center gap-1">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-xs text-slate-500 min-w-0">
+            <span class="inline-flex items-start gap-1 min-w-0 break-words [overflow-wrap:anywhere]">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l3 9 6-4 6 4 3-9H3z"/></svg>
               {{ caseData.project?.code }} {{ caseData.project?.name }}
             </span>
             <span>·</span>
-            <span class="inline-flex items-center gap-1">
+            <span class="inline-flex items-start gap-1 min-w-0 break-words [overflow-wrap:anywhere]">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
               {{ caseData.customer?.name }}
             </span>
@@ -65,15 +65,15 @@
           <dl class="space-y-2 text-[13px]">
             <div class="flex items-start gap-1.5">
               <dt class="w-14 shrink-0 text-slate-400">立案人</dt>
-              <dd class="text-slate-700 font-medium">{{ caseData.created_by?.full_name || '—' }}</dd>
+              <dd class="min-w-0 text-slate-700 font-medium break-words [overflow-wrap:anywhere]">{{ caseData.created_by?.full_name || '—' }}</dd>
             </div>
             <div class="flex items-start gap-1.5">
               <dt class="w-14 shrink-0 text-slate-400">轉派 PM</dt>
-              <dd class="text-slate-700 font-medium">{{ caseData.assigned_pm?.full_name || '—' }}</dd>
+              <dd class="min-w-0 text-slate-700 font-medium break-words [overflow-wrap:anywhere]">{{ caseData.assigned_pm?.full_name || '—' }}</dd>
             </div>
             <div class="flex items-start gap-1.5">
               <dt class="w-14 shrink-0 text-slate-400">處理 SE</dt>
-              <dd class="text-slate-700">
+              <dd class="min-w-0 text-slate-700 break-words [overflow-wrap:anywhere]">
                 <template v-if="activeAssignments.length">
                   <span v-for="(a, i) in activeAssignments" :key="a.id" class="font-medium">
                     {{ a.se?.full_name }}<span v-if="i < activeAssignments.length - 1">、</span>
@@ -146,28 +146,30 @@
 
         <!-- Tab: 基本資訊 -->
         <div v-if="activeTab === 'info'" class="space-y-5">
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
-            <div><p class="text-xs text-slate-400 mb-0.5">問題分類</p><p class="text-sm text-slate-900">{{ caseData.category?.name || '—' }}</p></div>
-            <div><p class="text-xs text-slate-400 mb-0.5">系統/模組</p><p class="text-sm text-slate-900">{{ caseData.module?.name || '—' }}</p></div>
-            <div><p class="text-xs text-slate-400 mb-0.5">報修人</p><p class="text-sm text-slate-900">{{ caseData.reporter_name || '—' }}</p></div>
-            <div><p class="text-xs text-slate-400 mb-0.5">聯絡電話</p><p class="text-sm text-slate-900">{{ caseData.reporter_phone || '—' }}</p></div>
-            <div><p class="text-xs text-slate-400 mb-0.5">聯絡 Email</p><p class="text-sm text-slate-900">{{ caseData.reporter_email || '—' }}</p></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
+            <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">問題分類</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.category?.name || '—' }}</p></div>
+            <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">系統/模組</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.module?.name || '—' }}</p></div>
+            <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">報修人</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.reporter_name || '—' }}</p></div>
+            <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">聯絡電話</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.reporter_phone || '—' }}</p></div>
+            <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">聯絡 Email</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.reporter_email || '—' }}</p></div>
           </div>
           <div>
             <p class="text-xs text-slate-400 mb-1">問題描述</p>
-            <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap bg-slate-50 rounded-lg px-4 py-3 border border-slate-100">{{ caseData.description }}</div>
+            <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-slate-50 rounded-lg px-4 py-3 border border-slate-100">{{ caseData.description }}</div>
           </div>
           <div v-if="caseAttachments.length > 0">
             <p class="text-xs text-slate-400 mb-2">附件</p>
             <div class="space-y-2">
               <div v-for="att in caseAttachments" :key="att.id"
-                class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg border border-slate-100">
-                <div class="flex items-center gap-2 text-sm">
+                class="flex items-start justify-between gap-3 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-start gap-2 text-sm min-w-0 flex-1">
                   <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                  <span class="font-medium text-slate-700">{{ att.file_name }}</span>
-                  <span class="text-slate-400 text-xs">{{ formatFileSize(att.file_size) }}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="font-medium text-slate-700 break-words [overflow-wrap:anywhere]">{{ att.file_name }}</div>
+                    <div class="text-slate-400 text-xs mt-0.5">{{ formatFileSize(att.file_size) }}</div>
+                  </div>
                 </div>
-                <a :href="`/api/v1/attachments/${att.id}/download`" class="text-brand-700 text-xs hover:underline">下載</a>
+                <a :href="`/api/v1/attachments/${att.id}/download`" class="text-brand-700 text-xs hover:underline shrink-0">下載</a>
               </div>
             </div>
           </div>
@@ -192,11 +194,34 @@
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
               <div><label class="label">工時 (hr) *</label><input v-model.number="logForm.hours_spent" type="number" step="0.5" min="0" class="input-base" /></div>
             </div>
-            <div><label class="label">處理方式 *</label><textarea v-model="logForm.handling_method" rows="2" class="input-base"></textarea></div>
-            <div><label class="label">處理結果</label><textarea v-model="logForm.handling_result" rows="2" class="input-base"></textarea></div>
+            <div><label class="label">處理方式 *</label><textarea v-model="logForm.handling_method" rows="4" class="input-base resize-y" placeholder="本次做了什麼（例：檢查 Log、重現問題、調整設定…）"></textarea></div>
+            <div><label class="label">處理結果 / 下一步</label><textarea v-model="logForm.handling_result" rows="3" class="input-base resize-y" placeholder="結果、觀察、尚待確認事項…"></textarea></div>
+            <!-- 附件 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="label">附件</label>
+                <button type="button" @click="$refs.logFileInput.click()"
+                  class="inline-flex items-center gap-1.5 text-xs text-brand-700 hover:text-brand-800 font-medium">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                  加入附件
+                </button>
+              </div>
+              <input ref="logFileInput" type="file" multiple class="hidden" @change="onLogFileChange" />
+              <div v-if="logAttachments.length" class="space-y-1.5">
+                <div v-for="(att, i) in logAttachments" :key="i"
+                  class="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs">
+                  <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                  <span class="flex-1 truncate text-slate-700">{{ att.name }}</span>
+                  <span class="text-slate-400 tabular-nums">{{ (att.size / 1024).toFixed(0) }} KB</span>
+                  <button @click="logAttachments.splice(i,1)" class="text-slate-400 hover:text-rose-500">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
             <div class="flex justify-end gap-2">
-              <button @click="showLogForm = false" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
-              <button @click="submitLog" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">送出</button>
+              <button @click="cancelLogForm" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
+              <button @click="submitLog" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">✓ 送出</button>
             </div>
           </div>
           <div class="divide-y divide-slate-100">
@@ -210,8 +235,8 @@
                 <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-blue-50 text-blue-700 tabular-nums">{{ log.hours_spent }} hr</span>
               </div>
               <div class="border-l-2 border-brand-200 pl-3 space-y-1">
-                <p class="text-sm"><span class="text-slate-400 text-xs">處理方式</span><br>{{ log.handling_method }}</p>
-                <p v-if="log.handling_result" class="text-sm text-slate-600"><span class="text-slate-400 text-xs">處理結果</span><br>{{ log.handling_result }}</p>
+                <div class="text-sm whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理方式</span>{{ log.handling_method }}</div>
+                <div v-if="log.handling_result" class="text-sm text-slate-600 whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理結果</span>{{ log.handling_result }}</div>
               </div>
             </div>
             <div v-if="!(caseData.logs?.length)" class="py-8 text-center text-sm text-slate-400">尚無處理紀錄</div>
@@ -318,7 +343,7 @@
           </div>
           <div v-if="showReplyForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
             <div><label class="label">回覆日期</label><input v-model="replyForm.reply_date" type="date" class="input-base" /></div>
-            <div><label class="label">回覆內容 *</label><textarea v-model="replyForm.reply_content" rows="4" class="input-base"></textarea></div>
+            <div><label class="label">回覆內容 *</label><textarea v-model="replyForm.reply_content" rows="5" class="input-base resize-y" placeholder="回覆內容…"></textarea></div>
             <div class="flex justify-end gap-2">
               <button @click="showReplyForm = false" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
               <button @click="submitReply" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">送出</button>
@@ -469,6 +494,21 @@ const showEstForm = ref(false)
 const showReplyForm = ref(false)
 
 const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 })
+const logAttachments = ref([])
+
+function onLogFileChange(e) {
+  for (const file of e.target.files) {
+    if (file.size > 20 * 1024 * 1024) continue
+    if (!logAttachments.value.some(f => f.name === file.name && f.size === file.size))
+      logAttachments.value.push(file)
+  }
+  e.target.value = ''
+}
+
+function cancelLogForm() {
+  showLogForm.value = false
+  logAttachments.value = []
+}
 
 const assignModal = ref({
   show: false,
@@ -640,9 +680,21 @@ async function handleConfirm() {
 }
 
 async function submitLog() {
-  await api.post(`/cases/${caseId.value}/logs`, logForm.value)
+  const { data: res } = await api.post(`/cases/${caseId.value}/logs`, logForm.value)
+  const logId = res.data?.id
+  // 上傳附件
+  if (logId && logAttachments.value.length) {
+    for (const file of logAttachments.value) {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('entity_type', 'case_log')
+      fd.append('entity_id', logId)
+      await api.post('/attachments', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    }
+  }
   showLogForm.value = false
   logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 }
+  logAttachments.value = []
   await fetchCase()
 }
 

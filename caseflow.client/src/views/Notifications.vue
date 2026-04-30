@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto space-y-5">
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <div>
+      <div class="min-w-0">
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
           <router-link to="/dashboard" class="hover:text-slate-700">儀表板</router-link>
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -10,7 +10,7 @@
         <h1 class="text-2xl md:text-[28px] font-bold text-slate-900 tracking-tight">通知中心</h1>
         <p class="text-sm text-slate-500 mt-1">集中查看派工、完工、退回與估工相關通知。</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 shrink-0">
         <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500 shadow-sm">
           <span class="w-2 h-2 rounded-full bg-rose-500"></span>
           未讀
@@ -76,10 +76,10 @@
               <span class="text-xs text-slate-400 tabular-nums">{{ formatTime(n.created_at) }}</span>
               <span v-if="!n.is_read" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 ring-1 ring-rose-200">未讀</span>
             </div>
-            <div class="text-sm font-medium text-slate-900 truncate">{{ notificationTitle(n) }}</div>
-            <p class="text-sm mt-1 text-slate-600 leading-relaxed">{{ n.message }}</p>
+            <div class="text-sm font-medium text-slate-900 break-words [overflow-wrap:anywhere]">{{ notificationTitle(n) }}</div>
+            <p class="text-sm mt-1 text-slate-600 leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-wrap">{{ n.message }}</p>
             <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-              <span v-if="n.case_number" class="tabular-nums">案件：{{ n.case_number }}</span>
+              <span v-if="n.case_number" class="tabular-nums break-words [overflow-wrap:anywhere]">案件：{{ n.case_number }}</span>
               <span v-if="n.case_id" class="inline-flex items-center gap-1 text-brand-700">查看案件
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </span>

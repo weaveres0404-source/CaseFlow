@@ -216,11 +216,11 @@
                   </span>
                 </div>
               </td>
-              <td>
-                <div class="text-[13px] font-medium text-slate-900 truncate max-w-[200px]">{{ c.project?.code }}</div>
-                <div class="text-xs text-slate-500">{{ c.project?.name }}</div>
+              <td class="min-w-0">
+                <div class="text-[13px] font-medium text-slate-900 break-words [overflow-wrap:anywhere] max-w-[200px]">{{ c.project?.code }}</div>
+                <div class="text-xs text-slate-500 break-words [overflow-wrap:anywhere] max-w-[200px]">{{ c.project?.name }}</div>
               </td>
-              <td class="text-[13px] text-slate-700">{{ c.customer?.name }}</td>
+              <td class="text-[13px] text-slate-700 break-words [overflow-wrap:anywhere] max-w-[180px]">{{ c.customer?.name }}</td>
               <td>
                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium"
                   :class="meta.caseTypeMap[c.case_type]?.color || 'bg-slate-100 text-slate-600'">
@@ -234,7 +234,7 @@
                   {{ meta.statusMap[c.status]?.label || c.status }}
                 </span>
               </td>
-              <td class="text-[13px] text-slate-700">{{ c.created_by?.full_name || '—' }}</td>
+              <td class="text-[13px] text-slate-700 break-words [overflow-wrap:anywhere] max-w-[160px]">{{ c.created_by?.full_name || '—' }}</td>
               <td>
                 <SeChips :ses="activeSEs(c)" />
               </td>
@@ -264,8 +264,8 @@
               {{ meta.statusMap[c.status]?.label || c.status }}
             </span>
           </div>
-          <div class="text-sm font-medium text-slate-900">{{ c.project?.name }}</div>
-          <div class="text-xs text-slate-500 mb-2">{{ c.customer?.name }}</div>
+          <div class="text-sm font-medium text-slate-900 break-words [overflow-wrap:anywhere]">{{ c.project?.name }}</div>
+          <div class="text-xs text-slate-500 mb-2 break-words [overflow-wrap:anywhere]">{{ c.customer?.name }}</div>
           <div class="flex items-center gap-2">
             <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium"
               :class="meta.caseTypeMap[c.case_type]?.color || 'bg-slate-100 text-slate-600'">

@@ -85,14 +85,7 @@
                 <option v-for="category in filteredCategories" :key="category.id" :value="category.id">{{ category.name }}</option>
               </select>
             </div>
-            <div>
-              <label class="field-label">優先度 <span class="req">*</span></label>
-              <div class="grid grid-cols-3 gap-2">
-                <button v-for="p in priorities" :key="p.value" type="button" class="seg-btn" :class="{ active: form.priority === p.value }" @click="form.priority = p.value">
-                  <span class="seg-dot"></span>{{ p.label }}
-                </button>
-              </div>
-            </div>
+
             <div>
               <label class="field-label">系統 / 模組 <span class="text-slate-400 text-[10px] font-normal">（依所選專案自動載入）</span></label>
               <select v-model="form.module_id" class="input-base">
@@ -329,11 +322,7 @@ const caseTypes = [
   { value: 'UHD',         label: 'UHD協助' }
 ]
 
-const priorities = [
-  { value: 'HIGH',   label: '高' },
-  { value: 'MEDIUM', label: '中' },
-  { value: 'LOW',    label: '低' }
-]
+
 
 const sec2Map = {
   REPAIR:      { title: '障礙描述',   hint: '描述清楚可讓 SE 更快排查',           placeholder: '請描述發生的障礙、發生頻率、預期行為、實際行為…' },

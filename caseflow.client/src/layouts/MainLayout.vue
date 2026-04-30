@@ -1,18 +1,18 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-800">
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur transition-[padding] duration-300" :class="sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-[300px]'">
-      <div class="flex h-[64px] items-center justify-between px-4 lg:px-6">
-        <div class="flex items-center gap-3">
+      <div class="flex h-[64px] items-center justify-between px-4 lg:px-6 gap-4">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
           <button @click="toggleNav" class="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 lg:hidden" aria-label="切換選單">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
           </button>
           
-          <h1 class="text-[18px] font-medium tracking-tight text-slate-800">{{ pageTitle }}</h1>
+          <h1 class="min-w-0 truncate text-[18px] font-medium tracking-tight text-slate-800">{{ pageTitle }}</h1>
         </div>
 
-        <div class="flex items-center gap-5 lg:gap-7">
+        <div class="flex items-center gap-5 lg:gap-7 shrink-0">
           <router-link to="/notifications" class="relative text-slate-500 transition-colors hover:text-slate-700">
             <svg class="h-[22px] w-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.25 18.75a2.25 2.25 0 01-4.5 0M4.5 16.5h15c-.75-.75-1.5-2.625-1.5-6a6 6 0 10-12 0c0 3.375-.75 5.25-1.5 6z" />
@@ -28,8 +28,8 @@
             <div class="grid h-10 w-10 place-items-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 transition-colors group-hover:bg-indigo-200">
               {{ userInitial }}
             </div>
-            <div class="hidden items-center gap-2 sm:flex">
-              <div class="text-[15px] font-medium text-slate-700">
+            <div class="hidden items-center gap-2 sm:flex min-w-0">
+              <div class="max-w-[160px] truncate text-[15px] font-medium text-slate-700">
                 {{ displayName }}
               </div>
             </div>

@@ -69,10 +69,10 @@
           <tbody class="divide-y divide-slate-100">
             <tr v-for="cat in categories" :key="cat.id" class="hover:bg-slate-50">
               <td class="px-5 py-4">
-                <div class="font-medium text-slate-900">{{ cat.name }}</div>
+                <div class="font-medium text-slate-900 break-words [overflow-wrap:anywhere]">{{ cat.name }}</div>
                 <div class="text-xs text-slate-400 tabular-nums mt-1">ID {{ cat.id }}</div>
               </td>
-              <td class="px-5 py-4 text-slate-600 max-w-md">{{ cat.description || '—' }}</td>
+              <td class="px-5 py-4 text-slate-600 max-w-md break-words [overflow-wrap:anywhere] whitespace-pre-wrap">{{ cat.description || '—' }}</td>
               <td class="px-5 py-4 tabular-nums text-slate-700">{{ cat.sort_order }}</td>
               <td class="px-5 py-4">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" :class="cat.is_active ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'">
@@ -98,8 +98,8 @@
         <div v-for="cat in categories" :key="cat.id" class="px-4 py-4">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
-              <div class="font-medium text-slate-900">{{ cat.name }}</div>
-              <div class="text-xs text-slate-500 mt-1">{{ cat.description || '未填寫描述' }}</div>
+              <div class="font-medium text-slate-900 break-words [overflow-wrap:anywhere]">{{ cat.name }}</div>
+              <div class="text-xs text-slate-500 mt-1 break-words [overflow-wrap:anywhere] whitespace-pre-wrap">{{ cat.description || '未填寫描述' }}</div>
             </div>
             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" :class="cat.is_active ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'">{{ cat.is_active ? '啟用' : '停用' }}</span>
           </div>

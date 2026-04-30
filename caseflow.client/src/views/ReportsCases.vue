@@ -113,7 +113,7 @@
             <template v-else>
               <tr v-for="(row, idx) in rows" :key="row.label + idx" class="hover:bg-slate-50 transition-colors">
                 <td class="px-5 py-3.5 text-slate-400 tabular-nums text-xs">{{ idx + 1 }}</td>
-                <td class="px-5 py-3.5 font-medium text-slate-900">{{ row.label }}</td>
+                <td class="px-5 py-3.5 font-medium text-slate-900 break-words [overflow-wrap:anywhere] max-w-md">{{ row.label }}</td>
                 <td class="px-5 py-3.5 text-right font-semibold text-indigo-700 tabular-nums">{{ row.value.toLocaleString() }}</td>
                 <td class="px-5 py-3.5">
                   <div class="flex items-center gap-2">

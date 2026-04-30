@@ -10,10 +10,10 @@
         <h1 class="text-2xl md:text-[28px] font-bold text-slate-900 tracking-tight">個人設定</h1>
         <p class="text-sm text-slate-500 mt-1">檢視目前登入身分、角色權限與最近一次登入資訊。</p>
       </div>
-      <div class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-500 shadow-sm w-fit">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-500 shadow-sm w-fit max-w-full">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         登入中
-        <span class="font-medium text-slate-700">{{ displayName }}</span>
+        <span class="font-medium text-slate-700 break-words [overflow-wrap:anywhere]">{{ displayName }}</span>
       </div>
     </div>
 
@@ -31,8 +31,8 @@
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-white/15 bg-white/10 text-slate-100">{{ roleLabel }}</span>
                 <span class="text-xs text-slate-400 tabular-nums">{{ usernameText }}</span>
               </div>
-              <h2 class="text-2xl font-semibold text-white truncate">{{ displayName }}</h2>
-              <p class="text-sm text-slate-300 mt-1 truncate">{{ emailText }}</p>
+              <h2 class="text-2xl font-semibold text-white break-words [overflow-wrap:anywhere]">{{ displayName }}</h2>
+              <p class="text-sm text-slate-300 mt-1 break-words [overflow-wrap:anywhere]">{{ emailText }}</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3 text-xs min-w-[240px]">
@@ -62,15 +62,15 @@
           <dl class="divide-y divide-slate-200">
             <div class="py-3 flex items-start justify-between gap-4">
               <dt class="text-sm text-slate-500">顯示名稱</dt>
-              <dd class="text-sm font-medium text-slate-900 text-right">{{ displayName }}</dd>
+              <dd class="min-w-0 text-sm font-medium text-slate-900 text-right break-words [overflow-wrap:anywhere]">{{ displayName }}</dd>
             </div>
             <div class="py-3 flex items-start justify-between gap-4">
               <dt class="text-sm text-slate-500">帳號</dt>
-              <dd class="text-sm font-medium text-slate-900 tabular-nums text-right">{{ usernameText }}</dd>
+              <dd class="min-w-0 text-sm font-medium text-slate-900 tabular-nums text-right break-words [overflow-wrap:anywhere]">{{ usernameText }}</dd>
             </div>
             <div class="py-3 flex items-start justify-between gap-4">
               <dt class="text-sm text-slate-500">Email</dt>
-              <dd class="text-sm font-medium text-slate-900 text-right break-all">{{ emailText }}</dd>
+              <dd class="min-w-0 text-sm font-medium text-slate-900 text-right break-words [overflow-wrap:anywhere]">{{ emailText }}</dd>
             </div>
             <div class="py-3 flex items-start justify-between gap-4">
               <dt class="text-sm text-slate-500">角色</dt>

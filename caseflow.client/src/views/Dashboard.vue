@@ -76,10 +76,10 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="tabular-nums text-sm font-medium text-indigo-700">{{ item.case_number }}</span>
                 <span class="text-[11px] px-1.5 py-0.5 rounded-full ring-1" :class="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
-                <span class="text-[11px] px-1.5 py-0.5 rounded-full ring-1" :class="priorityClass(item.priority)">{{ priorityLabel(item.priority) }}</span>
+
               </div>
-              <div class="text-sm text-slate-800 mt-1 truncate">{{ item.project?.code }} · {{ item.customer?.name }}</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">立案人 {{ item.created_by?.full_name || '—' }} · {{ formatTime(item.updated_at) }}</div>
+              <div class="text-sm text-slate-800 mt-1 break-words [overflow-wrap:anywhere]">{{ item.project?.code }} · {{ item.customer?.name }}</div>
+              <div class="text-[11px] text-slate-500 mt-0.5 break-words [overflow-wrap:anywhere]">立案人 {{ item.created_by?.full_name || '—' }} · {{ formatTime(item.updated_at) }}</div>
             </div>
           </li>
           <li v-if="openCases.length === 0" class="px-5 py-12 text-center text-sm text-slate-400">目前沒有待辦案件</li>
@@ -251,8 +251,7 @@ const notifications = ref([])
 
 const statusLabel = status => meta.statusMap[status]?.label || status
 const statusClass = status => meta.statusMap[status]?.color || 'bg-slate-100 text-slate-600 ring-slate-200'
-const priorityLabel = priority => meta.priorityMap[priority]?.label || priority || '未設定'
-const priorityClass = priority => meta.priorityMap[priority]?.color || 'bg-slate-100 text-slate-600 ring-slate-200'
+
 
 function statusDotColor(status) {
   const map = { 10: 'bg-slate-400', 20: 'bg-blue-500', 30: 'bg-amber-500', 35: 'bg-red-500', 40: 'bg-green-500', 50: 'bg-violet-500', 60: 'bg-rose-500' }
