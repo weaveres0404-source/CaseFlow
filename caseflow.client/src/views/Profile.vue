@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-5xl mx-auto space-y-5">
+  <div class="mx-auto flex w-full max-w-[1200px] flex-col gap-4">
     <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
       <div>
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
@@ -17,8 +17,8 @@
       </div>
     </div>
 
-    <section class="bg-white border border-slate-200 rounded-2xl shadow-card overflow-hidden">
-      <div class="px-6 py-6 md:px-8 md:py-7 bg-slate-900 text-slate-100 relative overflow-hidden">
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="relative overflow-hidden bg-slate-900 px-6 py-5 text-slate-100 md:px-7 md:py-6">
         <div class="absolute inset-0 opacity-40" style="background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:36px 36px"></div>
         <div class="absolute -top-24 right-0 w-72 h-72 opacity-60" style="background:radial-gradient(circle at center, rgba(129,140,248,.35), rgba(67,56,202,0) 70%)"></div>
         <div class="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -48,8 +48,8 @@
         </div>
       </div>
 
-      <div class="p-6 md:p-8 grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
-        <section class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+      <div class="grid gap-4 p-5 md:p-6 lg:grid-cols-[1.15fr_.85fr]">
+        <section class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-8 h-8 rounded-xl bg-brand-50 text-brand-700 grid place-items-center">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -83,8 +83,8 @@
           </dl>
         </section>
 
-        <section class="space-y-4">
-          <div class="rounded-2xl border border-slate-200 bg-white p-5">
+        <section class="space-y-3">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 grid place-items-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -106,7 +106,7 @@
             </ul>
           </div>
 
-          <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-5 text-sm text-amber-900">
+          <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 md:p-5">
             <div class="font-medium mb-1">權限提示</div>
             <p class="leading-relaxed">您目前以 {{ roleLabel }} 身分操作系統；側邊選單與案件操作按鈕會依此角色自動調整。</p>
           </div>

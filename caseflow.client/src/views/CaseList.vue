@@ -1,7 +1,7 @@
 <template>
-  <div class="px-1">
+  <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
     <!-- Header -->
-    <div class="flex items-start justify-between gap-3 mb-4">
+    <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1">
           <router-link to="/dashboard" class="hover:text-slate-700">儀表板</router-link>
@@ -31,7 +31,7 @@
     </div>
 
     <!-- Quick Tabs -->
-    <div class="flex items-center gap-1 mb-3 overflow-x-auto pb-1 thin-scroll">
+    <div class="flex items-center gap-1 overflow-x-auto pb-1 thin-scroll">
       <button v-for="tab in quickTabs" :key="tab.key" @click="switchTab(tab.key)"
         class="h-8 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all"
         :class="activeTab === tab.key
@@ -48,7 +48,7 @@
     </div>
 
     <!-- Filter Bar -->
-    <section class="bg-white border border-slate-200 rounded-xl mb-4 shadow-sm">
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="p-2.5 flex items-center gap-2">
         <div class="relative flex-1">
           <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@
       </div>
     </section>
 
-    <div v-if="selectedCount > 0" class="mb-3 rounded-xl bg-brand-700 text-white px-4 py-2.5 flex items-center gap-3 text-sm shadow-sm">
+    <div v-if="selectedCount > 0" class="rounded-xl bg-brand-700 px-4 py-2.5 text-sm text-white shadow-sm flex items-center gap-3">
       <span class="tabular-nums">{{ selectedCount }} 件已選取</span>
       <div class="flex-1"></div>
       <button v-if="auth.role !== 'SE'" type="button" @click="openAssignModal" class="px-2.5 h-8 rounded-md bg-white/10 hover:bg-white/20 inline-flex items-center gap-1.5">
@@ -162,7 +162,7 @@
     </div>
 
     <!-- Table Section -->
-    <section class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-200 text-xs">
         <div class="text-slate-600">共 <span class="tabular-nums font-semibold text-slate-900">{{ totalCount }}</span> 筆 · 顯示 <span class="tabular-nums">{{ displayRangeStart }}–{{ displayRangeEnd }}</span></div>
         <div class="flex items-center gap-2 text-slate-500">

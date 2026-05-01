@@ -1,6 +1,6 @@
 <template>
   <!-- Main content (when caseData loaded) -->
-  <div class="space-y-5 pb-10" v-if="caseData">
+  <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4 pb-8" v-if="caseData">
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-1.5 text-xs text-slate-500">
@@ -22,7 +22,7 @@
     </div>
 
     <!-- Header card -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-card p-5 md:p-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
       <div class="flex items-start gap-5">
         <!-- Left info -->
         <div class="flex-1 min-w-0">
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Right people sidebar -->
-        <aside class="hidden md:block w-60 shrink-0 bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+        <aside class="hidden md:block w-60 shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
           <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-2">關係人</p>
           <dl class="space-y-2 text-[13px]">
             <div class="flex items-start gap-1.5">
@@ -128,7 +128,7 @@
     </div>
 
     <!-- Tabs container -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-card overflow-hidden">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="border-b border-slate-200 overflow-x-auto">
         <nav class="flex -mb-px px-1">
           <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"

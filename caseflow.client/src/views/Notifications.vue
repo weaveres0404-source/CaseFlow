@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto space-y-5">
+  <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div class="min-w-0">
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
@@ -24,21 +24,21 @@
     </div>
 
     <section class="grid gap-3 md:grid-cols-3">
-      <article class="bg-white border border-slate-200 rounded-2xl px-4 py-4 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm">
         <div class="text-xs text-slate-500">目前頁面</div>
         <div class="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{{ page }}</div>
       </article>
-      <article class="bg-white border border-slate-200 rounded-2xl px-4 py-4 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm">
         <div class="text-xs text-slate-500">未讀通知</div>
         <div class="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{{ unreadCount }}</div>
       </article>
-      <article class="bg-white border border-slate-200 rounded-2xl px-4 py-4 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm">
         <div class="text-xs text-slate-500">已讀通知</div>
         <div class="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{{ readCount }}</div>
       </article>
     </section>
 
-    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="px-5 py-4 border-b border-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 class="text-sm font-semibold text-slate-900">通知篩選</h2>

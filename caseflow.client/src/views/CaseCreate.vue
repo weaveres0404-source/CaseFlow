@@ -1,7 +1,7 @@
 <template>
-  <div class="grid justify-items-center pb-28">
-    <div class="w-full max-w-[980px] rounded-[28px] border border-orange-100 bg-[linear-gradient(180deg,#fff7ed_0%,#ffffff_14%,#ffffff_100%)] p-4 shadow-[0_18px_40px_rgba(15,23,42,0.06)] md:p-6">
-    <div class="mb-5 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
+  <div class="mx-auto w-full max-w-[980px] px-4 py-6 pb-24 md:px-6 lg:px-7">
+    <div class="w-full">
+    <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div class="min-w-0">
         <div class="mb-1 inline-grid grid-flow-col auto-cols-max items-center gap-1 text-xs text-slate-500">
           <router-link to="/dashboard" class="hover:text-slate-700">儀表板</router-link>
@@ -14,7 +14,7 @@
           <h1 class="text-xl md:text-[22px] font-bold text-slate-900 tracking-tight">新增案件</h1>
         </div>
       </div>
-      <div class="grid justify-start lg:justify-end">
+      <div class="shrink-0 md:self-start">
         <button type="button" @click="openSimilarModal"
           class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-sm font-medium text-indigo-800 hover:bg-indigo-100">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -32,14 +32,14 @@
       </button>
     </div>
 
-    <form @submit.prevent="submit" class="space-y-4">
+    <form @submit.prevent="submit" class="flex flex-col gap-6">
       <section class="card-section">
         <div class="card-head">
           <div class="card-head-num">1</div>
           <h2 class="text-[15px] font-semibold text-slate-900">基本資訊</h2>
         </div>
         <div class="card-body">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+          <div class="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
             <div>
               <label class="field-label">專案 <span class="req">*</span></label>
               <select v-model="form.project_id" class="input-base" required @change="onProjectChange">
@@ -71,7 +71,7 @@
 
             <div class="md:col-span-2">
               <label class="field-label">案件類型 <span class="req">*</span></label>
-              <div class="grid gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div class="flex flex-wrap gap-2">
                 <button v-for="type in caseTypes" :key="type.value" type="button" class="seg-btn" :class="{ active: form.case_type === type.value }" @click="onCaseTypeChange(type.value)">
                   <span class="seg-dot"></span>{{ type.label }}
                 </button>
@@ -96,12 +96,12 @@
 
             <div class="md:col-span-2">
               <label class="field-label">處理截止時間 <span class="req">*</span> <span class="text-slate-400 text-[10px] font-normal">（SLA 倒數與「剩 Xh」依此計算）</span></label>
-              <div class="grid gap-2 lg:grid-cols-[minmax(220px,auto)_1fr_auto] lg:items-center">
+              <div class="flex flex-wrap items-center gap-2">
                 <input v-model="form.due_at" type="datetime-local" class="input-base !w-auto min-w-[220px]" />
-                <div class="grid grid-flow-col auto-cols-max gap-1 overflow-x-auto pb-1">
+                <div class="flex flex-wrap items-center gap-2">
                   <button v-for="item in quickDates" :key="item.label" type="button" class="seg-btn text-[12px]" @click="addDueHours(item.h)">{{ item.label }}</button>
                 </div>
-                <span class="text-[11px] lg:ml-1" :class="dueHint.className">{{ dueHint.text }}</span>
+                <span class="ml-1 text-[11px]" :class="dueHint.className">{{ dueHint.text }}</span>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@
         </div>
         <div class="card-body">
           <label class="field-label">詳細描述 <span class="req">*</span></label>
-          <textarea v-model="form.description" rows="7" class="input-base resize-y min-h-[180px]" :placeholder="sec2Placeholder" required></textarea>
+          <textarea v-model="form.description" rows="8" class="input-base resize-y min-h-[220px]" :placeholder="sec2Placeholder" required></textarea>
           <div class="mt-2 grid grid-cols-[1fr_auto] items-center gap-3">
             <div class="text-[11px] text-slate-400">最多 {{ maxDescriptionLength }} 字</div>
             <div class="text-[11px] tabular-nums" :class="descriptionCountClass">{{ form.description.length }} / {{ maxDescriptionLength }}</div>
@@ -166,9 +166,10 @@
         </div>
       </section>
 
-      <div class="sticky bottom-0 -mx-4 px-4 py-3 md:-mx-6 md:px-6 lg:-mx-6 lg:px-6 bg-gradient-to-t from-[#fff7ed] via-[#fff7ed] to-[#fff7ed]/0">
-        <div class="card-section grid gap-3 px-4 py-3 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div class="sticky bottom-0 -mx-4 bg-gradient-to-t from-slate-50 via-slate-50 to-slate-50/0 px-4 py-4 md:-mx-6 md:px-6 lg:-mx-7 lg:px-7">
+        <div class="card-section flex items-center gap-3 px-4 py-3">
 
+          <div class="flex-1"></div>
           <div class="grid gap-2 sm:grid-flow-col sm:auto-cols-max sm:justify-end">
             <router-link to="/cases" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg px-4 text-sm text-slate-600 hover:bg-slate-100">取消</router-link>
             <button type="button" @click="saveDraft" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-700 hover:bg-slate-50">
@@ -186,7 +187,7 @@
 
 
 
-    <div v-if="showSimilarModal" class="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-5" @click.self="closeSimilarModal">
+    <div v-if="showSimilarModal" class="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4" @click.self="closeSimilarModal">
       <div class="modal-panel">
         <div class="grid grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-slate-200 px-5 py-4">
           <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 grid place-items-center">
@@ -201,12 +202,12 @@
           </button>
         </div>
 
-        <div class="px-5 pt-4">
+        <div class="px-5 pt-3.5">
           <div class="relative">
             <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
             <input v-model="similarQuery" type="text" placeholder="搜尋案件編號 / 報修人 / 問題描述…" class="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" @keyup.enter="searchSimilar" />
           </div>
-          <div class="mt-2.5 grid gap-2 text-[11px] xl:grid-cols-[auto_auto_auto_auto_1fr_auto_auto] xl:items-center">
+          <div class="mt-2 grid gap-2 text-[11px] xl:grid-cols-[auto_auto_auto_auto_1fr_auto_auto] xl:items-center">
             <span class="text-slate-500">篩選：</span>
             <button type="button" class="seg-btn" :class="{ active: citeFilters.closed }" @click="citeFilters.closed = !citeFilters.closed">已結案</button>
             <button type="button" class="seg-btn" :class="{ active: citeFilters.mine }" @click="citeFilters.mine = !citeFilters.mine">我的案件</button>
@@ -236,8 +237,8 @@
           </div>
         </div>
 
-        <div class="overflow-y-auto px-5 py-3 space-y-2">
-          <label v-for="item in similarCases" :key="item.id" class="block p-3 rounded-xl border cursor-pointer transition cite-row" :class="selectedSimilarCaseId === item.id ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30'">
+        <div class="overflow-y-auto px-5 py-2.5 space-y-2">
+          <label v-for="item in similarCases" :key="item.id" class="block rounded-xl border p-2.5 cursor-pointer transition cite-row" :class="selectedSimilarCaseId === item.id ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30'">
             <div class="grid grid-cols-[auto_1fr] items-start gap-3">
               <input v-model="selectedSimilarCaseId" :value="item.id" type="radio" name="citeCase" class="mt-1 w-4 h-4 text-indigo-600" />
               <div class="min-w-0">
@@ -260,7 +261,7 @@
           <div v-if="similarCases.length === 0" class="py-10 text-center text-slate-400 text-sm">{{ searchDone ? '找不到符合條件的案件' : '輸入條件後按搜尋' }}</div>
         </div>
 
-        <div class="grid gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3.5 lg:grid-cols-[auto_1fr_auto_auto_auto] lg:items-center">
+        <div class="grid gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3 lg:grid-cols-[auto_1fr_auto_auto_auto] lg:items-center">
           <div class="text-[11px] text-slate-500">選擇後可選擇引用方式：</div>
           <button type="button" @click="closeSimilarModal" class="h-9 px-3 rounded-lg text-slate-600 hover:bg-white text-sm">取消</button>
           <button type="button" @click="applySelectedSimilar('desc')" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-700 hover:bg-slate-50" title="只把來源案件的詳細描述拼到本案描述欄">
@@ -758,11 +759,11 @@ onMounted(async () => {
 }
 
 .input-base {
-  @apply w-full h-[38px] px-3 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
+  @apply h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500;
 }
 
 textarea.input-base {
-  @apply h-auto py-2.5 leading-6;
+  @apply h-auto py-3 leading-7;
 }
 
 .seg-btn {
@@ -786,7 +787,7 @@ textarea.input-base {
 }
 
 .drop-zone {
-  @apply border-2 border-dashed border-slate-300 bg-slate-50 rounded-[10px] p-5 text-center transition cursor-pointer;
+  @apply cursor-pointer rounded-[10px] border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition;
 }
 
 .drop-zone:hover,
@@ -795,11 +796,11 @@ textarea.input-base {
 }
 
 .card-section {
-  @apply bg-white border border-slate-200 rounded-2xl shadow-sm;
+  @apply rounded-[14px] border border-slate-200 bg-white;
 }
 
 .card-head {
-  @apply grid grid-cols-[auto_auto_1fr] items-center gap-2.5 border-b border-slate-100 px-[22px] py-4;
+  @apply grid grid-cols-[auto_auto_1fr] items-center gap-3 border-b border-slate-100 px-6 py-5;
 }
 
 .card-head-num {
@@ -807,11 +808,11 @@ textarea.input-base {
 }
 
 .card-body {
-  @apply px-[22px] py-5;
+  @apply px-6 py-6;
 }
 
 .modal-panel {
-  @apply grid grid-rows-[auto_auto_1fr_auto] max-h-[86vh] w-full max-w-[860px] overflow-hidden rounded-2xl bg-white;
+  @apply grid max-h-[86vh] w-full max-w-[860px] grid-rows-[auto_auto_1fr_auto] overflow-hidden rounded-[16px] bg-white;
 }
 
 .pill {

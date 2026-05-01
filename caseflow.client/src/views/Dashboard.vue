@@ -1,38 +1,43 @@
 <template>
-  <div class="space-y-5">
+  <div class="mx-auto flex w-full max-w-[1480px] flex-col gap-4 lg:gap-5">
 
     <!-- Greeting row -->
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-      <div>
-        <div class="text-xs text-slate-500 mb-1 flex items-center gap-2">
-          <span>{{ todayDateStr }}</span>
-          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-          <span>第 {{ weekNum }} 週</span>
+    <section class="relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 px-5 py-4 shadow-[0_8px_32px_rgba(15,23,42,0.07)] backdrop-blur-sm sm:px-6 lg:px-6">
+      <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-72 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.16),transparent_62%)] lg:block"></div>
+      <div class="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div class="mb-1 flex items-center gap-2 text-xs text-slate-500">
+            <span>{{ todayDateStr }}</span>
+            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+            <span>第 {{ weekNum }} 週</span>
+          </div>
+          <h1 class="text-[24px] font-bold tracking-tight text-slate-900 lg:text-[28px]">早安，{{ userName }} 👋</h1>
+          <p class="mt-1 text-sm text-slate-500">
+            您有 <span class="font-medium text-slate-900">{{ pendingCount }}</span> 件待處理與
+            <span class="font-medium text-slate-900">{{ completedCount }}</span> 件已完工待確認。
+          </p>
         </div>
-        <h1 class="text-2xl md:text-[28px] font-bold text-slate-900 tracking-tight">早安，{{ userName }} 👋</h1>
-        <p class="text-sm text-slate-500 mt-1">
-          您有 <span class="text-slate-900 font-medium">{{ pendingCount }}</span> 件待處理與
-          <span class="text-slate-900 font-medium">{{ completedCount }}</span> 件已完工待確認。
-        </p>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 md:justify-end">
+          <div class="hidden rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs text-slate-500 shadow-sm sm:block">
+            最後同步 <span class="tabular-nums text-slate-700">{{ lastSyncTime }}</span>
+          </div>
+          <button @click="refresh" class="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50">
+            重新整理
+          </button>
+          <router-link to="/cases/new" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-indigo-700 px-4 text-sm font-medium text-white shadow-[0_10px_24px_rgba(79,70,229,0.24)] transition hover:-translate-y-0.5 hover:bg-indigo-800">
+            ＋ 立案新案件
+          </router-link>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <div class="text-xs text-slate-500 hidden sm:block">最後同步 <span class="tabular-nums text-slate-700">{{ lastSyncTime }}</span></div>
-        <button @click="refresh" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm text-slate-700">
-          重新整理
-        </button>
-        <router-link to="/cases/new" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-medium shadow-sm">
-          ＋ 立案新案件
-        </router-link>
-      </div>
-    </div>
+    </section>
 
     <!-- KPI cards (4 main statuses) -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <router-link
         v-for="kpi in kpiCards"
         :key="kpi.label"
         :to="kpi.to"
-        class="group bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition"
+        class="group rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-[0_4px_16px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.09)]"
         :class="kpi.ring"
       >
         <div class="flex items-center justify-between">
@@ -42,25 +47,25 @@
           <span v-if="kpi.actionBadge" class="text-[10px] px-1.5 py-0.5 rounded-full" :class="kpi.actionBadgeClass">{{ kpi.actionBadge }}</span>
           <span v-else class="text-slate-300 group-hover:text-indigo-600 transition text-sm">↗</span>
         </div>
-        <div class="mt-2 flex items-baseline gap-2">
+        <div class="mt-3 flex items-baseline gap-2">
           <span class="tabular-nums text-3xl font-semibold text-slate-900">{{ kpi.count }}</span>
           <span v-if="kpi.hint" class="text-xs" :class="kpi.hintClass">{{ kpi.hint }}</span>
         </div>
-        <div class="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <div class="h-full rounded-full transition-all duration-500" :class="kpi.barColor" :style="{ width: `${kpi.barWidth}%` }"></div>
         </div>
       </router-link>
     </section>
 
     <!-- Main grid: 我的待辦案件 + 最新通知 -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.8fr)_minmax(300px,0.88fr)]">
 
       <!-- 我的待辦案件 -->
-      <section class="lg:col-span-2 bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+      <section class="overflow-hidden rounded-[28px] border border-slate-200/90 bg-white shadow-[0_16px_44px_rgba(15,23,42,0.07)] xl:min-h-[520px]">
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3 lg:px-5">
           <div>
             <h2 class="text-sm font-semibold text-slate-900">我的待辦案件</h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">依更新時間排序 · 僅顯示需您採取行動的案件</p>
+            <p class="mt-0.5 text-[11px] text-slate-500">依更新時間排序 · 僅顯示需您採取行動的案件</p>
           </div>
           <router-link to="/cases" class="text-xs text-indigo-700 hover:text-indigo-800 inline-flex items-center gap-1">查看全部 →</router-link>
         </div>
@@ -68,7 +73,7 @@
           <li
             v-for="item in openCases"
             :key="item.id"
-            class="px-5 py-3.5 flex items-start gap-3 hover:bg-slate-50 cursor-pointer"
+            class="flex cursor-pointer items-start gap-3 px-5 py-3 transition hover:bg-slate-50"
             @click="goToCase(item.id)"
           >
             <span class="mt-1.5 w-2 h-2 rounded-full shrink-0" :class="statusDotColor(item.status)"></span>
@@ -78,23 +83,23 @@
                 <span class="text-[11px] px-1.5 py-0.5 rounded-full ring-1" :class="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
 
               </div>
-              <div class="text-sm text-slate-800 mt-1 break-words [overflow-wrap:anywhere]">{{ item.project?.code }} · {{ item.customer?.name }}</div>
-              <div class="text-[11px] text-slate-500 mt-0.5 break-words [overflow-wrap:anywhere]">立案人 {{ item.created_by?.full_name || '—' }} · {{ formatTime(item.updated_at) }}</div>
+              <div class="mt-1.5 break-words text-[15px] font-medium text-slate-800 [overflow-wrap:anywhere]">{{ item.project?.code }} · {{ item.customer?.name }}</div>
+              <div class="mt-1 break-words text-[11px] text-slate-500 [overflow-wrap:anywhere]">立案人 {{ item.created_by?.full_name || '—' }} · {{ formatTime(item.updated_at) }}</div>
             </div>
           </li>
-          <li v-if="openCases.length === 0" class="px-5 py-12 text-center text-sm text-slate-400">目前沒有待辦案件</li>
+          <li v-if="openCases.length === 0" class="px-5 py-10 text-center text-sm text-slate-400">目前沒有待辦案件</li>
         </ul>
       </section>
 
       <!-- 最新通知 -->
-      <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+      <section class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
           <div>
-            <h2 class="text-sm font-semibold text-slate-900 inline-flex items-center gap-1.5">
+            <h2 class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900">
               最新通知
               <span v-if="notifications.length > 0" class="tabular-nums text-[10px] px-1.5 rounded-full bg-rose-500 text-white">{{ notifications.length }}</span>
             </h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">只顯示未讀 Top 5</p>
+            <p class="mt-0.5 text-[11px] text-slate-500">只顯示未讀 Top 5</p>
           </div>
           <router-link to="/notifications" class="text-xs text-slate-500 hover:text-slate-800">全部已讀</router-link>
         </div>
@@ -102,39 +107,39 @@
           <li
             v-for="n in notifications"
             :key="n.id"
-            class="px-5 py-3 flex gap-3 cursor-pointer hover:bg-slate-50"
+            class="flex cursor-pointer gap-3 px-5 py-3 transition hover:bg-slate-50"
             @click="goToCase(n.case_id)"
           >
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 grid place-items-center shrink-0 text-base">📩</div>
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-base text-indigo-700">📩</div>
             <div class="flex-1 min-w-0">
               <div class="font-medium text-slate-900 truncate">{{ n.title }}</div>
-              <div class="text-[12px] text-slate-500 truncate">{{ n.message }}</div>
-              <div class="text-[11px] text-slate-400 mt-0.5">{{ formatTime(n.created_at) }}</div>
+              <div class="mt-0.5 truncate text-[12px] text-slate-500">{{ n.message }}</div>
+              <div class="mt-1 text-[11px] text-slate-400">{{ formatTime(n.created_at) }}</div>
             </div>
           </li>
-          <li v-if="notifications.length === 0" class="px-5 py-12 text-center text-sm text-slate-400">暫無通知</li>
+          <li v-if="notifications.length === 0" class="px-5 py-10 text-center text-sm text-slate-400">暫無通知</li>
         </ul>
       </section>
     </div>
 
     <!-- 案件狀態分佈 -->
-    <section class="bg-white border border-slate-200 rounded-xl p-5">
-      <div class="flex items-center justify-between mb-3">
+    <section class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <div class="mb-3 flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-slate-900">案件狀態分佈</h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">本月 · 共 {{ totalCases }} 件</p>
+          <h2 class="text-base font-semibold text-slate-900">案件狀態分佈</h2>
+          <p class="mt-0.5 text-[11px] text-slate-500">本月 · 共 {{ totalCases }} 件</p>
         </div>
         <router-link to="/cases" class="text-xs text-indigo-700 hover:underline">前往列表</router-link>
       </div>
-      <div class="flex flex-col md:flex-row md:items-center gap-6">
-        <ul class="flex-1 grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+      <div class="flex flex-col gap-5 md:flex-row md:items-center">
+        <ul class="grid flex-1 grid-cols-1 gap-x-8 gap-y-3 text-xs sm:grid-cols-2">
           <li v-for="stat in statusStats" :key="stat.label" class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-sm shrink-0" :class="stat.bg"></span>
             <span class="flex-1 text-slate-600">{{ stat.label }}</span>
             <span class="tabular-nums text-slate-900">{{ stat.count }}</span>
           </li>
         </ul>
-        <div class="relative w-36 h-36 shrink-0 mx-auto md:mx-0">
+        <div class="relative mx-auto h-32 w-32 shrink-0 md:mx-0">
           <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
             <circle cx="21" cy="21" r="15.915" fill="none" stroke="#f1f5f9" stroke-width="6"/>
             <circle

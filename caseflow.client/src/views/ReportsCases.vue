@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto space-y-5">
+  <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
@@ -15,22 +15,22 @@
 
     <!-- 統計摘要 -->
     <section class="grid gap-3 sm:grid-cols-3">
-      <article class="bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
         <div class="text-xs text-slate-500">分群筆數</div>
         <div class="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{{ rows.length }}</div>
       </article>
-      <article class="bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
         <div class="text-xs text-slate-500">案件總數</div>
         <div class="mt-1 text-2xl font-semibold text-indigo-700 tabular-nums">{{ serverTotal ?? total }}</div>
       </article>
-      <article class="bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
         <div class="text-xs text-slate-500">統計區間</div>
         <div class="mt-1 text-sm font-medium text-slate-900 tabular-nums">{{ periodLabel }}</div>
       </article>
     </section>
 
     <!-- 篩選條件 -->
-    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="px-5 py-4 border-b border-slate-100 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
         <div>
           <label class="block text-[11px] font-medium text-slate-500 mb-1">起始日期</label>

@@ -183,7 +183,7 @@
       </transition>
 
       <main class="min-w-0 flex-1 overflow-x-hidden transition-[padding] duration-300" :class="sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-[300px]'">
-        <div class="px-5 py-6 lg:px-8 lg:py-8">
+        <div class="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
           <router-view />
         </div>
       </main>
