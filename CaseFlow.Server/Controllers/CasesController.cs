@@ -504,22 +504,37 @@ namespace CaseFlow.Server.Controllers
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
-            // 角色檢查：僅 SE / SysAdmin 可回報完工
+            // 角色檢查：SE / PM / SysAdmin 可回報完工
             var completerId = User.GetUserId();
             var completerRole = User.GetRole();
-            if (completerRole != "SE" && completerRole != "SysAdmin")
-                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 SE / SysAdmin 可回報完工" } });
+            if (completerRole != "SE" && completerRole != "PM" && completerRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有 SE / PM / SysAdmin 可回報完工" } });
             if (completerRole == "SE" && !await HasCaseAssignmentAsync(id, completerId))
                 return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您未被派工至此案件" } });
 
-            // v3.6: 來源擴充至 {20, 30, 35}
-            var completeAllowed = new short[] { 20, 30, 35 };
+            // 必須先進入處理中 (30) 才能完工
+            var completeAllowed = new short[] { 30 };
             if (!completeAllowed.Contains(entity.Status))
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot complete from current status", details = new { current_status = entity.Status } } });
 
             var now = TimeHelper.Now;
             entity.Status = 40;
             entity.UpdatedAt = now;
+
+            // 自動補一筆 CaseLog（status_after = 40）
+            _db.CaseLogs.Add(new CaseLog
+            {
+                CaseId = id,
+                HandlerUserId = completerId,
+                LogDate = DateOnly.FromDateTime(now),
+                HandlingMethod = "回報完工",
+                HandlingResult = null,
+                HoursSpent = 0,
+                Headcount = 1,
+                StatusAfter = 40,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
 
             // 通知轉派 PM
             if (entity.AssignedPmId.HasValue)
@@ -564,6 +579,20 @@ namespace CaseFlow.Server.Controllers
             var now = TimeHelper.Now;
             entity.Status = 35;
             entity.UpdatedAt = now;
+
+            _db.CaseLogs.Add(new CaseLog
+            {
+                CaseId = id,
+                HandlerUserId = returnerId,
+                LogDate = DateOnly.FromDateTime(now),
+                HandlingMethod = $"案件退回{(string.IsNullOrWhiteSpace(dto?.Reason) ? "" : $"：{dto.Reason}")}",
+                HandlingResult = null,
+                HoursSpent = 0,
+                Headcount = 1,
+                StatusAfter = 35,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
 
             // 通知相關 SE
             var seIds = await _db.CaseAssignments.Where(a => a.CaseId == id && a.IsActive).Select(a => a.SeUserId).ToListAsync();
@@ -612,6 +641,20 @@ namespace CaseFlow.Server.Controllers
             entity.ClosedAt = now;
             entity.UpdatedAt = now;
 
+            _db.CaseLogs.Add(new CaseLog
+            {
+                CaseId = id,
+                HandlerUserId = closerId,
+                LogDate = DateOnly.FromDateTime(now),
+                HandlingMethod = "確認結案",
+                HandlingResult = null,
+                HoursSpent = 0,
+                Headcount = 1,
+                StatusAfter = 50,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+
             _db.AuditLogs.Add(new AuditLog { UserId = User.GetUserId(), CaseId = id, Action = "CASE_CLOSED", EntityType = "case", EntityId = id, CreatedAt = now });
 
             await _db.SaveChangesAsync();
@@ -643,6 +686,20 @@ namespace CaseFlow.Server.Controllers
             entity.CancelledBy = cancellerId;
             entity.CancelledAt = now;
             entity.UpdatedAt = now;
+
+            _db.CaseLogs.Add(new CaseLog
+            {
+                CaseId = id,
+                HandlerUserId = cancellerId,
+                LogDate = DateOnly.FromDateTime(now),
+                HandlingMethod = $"取消案件{(string.IsNullOrWhiteSpace(dto?.Reason) ? "" : $"：{dto.Reason}")}",
+                HandlingResult = null,
+                HoursSpent = 0,
+                Headcount = 1,
+                StatusAfter = 60,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
 
             // 通知相關 SE + PM
             var seIds = await _db.CaseAssignments.Where(a => a.CaseId == id && a.IsActive).Select(a => a.SeUserId).ToListAsync();
@@ -773,13 +830,14 @@ namespace CaseFlow.Server.Controllers
             // §4.1 狀態轉換矩陣（同 transaction）
             var prevStatus = caseEntity.Status;
             short newStatus = prevStatus;
+            // 10/20/35 → 30（處理中）；30 維持 30；需透過 /complete 才能到 40
             if (prevStatus == 10 || prevStatus == 20 || prevStatus == 35)
-                newStatus = isCompletion ? (short)40 : (short)30;
+                newStatus = (short)30;
             else if (prevStatus == 30)
-                newStatus = isCompletion ? (short)40 : (short)30;
+                newStatus = (short)30;
             // status=40: 維持 40（不回推）
 
-            var statusAfterValue = isCompletion ? (short)40 : newStatus;
+            var statusAfterValue = newStatus;
 
             var log = new CaseLog
             {

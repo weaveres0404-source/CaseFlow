@@ -184,7 +184,7 @@
               <span>共 <strong class="text-slate-800 tabular-nums">{{ caseData.logs?.length || 0 }}</strong> 筆紀錄</span>
             </div>
             <button @click="showLogForm = !showLogForm"
-              class="h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
+              class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-slate-800">
               + 新增紀錄
             </button>
           </div>
@@ -221,7 +221,7 @@
             </div>
             <div class="flex justify-end gap-2">
               <button @click="cancelLogForm" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
-              <button @click="submitLog" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">✓ 送出</button>
+              <button @click="submitLog" class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-sm text-white shadow-sm transition hover:bg-slate-800">✓ 送出</button>
             </div>
           </div>
           <div class="divide-y divide-slate-100">
@@ -612,13 +612,9 @@ const availableActions = computed(() => {
   if ([10, 35].includes(s) && ['PM', 'SysAdmin'].includes(r))
     actions.push({ label: '轉派 SE', icon: I.userPlus, handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
-  // 回報完工: [30], SE/SysAdmin — 綠色 + pulse
-  if (s === 30 && ['SE', 'SysAdmin'].includes(r))
+  // 回報完工: [30] only — 必須先進入處理中才可完工
+  if (s === 30 && ['SE', 'PM', 'SysAdmin'].includes(r))
     actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm animate-pulse' })
-
-  // 回報完工: [20,35], SE/SysAdmin — outline
-  if ([20, 35].includes(s) && ['SE', 'SysAdmin'].includes(r))
-    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50' })
 
   // 回覆客戶: [10,30], PM/SysAdmin
   if ([10, 30].includes(s) && ['PM', 'SysAdmin'].includes(r))
