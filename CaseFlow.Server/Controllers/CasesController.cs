@@ -439,6 +439,30 @@ namespace CaseFlow.Server.Controllers
 
             var now = TimeHelper.Now;
 
+            // 驗證所有被派工的 SE：若曾被明確移除（is_active=false），拒絕派工
+            foreach (var seId in dto.SeUserIds)
+            {
+                var membership = await _db.ProjectMembers.FirstOrDefaultAsync(pm =>
+                    pm.ProjectId == entity.ProjectId && pm.UserId == seId);
+                if (membership != null && !membership.IsActive)
+                {
+                    var seName = await _db.Users
+                        .Where(u => u.UserId == seId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefaultAsync() ?? $"ID:{seId}";
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = new
+                        {
+                            code = "MEMBER_REMOVED",
+                            message = $"{seName} 已從此專案移除，無法派工",
+                            details = new { project_id = entity.ProjectId, se_user_id = seId }
+                        }
+                    });
+                }
+            }
+
             // 將既有 active assignments 設為 inactive
             var existingAssignments = await _db.CaseAssignments.Where(a => a.CaseId == id && a.IsActive).ToListAsync();
             foreach (var a in existingAssignments) a.IsActive = false;
@@ -472,12 +496,12 @@ namespace CaseFlow.Server.Controllers
                 });
             }
 
-            // 僅從 status=10 才推進到 20；改派時維持現狀（不回推）
-            if (entity.Status == 10) entity.Status = 20;
+            // 派工後一律重設為「已派工(20)」，確保新 SE 必須新增處理紀錄才能回報完工
+            entity.Status = 20;
             entity.AssignedPmId = userId;
             entity.UpdatedAt = now;
 
-            // 確保被派工的 SE 在 project_members 中有效紀錄
+            // 自動將首次派工的 SE 加入專案成員（僅當無既有記錄時才新增）
             foreach (var seId in dto.SeUserIds)
                 await UpsertProjectMemberAsync(entity.ProjectId, seId, "SE", now);
 
@@ -513,9 +537,13 @@ namespace CaseFlow.Server.Controllers
                 return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您未被派工至此案件" } });
 
             // 必須先進入處理中 (30) 才能完工
-            var completeAllowed = new short[] { 30 };
-            if (!completeAllowed.Contains(entity.Status))
+            if (entity.Status != 30)
                 return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Cannot complete from current status", details = new { current_status = entity.Status } } });
+
+            // 必須有至少一筆處理紀錄（CaseLog.status_after = 30）才能完工
+            var hasProcessingLog = await _db.CaseLogs.AnyAsync(l => l.CaseId == id && l.StatusAfter == 30);
+            if (!hasProcessingLog)
+                return Conflict(new { success = false, error = new { code = "NO_PROCESSING_LOG", message = "請先新增處理紀錄（狀態需進入處理中）才能回報完工" } });
 
             var now = TimeHelper.Now;
             entity.Status = 40;
@@ -1036,7 +1064,7 @@ namespace CaseFlow.Server.Controllers
 
         #region 私有輔助方法
 
-        /// <summary>確保使用者在 project_members 中存在有效紀錄；若不存在則新建，若停用則重啟。</summary>
+        /// <summary>若使用者在 project_members 中不存在記錄，則新建；若已存在（含停用）則不修改。</summary>
         private async Task UpsertProjectMemberAsync(int projectId, int userId, string memberRole, DateTime now)
         {
             var existing = await _db.ProjectMembers
@@ -1053,10 +1081,7 @@ namespace CaseFlow.Server.Controllers
                     CreatedAt = now
                 });
             }
-            else if (!existing.IsActive)
-            {
-                existing.IsActive = true;
-            }
+            // 若記錄已存在（含 is_active=false），保持原狀不修改
         }
 
         /// <summary>PM 是否具有該專案的存取權（project_members is_active=TRUE）</summary>

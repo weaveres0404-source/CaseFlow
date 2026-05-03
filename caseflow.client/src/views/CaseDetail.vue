@@ -86,15 +86,15 @@
           <div class="mt-3 pt-3 border-t border-slate-200 space-y-1.5 text-[11px] text-slate-500">
             <div class="flex gap-1">
               <span class="w-14 shrink-0">立案時間</span>
-              <span>{{ caseData.created_at ? new Date(caseData.created_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—' }}</span>
+              <span>{{ caseData.created_at ? new Date(caseData.created_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—' }}</span>
             </div>
             <div v-if="caseData.due_at" class="flex gap-1">
               <span class="w-14 shrink-0">SLA 截止</span>
-              <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ new Date(caseData.due_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) }}</span>
+              <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ new Date(caseData.due_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
             </div>
             <div v-if="caseData.closed_at" class="flex gap-1">
               <span class="w-14 shrink-0">結案時間</span>
-              <span>{{ new Date(caseData.closed_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) }}</span>
+              <span>{{ new Date(caseData.closed_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
             </div>
           </div>
         </aside>
@@ -541,8 +541,7 @@ const caseAttachments = computed(() => (caseData.value?.attachments || []).filte
 
 const availableSEs = computed(() => {
   if (!caseData.value) return []
-  const byCacheProject = meta.getProjectSEs(caseData.value.project?.id)
-  return byCacheProject.length ? byCacheProject : meta.users.filter(u => u.role === 'SE')
+  return meta.getProjectSEs(caseData.value.project?.id)
 })
 
 const filteredAssignSEs = computed(() => {
@@ -608,8 +607,8 @@ const availableActions = computed(() => {
       class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
     })
 
-  // 轉派 SE: [10,35], PM/SysAdmin
-  if ([10, 35].includes(s) && ['PM', 'SysAdmin'].includes(r))
+  // 轉派 SE: [10,20,30,35], PM/SysAdmin
+  if ([10, 20, 30, 35].includes(s) && ['PM', 'SysAdmin'].includes(r))
     actions.push({ label: '轉派 SE', icon: I.userPlus, handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   // 回報完工: [30] only — 必須先進入處理中才可完工
@@ -622,7 +621,7 @@ const availableActions = computed(() => {
 
   // 確認結案 + 退回: [40], PM/SysAdmin
   if (s === 40 && ['PM', 'SysAdmin'].includes(r)) {
-    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800 shadow-sm' })
+    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: 'border-slate-900 bg-slate-900 text-white hover:bg-slate-700 shadow-sm' })
     actions.push({ label: '退回', icon: I.undo, handler: () => doAction('return', '確認退回此案件？'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
   }
 
