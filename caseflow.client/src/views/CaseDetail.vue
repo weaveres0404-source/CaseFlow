@@ -169,7 +169,10 @@
                     <div class="text-slate-400 text-xs mt-0.5">{{ formatFileSize(att.file_size) }}</div>
                   </div>
                 </div>
-                <a :href="`/api/v1/attachments/${att.id}/download`" class="text-brand-700 text-xs hover:underline shrink-0">下載</a>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button v-if="isImage(att)" @click="previewImage(att)" class="text-indigo-600 text-xs hover:underline">檢視</button>
+                  <button @click="downloadAttachment(att)" class="text-slate-600 text-xs hover:underline">下載</button>
+                </div>
               </div>
             </div>
           </div>
@@ -446,6 +449,23 @@
           {{ assignModal.submitting ? '派工中…' : '確認派工' }}
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Image Preview Lightbox -->
+  <div v-if="imagePreview.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" @click.self="closeImagePreview">
+    <div class="relative max-w-4xl max-h-full flex flex-col items-center">
+      <div class="flex items-center justify-between w-full mb-2 px-1">
+        <span class="text-white text-sm truncate max-w-xs">{{ imagePreview.fileName }}</span>
+        <div class="flex items-center gap-3">
+          <button @click="downloadAttachment(imagePreview.att)" class="text-white/80 hover:text-white text-xs border border-white/30 rounded-lg px-3 py-1">下載</button>
+          <button @click="closeImagePreview" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white grid place-items-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <img v-if="imagePreview.url" :src="imagePreview.url" class="max-w-full max-h-[80vh] rounded-xl object-contain" />
+      <div v-else class="text-white/60 text-sm">載入中…</div>
     </div>
   </div>
 
@@ -740,6 +760,37 @@ function formatFileSize(bytes) {
 
 function estStatusLabel(s) { return { 10: '待評估', 20: '評估中', 30: '已回覆' }[s] || s }
 function estStatusColor(s) { return { 10: 'bg-gray-100 text-gray-800', 20: 'bg-yellow-100 text-yellow-800', 30: 'bg-green-100 text-green-800' }[s] }
+
+// 附件下載 & 圖片預覽
+const IMAGE_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp']
+function isImage(att) { return IMAGE_MIME.includes(att.mime_type) }
+
+async function downloadAttachment(att) {
+  try {
+    const { data } = await api.get(`/attachments/${att.id}/download`, { responseType: 'blob' })
+    const url = URL.createObjectURL(data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = att.file_name
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch { /* 靜默 */ }
+}
+
+const imagePreview = ref({ show: false, url: null, fileName: '', att: null })
+
+async function previewImage(att) {
+  imagePreview.value = { show: true, url: null, fileName: att.file_name, att }
+  try {
+    const { data } = await api.get(`/attachments/${att.id}/download`, { responseType: 'blob' })
+    imagePreview.value.url = URL.createObjectURL(data)
+  } catch { imagePreview.value.show = false }
+}
+
+function closeImagePreview() {
+  if (imagePreview.value.url) URL.revokeObjectURL(imagePreview.value.url)
+  imagePreview.value = { show: false, url: null, fileName: '', att: null }
+}
 
 onMounted(fetchCase)
 </script>
