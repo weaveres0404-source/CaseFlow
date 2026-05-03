@@ -49,7 +49,7 @@
             </div>
             <div>
               <label class="field-label">客戶</label>
-              <div class="input-base bg-slate-50 text-slate-600 cursor-default select-none">
+              <div class="input-base flex items-center bg-slate-50 text-slate-600 cursor-default select-none">
                 {{ selectedCustomerName || '（請先選擇專案）' }}
               </div>
             </div>
