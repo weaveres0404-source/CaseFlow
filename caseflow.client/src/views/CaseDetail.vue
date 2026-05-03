@@ -429,7 +429,7 @@
         <!-- 預計完成日 -->
         <div>
           <label class="block text-[12px] font-medium text-slate-600 mb-1.5">預計完成日（選填）</label>
-          <input v-model="assignModal.expectedDate" type="date" class="w-full h-9 px-3 rounded-lg border border-slate-300 text-[13px] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
+          <input v-model="assignModal.expectedDate" type="date" :min="localDateStr()" class="w-full h-9 px-3 rounded-lg border border-slate-300 text-[13px] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
         </div>
         <!-- 錯誤訊息 -->
         <p v-if="assignModal.error" class="text-sm text-rose-600">{{ assignModal.error }}</p>
