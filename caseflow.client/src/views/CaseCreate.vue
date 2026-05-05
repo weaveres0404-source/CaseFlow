@@ -56,16 +56,16 @@
 
             <div>
               <label class="field-label">報修人 <span class="req">*</span></label>
-              <input v-model.trim="form.reporter_name" type="text" class="input-base" placeholder="客戶端聯絡人姓名" required />
+              <input v-model.trim="form.reporter_name" type="text" class="input-base" placeholder="客戶端聯絡人姓名" maxlength="30" required />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="field-label">聯絡電話</label>
-                <input v-model.trim="form.reporter_phone" type="text" class="input-base tabular-nums" placeholder="02-xxxxxxxx / 09xx" />
+                <input v-model.trim="form.reporter_phone" type="text" class="input-base tabular-nums" placeholder="02-xxxxxxxx / 09xx" maxlength="30" />
               </div>
               <div>
                 <label class="field-label">Email</label>
-                <input v-model.trim="form.reporter_email" type="email" class="input-base" placeholder="contact@example.com" />
+                <input v-model.trim="form.reporter_email" type="email" class="input-base" placeholder="contact@example.com" maxlength="30" />
               </div>
             </div>
 
