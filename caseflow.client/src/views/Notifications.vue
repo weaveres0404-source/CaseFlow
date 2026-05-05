@@ -74,7 +74,7 @@
             <div class="flex flex-wrap items-center gap-2 mb-1.5">
               <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" :class="typeColor(n.notification_type)">{{ typeLabel(n.notification_type) }}</span>
               <span class="text-xs text-slate-400 tabular-nums">{{ formatTime(n.created_at) }}</span>
-              <span v-if="!n.is_read" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 ring-1 ring-rose-200">未讀</span>
+              <span v-if="!n.is_read" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-500 text-white ring-1 ring-rose-200">未讀</span>
             </div>
             <div class="text-sm font-medium text-slate-900 break-words [overflow-wrap:anywhere]">{{ notificationTitle(n) }}</div>
             <p class="text-sm mt-1 text-slate-600 leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-wrap">{{ n.message }}</p>
@@ -182,7 +182,14 @@ function typeColor(t) {
 function formatTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  return d.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).replace(/\//g, '/').replace(',', ' ')
 }
 
 watch([page, filter], () => { if (filter.value !== undefined) fetchNotifications() })

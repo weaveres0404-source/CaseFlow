@@ -16,7 +16,8 @@ const baseFolder =
 const certificateName = "caseflow.client";
 const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
 const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
-const useHttps = env.DEV_SERVER_HTTPS !== 'false';
+// Default to HTTP. Set DEV_SERVER_HTTPS=true to enable HTTPS with dev-certs.
+const useHttps = env.DEV_SERVER_HTTPS === 'true';
 
 if (useHttps) {
     if (!fs.existsSync(baseFolder)) {

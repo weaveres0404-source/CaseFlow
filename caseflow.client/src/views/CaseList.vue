@@ -12,7 +12,6 @@
           <h1 class="text-xl md:text-[22px] font-bold text-slate-900 tracking-tight">案件列表</h1>
           <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{{ roleBadgeText }}</span>
         </div>
-        <p class="text-sm text-slate-500 mt-0.5">目前以 <span class="font-medium text-slate-700">{{ authRoleLabel }}</span> 檢視：{{ scopeHint }}</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button @click="exportCases" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm text-slate-700">
@@ -23,7 +22,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M10 18h4"/></svg>
         </button>
         <router-link v-if="auth.role !== 'SE'" to="/cases/new"
-          class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-medium shadow-sm">
+          class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           新增案件
         </router-link>
@@ -48,14 +47,14 @@
     </div>
 
     <!-- Filter Bar -->
-    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div class="p-2.5 flex items-center gap-2">
         <div class="relative flex-1">
           <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
           </svg>
           <input v-model="filters.q" type="text" placeholder="搜尋案件編號 / 報修人 / 問題描述..."
-            class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             @keyup.enter="fetchCases(1)" />
         </div>
         <button @click="filterOpen = !filterOpen"
@@ -66,12 +65,12 @@
             <line x1="21" y1="20" x2="17" y2="20"/><line x1="3" y1="20" x2="15" y2="20"/><circle cx="15" cy="20" r="2"/>
           </svg>
           進階
-          <span v-if="activeFilterCount > 0" class="ml-0.5 tabular-nums px-1.5 rounded bg-indigo-100 text-indigo-700 text-[11px]">{{ activeFilterCount }}</span>
+          <span v-if="activeFilterCount > 0" class="ml-0.5 tabular-nums px-1.5 rounded bg-brand-100 text-brand-700 text-[11px]">{{ activeFilterCount }}</span>
           <svg class="w-4 h-4 transition-transform" :class="filterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
-        <button @click="fetchCases(1)" class="h-9 px-4 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-medium">搜尋</button>
+        <button @click="fetchCases(1)" class="h-9 px-4 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium">搜尋</button>
       </div>
       <!-- Advanced Panel -->
       <div v-if="filterOpen" class="border-t border-slate-200 p-4 space-y-3">
@@ -113,7 +112,7 @@
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">處理 SE</label>
+            <label class="block text-[11px] font-medium text-slate-500 mb-1">處理專案成員</label>
             <select v-model="filters.se_user_id" class="w-full h-9 px-2 rounded-lg border border-slate-300 text-sm">
               <option :value="null">全部</option>
               <option v-for="u in meta.users.filter(u => u.role === 'SE')" :key="u.id" :value="u.id">{{ u.full_name }}</option>
@@ -194,7 +193,7 @@
               <th class="min-w-[90px]">類型</th>
               <th class="min-w-[90px]">狀態</th>
               <th class="min-w-[100px]">立案人</th>
-              <th class="min-w-[160px]">SE</th>
+              <th class="min-w-[160px]">專案成員</th>
               <th class="min-w-[120px]">
                 最後更新
                 <svg class="w-3 h-3 inline text-slate-600 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -210,6 +209,8 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <input :checked="selectedIds.includes(c.id)" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600" @click.stop @change="toggleRowSelection(c.id)" />
                   <span class="tabular-nums text-indigo-700 font-medium text-[13px]">{{ c.case_number }}</span>
+                  <span v-if="c.status === 40 && isCreator(c)" class="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap ml-1"
+                    :class="'bg-green-50 text-green-700 ring-1 ring-green-200'">待確認</span>
                   <span v-if="slaText(c)" class="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap"
                     :class="slaUrgent(c) ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'">
                     {{ slaText(c) }}
@@ -252,8 +253,10 @@
         <router-link v-for="c in cases" :key="c.id" :to="`/cases/${c.id}`"
           class="block p-4 hover:bg-slate-50 active:bg-slate-100">
           <div class="flex items-start justify-between gap-2 mb-1.5">
-            <div class="flex items-center gap-1.5 flex-wrap">
+              <div class="flex items-center gap-1.5 flex-wrap">
               <span class="tabular-nums text-[13px] text-indigo-700 font-semibold">{{ c.case_number }}</span>
+              <span v-if="c.status === 40 && isCreator(c)" class="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap ml-1"
+                :class="'bg-green-50 text-green-700 ring-1 ring-green-200'">待確認</span>
               <span v-if="slaText(c)" class="text-[10px] px-1.5 py-0.5 rounded"
                 :class="slaUrgent(c) ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'">
                 {{ slaText(c) }}
@@ -307,7 +310,7 @@
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-semibold text-slate-900">批次派工</h2>
-            <p class="text-xs text-slate-500 mt-0.5">將 {{ selectedCount }} 件案件指派給一位或多位 SE。</p>
+            <p class="text-xs text-slate-500 mt-0.5">將 {{ selectedCount }} 件案件指派給一位或多位專案成員。</p>
           </div>
           <button type="button" @click="closeAssignModal" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -316,7 +319,7 @@
 
         <div class="px-5 py-5 space-y-4">
           <div>
-            <div class="text-sm font-medium text-slate-700 mb-2">選擇處理 SE</div>
+            <div class="text-sm font-medium text-slate-700 mb-2">選擇處理專案成員</div>
             <div class="grid gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto">
               <label v-for="user in seOptions" :key="user.id" class="flex items-start gap-3 rounded-xl border border-slate-200 p-3 hover:border-brand-300 hover:bg-brand-50/40 cursor-pointer">
                 <input :checked="assignForm.seUserIds.includes(user.id)" type="checkbox" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" @change="toggleAssignSe(user.id)" />
@@ -330,7 +333,7 @@
           </div>
 
           <div v-if="assignForm.seUserIds.length > 1">
-            <label class="block text-sm font-medium text-slate-700 mb-1.5">主要負責 SE</label>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">主要負責專案成員</label>
             <select v-model="assignForm.primarySeUserId" class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
               <option v-for="user in selectedSeUsers" :key="user.id" :value="user.id">{{ user.full_name }}</option>
             </select>
@@ -377,6 +380,12 @@ const route = useRoute()
 const meta = useMetaStore()
 const auth = useAuthStore()
 
+const isCreator = (item) => {
+  const myId = auth.user?.id ?? auth.user?.user_id
+  const creatorId = item?.created_by?.id ?? item?.created_by?.user_id
+  return !!myId && !!creatorId && String(myId) === String(creatorId)
+}
+
 const cases = ref([])
 const page = ref(1)
 const pageSize = ref(20)
@@ -420,21 +429,6 @@ const quickTabs = computed(() => [
   ...baseQuickTabs,
   ...savedViews.value.map(view => ({ key: view.key, label: view.label, saved: true }))
 ])
-
-const authRoleLabel = computed(() => {
-  const r = auth.role
-  if (r === 'ADMIN' || r === 'SysAdmin') return 'SysAdmin'
-  if (r === 'PM') return 'PM'
-  if (r === 'SE') return 'SE'
-  return r || '使用者'
-})
-
-const scopeHint = computed(() => {
-  const r = auth.role
-  if (r === 'SE') return '僅顯示指派給您的案件'
-  if (r === 'PM') return '僅顯示與自己相關的案件（轉派給我 / 我立案）'
-  return '可見系統全部案件'
-})
 
 const roleBadgeText = computed(() => {
   if (auth.role === 'SE') return `我的案件 ${totalCount.value} 件`
@@ -499,7 +493,7 @@ const activeFilterChips = computed(() => {
     customer_id: '客戶',
     status: '狀態',
     case_type: '類型',
-    se_user_id: '處理SE',
+    se_user_id: '處理專案成員',
     created_by: '立案人'
   }
   if (f.q) chips.push({ key: 'q', label: filterLabelMap.q, valueLabel: f.q })
@@ -658,7 +652,7 @@ function relativeTime(dt) {
   if (hrs < 24) return `${hrs} 小時前`
   const days = Math.floor(hrs / 24)
   if (days < 3) return `${days} 天前`
-  return new Date(dt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' })
+  return new Date(dt).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit' })
 }
 
 function toNullableInt(value) {
@@ -733,7 +727,7 @@ function saveCurrentView() {
 async function submitBatchAssign() {
   assignError.value = ''
   if (assignForm.value.seUserIds.length === 0) {
-    assignError.value = '請至少選擇一位 SE'
+    assignError.value = '請至少選擇一位專案成員'
     return
   }
 

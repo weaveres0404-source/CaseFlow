@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen w-full grid place-items-center bg-gradient-to-br from-slate-100 to-indigo-50 px-4">
+  <div class="min-h-screen w-full grid place-items-center bg-slate-50 px-4">
     <div class="w-full max-w-md">
       <!-- Logo / Title -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 shadow-lg mb-4">
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-brand-700 shadow-sm mb-4">
+          <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
           </svg>
         </div>
@@ -13,7 +13,7 @@
       </div>
 
       <!-- Card -->
-      <div class="bg-white shadow-2xl rounded-3xl p-10 border border-slate-100">
+      <div class="bg-white border border-slate-200 rounded-xl p-8 shadow-card">
         <form @submit.prevent="submit" class="space-y-5">
 
           <!-- New Password -->
@@ -26,7 +26,7 @@
               autocomplete="new-password"
               required
               minlength="8"
-              class="w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-400"
+              class="w-full rounded-lg px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -39,7 +39,7 @@
               placeholder="再次輸入新密碼"
               autocomplete="new-password"
               required
-              class="w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-400"
+              class="w-full rounded-lg px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -52,7 +52,7 @@
           <button
             type="submit"
             :disabled="loading"
-            class="w-full py-3 rounded-xl text-white text-sm font-semibold bg-gradient-to-r from-indigo-600 to-blue-600 hover:shadow-lg hover:shadow-indigo-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            class="w-full h-10 rounded-lg text-white text-sm font-semibold bg-brand-700 hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
               <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">

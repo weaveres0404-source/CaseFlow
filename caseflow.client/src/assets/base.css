@@ -66,13 +66,8 @@
 
 body {
   min-height: 100vh;
-  color: var(--color-text);
-  background:
-    radial-gradient(circle at top, rgba(249, 115, 22, 0.12), transparent 30%),
-    linear-gradient(180deg, #fffaf5 0%, #f8fafc 32%, #eef2ff 100%);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+  color: #1e293b;
+  background: #f8fafc;
   line-height: 1.6;
   font-family:
     'Noto Sans TC',

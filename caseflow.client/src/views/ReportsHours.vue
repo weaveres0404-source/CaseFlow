@@ -43,7 +43,7 @@
         <div>
           <label class="label">分群方式</label>
           <select v-model="filters.group_by" class="input-base">
-            <option value="se">工程師</option>
+            <option value="se">專案成員</option>
             <option value="project">專案</option>
             <option value="customer">客戶</option>
             <option value="category">問題分類</option>
@@ -138,7 +138,7 @@ const filters = ref({
 })
 
 const groupLabel = computed(() => ({
-  se: '工程師', project: '專案', customer: '客戶', category: '問題分類', created_by: '立案者', assigned_pm: '轉派 PM'
+  se: '專案成員', project: '專案', customer: '客戶', category: '問題分類', created_by: '立案者', assigned_pm: '轉派 PM'
 }[filters.value.group_by]))
 
 const total = computed(() => rows.value.reduce((s, r) => s + Number(r.value), 0))

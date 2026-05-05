@@ -62,8 +62,11 @@ namespace CaseFlow.Server.Controllers
             // 權限過濾
             if (role == "PM")
             {
-                // 僅顯示「自己是轉派 PM」或「自己立案」的案件
-                query = query.Where(c => c.AssignedPmId == userId || c.CreatedBy == userId);
+                // 顯示「自己是 PM 成員」所屬專案的所有案件
+                var myProjectIds = await _db.ProjectMembers.AsNoTracking()
+                    .Where(pm => pm.UserId == userId && pm.IsActive && pm.MemberRole == "PM")
+                    .Select(pm => pm.ProjectId).ToListAsync();
+                query = query.Where(c => myProjectIds.Contains(c.ProjectId));
             }
             else if (role == "SE")
             {

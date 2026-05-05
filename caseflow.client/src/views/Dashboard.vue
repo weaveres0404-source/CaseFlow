@@ -1,10 +1,8 @@
 <template>
-  <div class="mx-auto flex w-full max-w-[1480px] flex-col gap-4 lg:gap-5">
+  <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4 lg:gap-5">
 
     <!-- Greeting row -->
-    <section class="relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 px-5 py-4 shadow-[0_8px_32px_rgba(15,23,42,0.07)] backdrop-blur-sm sm:px-6 lg:px-6">
-      <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-72 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.16),transparent_62%)] lg:block"></div>
-      <div class="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <section class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 shadow-card">
         <div>
           <div class="mb-1 flex items-center gap-2 text-xs text-slate-500">
             <span>{{ todayDateStr }}</span>
@@ -18,17 +16,16 @@
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-3 md:justify-end">
-          <div class="hidden rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs text-slate-500 shadow-sm sm:block">
-            最後同步 <span class="tabular-nums text-slate-700">{{ lastSyncTime }}</span>
+          <div class="hidden text-xs text-slate-500 hidden sm:block">
+            最後同步 <span class="num text-slate-700">{{ lastSyncTime }}</span>
           </div>
-          <button @click="refresh" class="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50">
+          <button @click="refresh" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm text-slate-700">
             重新整理
           </button>
-          <router-link to="/cases/new" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-indigo-700 px-4 text-sm font-medium text-white shadow-[0_10px_24px_rgba(79,70,229,0.24)] transition hover:-translate-y-0.5 hover:bg-indigo-800">
-            ＋ 立案新案件
+          <router-link to="/cases/new" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-sm">
+            + 立案新案件
           </router-link>
         </div>
-      </div>
     </section>
 
     <!-- KPI cards (4 main statuses) -->
@@ -37,7 +34,7 @@
         v-for="kpi in kpiCards"
         :key="kpi.label"
         :to="kpi.to"
-        class="group rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-[0_4px_16px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.09)]"
+        class="group bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-card transition"
         :class="kpi.ring"
       >
         <div class="flex items-center justify-between">
@@ -61,7 +58,7 @@
     <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.8fr)_minmax(300px,0.88fr)]">
 
       <!-- 我的待辦案件 -->
-      <section class="overflow-hidden rounded-[28px] border border-slate-200/90 bg-white shadow-[0_16px_44px_rgba(15,23,42,0.07)] xl:min-h-[520px]">
+      <section class="lg:col-span-2 bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3 lg:px-5">
           <div>
             <h2 class="text-sm font-semibold text-slate-900">我的待辦案件</h2>
@@ -92,12 +89,12 @@
       </section>
 
       <!-- 最新通知 -->
-      <section class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
           <div>
             <h2 class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900">
               最新通知
-              <span v-if="notifications.length > 0" class="tabular-nums text-[10px] px-1.5 rounded-full bg-rose-500 text-white">{{ notifications.length }}</span>
+              <span v-if="notifications.length > 0" class="tabular-nums text-[10px] px-1.5 rounded-full bg-rose-500 text-black">{{ notifications.length }}</span>
             </h2>
             <p class="mt-0.5 text-[11px] text-slate-500">只顯示未讀 Top 5</p>
           </div>
@@ -123,7 +120,7 @@
     </div>
 
     <!-- 案件狀態分佈 -->
-    <section class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+    <section class="bg-white border border-slate-200 rounded-xl p-5 shadow-card">
       <div class="mb-3 flex items-center justify-between">
         <div>
           <h2 class="text-base font-semibold text-slate-900">案件狀態分佈</h2>
@@ -184,10 +181,10 @@ const userName = computed(() => auth.user?.full_name || auth.user?.username || '
 
 // ── date / week ───────────────────────────────────────────
 const now = new Date()
-const todayDateStr = now.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
+const todayDateStr = now.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
 const startOfYear = new Date(now.getFullYear(), 0, 1)
 const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7)
-const lastSyncTime = ref(now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
+const lastSyncTime = ref(now.toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', second: '2-digit' }))
 
 // ── raw status counts from API ────────────────────────────
 const statusSummary = ref({ pending: 0, assigned: 0, in_progress: 0, returned: 0, completed: 0, closed: 0, cancelled: 0 })
@@ -291,7 +288,7 @@ async function fetchNotifications() {
 }
 
 async function refresh() {
-  lastSyncTime.value = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  lastSyncTime.value = new Date().toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', second: '2-digit' })
   await Promise.all([fetchKPIs(), fetchNotifications(), fetchOpenCases()])
 }
 
@@ -306,7 +303,7 @@ function formatTime(dt) {
   if (diff < 60) return '剛剛'
   if (diff < 3600) return `${Math.floor(diff / 60)} 分鐘前`
   if (diff < 86400) return `${Math.floor(diff / 3600)} 小時前`
-  return d.toLocaleDateString('zh-TW')
+  return d.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })
 }
 
 onMounted(async () => {

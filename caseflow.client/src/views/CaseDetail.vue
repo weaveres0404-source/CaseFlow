@@ -72,7 +72,7 @@
               <dd class="min-w-0 text-slate-700 font-medium break-words [overflow-wrap:anywhere]">{{ caseData.assigned_pm?.full_name || '—' }}</dd>
             </div>
             <div class="flex items-start gap-1.5">
-              <dt class="w-14 shrink-0 text-slate-400">處理 SE</dt>
+              <dt class="w-14 shrink-0 text-slate-400">處理人員</dt>
               <dd class="min-w-0 text-slate-700 break-words [overflow-wrap:anywhere]">
                 <template v-if="activeAssignments.length">
                   <span v-for="(a, i) in activeAssignments" :key="a.id" class="font-medium">
@@ -86,15 +86,15 @@
           <div class="mt-3 pt-3 border-t border-slate-200 space-y-1.5 text-[11px] text-slate-500">
             <div class="flex gap-1">
               <span class="w-14 shrink-0">立案時間</span>
-              <span>{{ caseData.created_at ? new Date(caseData.created_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—' }}</span>
+              <span>{{ caseData.created_at ? new Date(caseData.created_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—' }}</span>
             </div>
             <div v-if="caseData.due_at" class="flex gap-1">
               <span class="w-14 shrink-0">SLA 截止</span>
-              <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ new Date(caseData.due_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
+              <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ new Date(caseData.due_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
             </div>
             <div v-if="caseData.closed_at" class="flex gap-1">
               <span class="w-14 shrink-0">結案時間</span>
-              <span>{{ new Date(caseData.closed_at).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
+              <span>{{ new Date(caseData.closed_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
             </div>
           </div>
         </aside>
@@ -147,6 +147,15 @@
         <!-- Tab: 基本資訊 -->
         <div v-if="activeTab === 'info'" class="space-y-5">
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
+            <div class="min-w-0">
+              <p class="text-xs text-slate-400 mb-0.5">案件類型</p>
+              <span v-if="caseData.case_type"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                :class="meta.caseTypeMap[caseData.case_type]?.color || 'bg-blue-50 text-blue-700'">
+                {{ meta.caseTypeMap[caseData.case_type]?.label || caseData.case_type }}
+              </span>
+              <span v-else class="text-sm text-slate-900">—</span>
+            </div>
             <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">問題分類</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.category?.name || '—' }}</p></div>
             <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">系統/模組</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.module?.name || '—' }}</p></div>
             <div class="min-w-0"><p class="text-xs text-slate-400 mb-0.5">報修人</p><p class="text-sm text-slate-900 break-words [overflow-wrap:anywhere]">{{ caseData.reporter_name || '—' }}</p></div>
@@ -187,7 +196,7 @@
               <span>共 <strong class="text-slate-800 tabular-nums">{{ caseData.logs?.length || 0 }}</strong> 筆紀錄</span>
             </div>
             <button @click="showLogForm = !showLogForm"
-              class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-slate-800">
+              class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-xs font-medium text-black shadow-sm transition hover:bg-slate-800">
               + 新增紀錄
             </button>
           </div>
@@ -224,7 +233,7 @@
             </div>
             <div class="flex justify-end gap-2">
               <button @click="cancelLogForm" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
-              <button @click="submitLog" class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-sm text-white shadow-sm transition hover:bg-slate-800">✓ 送出</button>
+              <button @click="submitLog" class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-sm text-black shadow-sm transition hover:bg-slate-800">✓ 送出</button>
             </div>
           </div>
           <div class="divide-y divide-slate-100">
@@ -233,6 +242,7 @@
                 <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 tabular-nums">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   {{ log.log_date }}
+                  <span v-if="log.created_at" class="font-normal text-slate-400">{{ new Date(log.created_at).toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false }) }}</span>
                 </span>
                 <span class="text-xs text-slate-500">{{ log.handler?.full_name }}</span>
                 <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-blue-50 text-blue-700 tabular-nums">{{ log.hours_spent }} hr</span>
@@ -240,6 +250,24 @@
               <div class="border-l-2 border-brand-200 pl-3 space-y-1">
                 <div class="text-sm whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理方式</span>{{ log.handling_method }}</div>
                 <div v-if="log.handling_result" class="text-sm text-slate-600 whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理結果</span>{{ log.handling_result }}</div>
+                <!-- 處理記錄附件 -->
+                <div v-if="logAttachmentsByLog(log.id).length" class="mt-1.5">
+                  <p class="text-slate-400 text-xs mb-1">附件</p>
+                  <div class="space-y-1">
+                    <div v-for="att in logAttachmentsByLog(log.id)" :key="att.id"
+                      class="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs">
+                      <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                        <span class="truncate text-slate-700 font-medium">{{ att.file_name }}</span>
+                        <span class="text-slate-400 tabular-nums shrink-0">{{ formatFileSize(att.file_size) }}</span>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button v-if="isImage(att)" @click="previewImage(att)" class="text-indigo-600 hover:underline">檢視</button>
+                        <button @click="downloadAttachment(att)" class="text-slate-600 hover:underline">下載</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div v-if="!(caseData.logs?.length)" class="py-8 text-center text-sm text-slate-400">尚無處理紀錄</div>
@@ -249,7 +277,7 @@
         <!-- Tab: 派工 -->
         <div v-if="activeTab === 'assign'" class="space-y-4">
           <div class="flex items-center justify-between flex-wrap gap-2">
-            <p class="text-sm text-slate-500">目前指派給此案件的 SE 工程師</p>
+            <p class="text-sm text-slate-500">目前指派給此案件的專案成員</p>
             <button
               v-if="['PM','ADMIN','SysAdmin'].includes(auth.role) && ![50,60].includes(caseData?.status)"
               @click="openAssignModal"
@@ -266,7 +294,7 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-slate-900">{{ a.se?.full_name }}</p>
-                <p class="text-xs text-slate-400">派工人：{{ a.assigned_by?.full_name }} · {{ a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('zh-TW') : '' }}</p>
+                <p class="text-xs text-slate-400">派工人：{{ a.assigned_by?.full_name }} · {{ a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei'}) : '' }}</p>
               </div>
               <span v-if="a.expected_completion_date" class="text-xs text-slate-400 whitespace-nowrap">預計 {{ a.expected_completion_date }}</span>
               <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">處理中</span>
@@ -280,7 +308,7 @@
                 class="flex items-center gap-3 p-2 rounded-lg opacity-50">
                 <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-semibold">{{ (a.se?.full_name || '?').charAt(0) }}</div>
                 <span class="text-xs text-slate-500">{{ a.se?.full_name }}</span>
-                <span class="text-xs text-slate-400">{{ a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('zh-TW') : '' }}</span>
+                <span class="text-xs text-slate-400">{{ a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei'}) : '' }}</span>
                 <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">已解除</span>
               </div>
             </div>
@@ -386,7 +414,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
         </div>
         <div class="flex-1">
-          <div class="text-[15px] font-semibold text-slate-900">轉派 SE</div>
+          <div class="text-[15px] font-semibold text-slate-900">轉派專案成員</div>
           <div class="text-[12px] text-slate-500 mt-0.5">可勾選一位或多位成員共同處理此案件</div>
         </div>
         <button @click="assignModal.show = false" class="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-500 grid place-items-center">
@@ -418,7 +446,7 @@
             <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">{{ se.full_name.charAt(0) }}</div>
             <div class="flex-1 min-w-0 flex items-center gap-2">
               <span class="text-[13px] text-slate-900">{{ se.full_name }}</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">SE</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">專案成員</span>
               <span v-if="activeAssignmentIds.includes(se.id)" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">目前派工中</span>
             </div>
           </label>
@@ -427,7 +455,7 @@
         <!-- 備註 -->
         <div>
           <label class="block text-[12px] font-medium text-slate-600 mb-1.5">處理指示（選填）</label>
-          <textarea v-model="assignModal.instructions" rows="2" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-[13px] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="給 SE 的補充說明…"></textarea>
+          <textarea v-model="assignModal.instructions" rows="2" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-[13px] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="給專案成員的補充說明…"></textarea>
         </div>
         <!-- 預計完成日 -->
         <div>
@@ -456,16 +484,16 @@
   <div v-if="imagePreview.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" @click.self="closeImagePreview">
     <div class="relative max-w-4xl max-h-full flex flex-col items-center">
       <div class="flex items-center justify-between w-full mb-2 px-1">
-        <span class="text-white text-sm truncate max-w-xs">{{ imagePreview.fileName }}</span>
+        <span class="text-black text-sm truncate max-w-xs">{{ imagePreview.fileName }}</span>
         <div class="flex items-center gap-3">
-          <button @click="downloadAttachment(imagePreview.att)" class="text-white/80 hover:text-white text-xs border border-white/30 rounded-lg px-3 py-1">下載</button>
-          <button @click="closeImagePreview" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white grid place-items-center">
+          <button @click="downloadAttachment(imagePreview.att)" class="text-black/80 hover:text-black text-xs border border-white/30 rounded-lg px-3 py-1">下載</button>
+          <button @click="closeImagePreview" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-black grid place-items-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
       <img v-if="imagePreview.url" :src="imagePreview.url" class="max-w-full max-h-[80vh] rounded-xl object-contain" />
-      <div v-else class="text-white/60 text-sm">載入中…</div>
+      <div v-else class="text-black/60 text-sm">載入中…</div>
     </div>
   </div>
 
@@ -477,7 +505,7 @@
       <p v-if="confirmDialog.error" class="text-sm text-red-600 mt-2">{{ confirmDialog.error }}</p>
       <div class="flex justify-end gap-3 mt-4">
         <button @click="confirmDialog.show = false" :disabled="confirmDialog.loading" class="px-4 py-2 border rounded-lg text-sm disabled:opacity-50">取消</button>
-        <button @click="handleConfirm" :disabled="confirmDialog.loading" :class="confirmDialog.btnClass" class="px-4 py-2 rounded-lg text-sm text-white disabled:opacity-50">
+        <button @click="handleConfirm" :disabled="confirmDialog.loading" :class="confirmDialog.btnClass" class="px-4 py-2 rounded-lg text-sm text-black disabled:opacity-50">
           <span v-if="confirmDialog.loading">處理中...</span>
           <span v-else>確認</span>
         </button>
@@ -501,12 +529,9 @@ const auth = useAuthStore()
 const caseData = ref(null)
 const activeTab = ref('info')
 
-// 回傳本地時區的 YYYY-MM-DD（避免 UTC midnight 跨日問題）
+// 回傳 UTC+8 時區的 YYYY-MM-DD
 function localDateStr(d = new Date()) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' })
 }
 
 const showLogForm = ref(false)
@@ -558,6 +583,9 @@ const inactiveAssignments = computed(() => (caseData.value?.assignments || []).f
 const activeAssignmentIds = computed(() => activeAssignments.value.map(a => a.se?.id).filter(Boolean))
 
 const caseAttachments = computed(() => (caseData.value?.attachments || []).filter(a => a.entity_type === 'case'))
+function logAttachmentsByLog(logId) {
+  return (caseData.value?.attachments || []).filter(a => a.entity_type === 'case_log' && a.entity_id === logId)
+}
 
 const availableSEs = computed(() => {
   if (!caseData.value) return []
@@ -579,7 +607,7 @@ function openAssignModal() {
     search: '',
     selectedIds: [...activeAssignmentIds.value],
     instructions: '',
-    expectedDate: '',
+    expectedDate: localDateStr(),
     submitting: false,
     error: ''
   }
@@ -629,11 +657,11 @@ const availableActions = computed(() => {
 
   // 轉派 SE: [10,20,30,35], PM/SysAdmin
   if ([10, 20, 30, 35].includes(s) && ['PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '轉派 SE', icon: I.userPlus, handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
+    actions.push({ label: '轉派專案成員', icon: I.userPlus, handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   // 回報完工: [30] only — 必須先進入處理中才可完工
   if (s === 30 && ['SE', 'PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm animate-pulse' })
+    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-600 bg-emerald-600 text-black hover:bg-emerald-700 shadow-sm animate-pulse' })
 
   // 回覆客戶: [10,30], PM/SysAdmin
   if ([10, 30].includes(s) && ['PM', 'SysAdmin'].includes(r))
@@ -641,7 +669,7 @@ const availableActions = computed(() => {
 
   // 確認結案 + 退回: [40], PM/SysAdmin
   if (s === 40 && ['PM', 'SysAdmin'].includes(r)) {
-    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: 'border-slate-900 bg-slate-900 text-white hover:bg-slate-700 shadow-sm' })
+    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: 'border-slate-900 bg-slate-900 text-black hover:bg-slate-700 shadow-sm' })
     actions.push({ label: '退回', icon: I.undo, handler: () => doAction('return', '確認退回此案件？'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
   }
 
@@ -695,6 +723,10 @@ async function handleConfirm() {
 }
 
 async function submitLog() {
+  if (!logForm.value.hours_spent || logForm.value.hours_spent <= 0) {
+    alert('請填入工時（必須大於 0）')
+    return
+  }
   const { data: res } = await api.post(`/cases/${caseId.value}/logs`, logForm.value)
   const logId = res.data?.id
   // 上傳附件
@@ -715,7 +747,7 @@ async function submitLog() {
 
 async function submitAssign() {
   if (assignModal.value.selectedIds.length === 0) {
-    assignModal.value.error = '請至少選擇一位 SE 工程師'
+    assignModal.value.error = '請至少選擇一位專案成員'
     return
   }
   assignModal.value.error = ''

@@ -13,7 +13,7 @@
       <div class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-500 shadow-sm w-fit max-w-full">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         登入中
-        <span class="font-medium text-slate-700 break-words [overflow-wrap:anywhere]">{{ displayName }}</span>
+        <span class="font-medium text-slate-700 text-white break-words [overflow-wrap:anywhere]">{{ displayName }}</span>
       </div>
     </div>
 
@@ -131,7 +131,7 @@ const roleLabel = computed(() => ({
   ADMIN: '系統管理員',
   SysAdmin: '系統管理員',
   PM: '專案經理',
-  SE: '工程師'
+  SE: '專案成員'
 }[user.value?.role] || user.value?.role || '未定義角色'))
 
 const displayName = computed(() => user.value?.full_name || user.value?.username || '未命名使用者')
@@ -145,6 +145,7 @@ function formatTime(iso) {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

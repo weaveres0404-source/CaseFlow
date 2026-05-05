@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SpaRoot>..\caseflow.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
-    <SpaProxyServerUrl>https://localhost:56003</SpaProxyServerUrl>
+    <SpaProxyServerUrl>http://localhost:56003</SpaProxyServerUrl>
   </PropertyGroup>
 
   <ItemGroup>

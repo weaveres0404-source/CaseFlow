@@ -16,7 +16,7 @@
       </div>
       <div class="shrink-0 md:self-start">
         <button type="button" @click="openSimilarModal"
-          class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-sm font-medium text-indigo-800 hover:bg-indigo-100">
+          class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 text-sm font-medium text-brand-800 hover:bg-brand-100">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           從歷史案件引用
         </button>
@@ -97,7 +97,10 @@
             <div class="md:col-span-2">
               <label class="field-label">處理截止時間 <span class="req">*</span> <span class="text-slate-400 text-[10px] font-normal">（SLA 倒數與「剩 Xh」依此計算）</span></label>
               <div class="flex flex-wrap items-center gap-2">
-                <input v-model="form.due_at" type="datetime-local" class="input-base !w-auto min-w-[220px]" />
+                <input v-model="dueDate" type="date" class="input-base !w-auto min-w-[180px]" />
+                <select v-model="dueTime" class="input-base !w-auto min-w-[120px] num">
+                  <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
+                </select>
                 <div class="flex flex-wrap items-center gap-2">
                   <button v-for="item in quickDates" :key="item.label" type="button" class="seg-btn text-[12px]" @click="addDueHours(item.h)">{{ item.label }}</button>
                 </div>
@@ -134,10 +137,10 @@
           <input ref="fileInput" type="file" class="hidden" multiple @change="handleFileChange" />
           <div class="drop-zone" :class="{ 'drop-zone--active': isDragActive }" @click="openFilePicker" @dragenter.prevent="isDragActive = true" @dragover.prevent="isDragActive = true" @dragleave.prevent="isDragActive = false" @drop.prevent="handleDrop">
             <div class="grid justify-items-center gap-2">
-              <div class="w-10 h-10 rounded-full bg-indigo-50 grid place-items-center">
-                <svg class="w-5 h-5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <div class="w-10 h-10 rounded-full bg-brand-50 grid place-items-center">
+                <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
               </div>
-              <div class="text-sm text-slate-700 font-medium">拖放檔案至此，或<button type="button" class="text-indigo-700 hover:underline mx-1">選擇檔案</button></div>
+              <div class="text-sm text-slate-700 font-medium">拖放檔案至此，或<button type="button" class="text-brand-700 hover:underline mx-1">選擇檔案</button></div>
               <div class="text-[11px] text-slate-500">單次可上傳多檔；PNG / JPG / PDF / DOCX / XLSX / ZIP</div>
             </div>
           </div>
@@ -151,7 +154,7 @@
                 <div class="text-[13px] text-slate-800 truncate">{{ item.file_name }}</div>
                 <div class="text-[11px] text-slate-500 tabular-nums">{{ formatFileSize(item.file_size) }} · {{ attachmentStatusText(item) }}</div>
                 <div v-if="item.status === 'uploading'" class="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden mt-1">
-                  <div class="h-full bg-indigo-500" :style="{ width: `${item.progress}%` }"></div>
+                  <div class="h-full bg-brand-500" :style="{ width: `${item.progress}%` }"></div>
                 </div>
               </div>
               <span v-if="item.status === 'uploaded'" class="inline-grid grid-flow-col auto-cols-max items-center gap-1 text-[11px] text-emerald-700">
@@ -176,7 +179,7 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               儲存草稿
             </button>
-            <button type="submit" :disabled="!canSubmit || submitting" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg bg-indigo-700 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-slate-300">
+            <button type="submit" :disabled="!canSubmit || submitting" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg bg-brand-700 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand-800 disabled:cursor-not-allowed disabled:bg-slate-300">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
               {{ submitting ? '建立中…' : '建立案件' }}
             </button>
@@ -190,7 +193,7 @@
     <div v-if="showSimilarModal" class="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4" @click.self="closeSimilarModal">
       <div class="modal-panel">
         <div class="grid grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-slate-200 px-5 py-4">
-          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 grid place-items-center">
+          <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 grid place-items-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div>
@@ -205,13 +208,13 @@
         <div class="px-5 pt-3.5">
           <div class="relative">
             <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
-            <input v-model="similarQuery" type="text" placeholder="搜尋案件編號 / 報修人 / 問題描述…" class="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" @keyup.enter="searchSimilar" />
+            <input v-model="similarQuery" type="text" placeholder="搜尋案件編號 / 報修人 / 問題描述…" class="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" @keyup.enter="searchSimilar" />
           </div>
           <div class="mt-2 grid gap-2 text-[11px] xl:grid-cols-[auto_auto_auto_auto_1fr_auto_auto] xl:items-center">
             <span class="text-slate-500">篩選：</span>
-            <button type="button" class="seg-btn" :class="{ active: citeFilters.closed }" @click="citeFilters.closed = !citeFilters.closed">已結案</button>
-            <button type="button" class="seg-btn" :class="{ active: citeFilters.mine }" @click="citeFilters.mine = !citeFilters.mine">我的案件</button>
-            <button type="button" class="seg-btn" :class="{ active: citeFilters.sameType }" @click="citeFilters.sameType = !citeFilters.sameType">同分類</button>
+            <button type="button" class="seg-btn" :class="{ active: citeFilters.closed }" @click="citeFilters.closed = !citeFilters.closed; searchSimilar()">已結案</button>
+            <button type="button" class="seg-btn" :class="{ active: citeFilters.mine }" @click="citeFilters.mine = !citeFilters.mine; searchSimilar()">我的案件</button>
+            <button type="button" class="seg-btn" :class="{ active: citeFilters.sameType }" @click="citeFilters.sameType = !citeFilters.sameType; searchSimilar()">同分類</button>
 
             <div class="relative inline-grid items-center">
               <button type="button" class="seg-btn inline-grid grid-flow-col auto-cols-max items-center gap-1 pr-2" @click="dateMenuOpen = !dateMenuOpen">
@@ -228,22 +231,22 @@
                   <span class="text-slate-400 text-[10px]">～</span>
                   <input v-model="citeFilters.date_to" type="date" class="min-w-0 h-7 px-1.5 text-[11px] rounded border border-slate-200" />
                 </div>
-                <button type="button" class="mx-2 mb-1 w-[calc(100%-16px)] h-7 rounded bg-slate-900 text-white text-[11px]" @click="applyCustomDateRange">套用自訂區間</button>
+                <button type="button" class="mx-2 mb-1 w-[calc(100%-16px)] h-7 rounded bg-slate-900 text-black text-[11px]" @click="applyCustomDateRange">套用自訂區間</button>
               </div>
             </div>
 
             <span class="justify-self-start xl:justify-self-end text-slate-400 tabular-nums">{{ similarCases.length }} 筆結果</span>
-            <button type="button" class="h-8 rounded-lg bg-indigo-700 px-3 text-xs text-white hover:bg-indigo-800 xl:justify-self-end" @click="searchSimilar">搜尋</button>
+            <button type="button" class="h-8 rounded-lg bg-brand-700 px-3 text-xs text-white hover:bg-brand-800 xl:justify-self-end" @click="searchSimilar">搜尋</button>
           </div>
         </div>
 
         <div class="overflow-y-auto px-5 py-2.5 space-y-2">
-          <label v-for="item in similarCases" :key="item.id" class="block rounded-xl border p-2.5 cursor-pointer transition cite-row" :class="selectedSimilarCaseId === item.id ? 'border-indigo-500 bg-indigo-50/60' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30'">
+          <label v-for="item in similarCases" :key="item.id" class="block rounded-xl border p-2.5 cursor-pointer transition cite-row" :class="selectedSimilarCaseId === item.id ? 'border-brand-500 bg-brand-50/60' : 'border-slate-200 hover:border-brand-300 hover:bg-brand-50/30'">
             <div class="grid grid-cols-[auto_1fr] items-start gap-3">
-              <input v-model="selectedSimilarCaseId" :value="item.id" type="radio" name="citeCase" class="mt-1 w-4 h-4 text-indigo-600" />
+              <input v-model="selectedSimilarCaseId" :value="item.id" type="radio" name="citeCase" class="mt-1 w-4 h-4 text-brand-600" />
               <div class="min-w-0">
                 <div class="grid gap-2 sm:grid-flow-col sm:auto-cols-max sm:items-center">
-                  <span class="tabular-nums text-[13px] font-semibold text-indigo-800">{{ item.case_number }}</span>
+                  <span class="tabular-nums text-[13px] font-semibold text-brand-800">{{ item.case_number }}</span>
                   <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{{ item.customer_short_name }}</span>
                   <span class="pill" :class="caseTypePillClass(item.case_type)">{{ caseTypeLabel(item.case_type) }}</span>
                   <span class="pill" :class="statusPillClass(item.status)">{{ statusLabel(item.status) }}</span>
@@ -253,7 +256,7 @@
                 <div class="text-[12px] text-slate-500 mt-1 line-clamp-2">{{ item.description }}</div>
                 <div class="mt-2 grid gap-2 text-[11px] text-slate-500 sm:grid-flow-col sm:auto-cols-max">
                   <span class="inline-grid grid-flow-col auto-cols-max items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.36 4.57M15 11a3 3 0 11-6 0 3 3 0 016 0zm6 10H3"/></svg>立案：{{ item.created_by?.full_name || '—' }}</span>
-                  <span class="inline-grid grid-flow-col auto-cols-max items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V7a2 2 0 00-2-2h-3V3H9v2H6a2 2 0 00-2 2v6m16 0l-2.586 2.586A2 2 0 0116 16.172V21H8v-4.828a2 2 0 01-.586-1.414L4 13"/></svg>SE：{{ similarCaseSeLabel(item) }}</span>
+                  <span class="inline-grid grid-flow-col auto-cols-max items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V7a2 2 0 00-2-2h-3V3H9v2H6a2 2 0 00-2 2v6m16 0l-2.586 2.586A2 2 0 0116 16.172V21H8v-4.828a2 2 0 01-.586-1.414L4 13"/></svg>專案成員：{{ similarCaseSeLabel(item) }}</span>
                 </div>
               </div>
             </div>
@@ -306,10 +309,10 @@ const selectedSimilarCaseId = ref(null)
 const searchDone = ref(false)
 const dateMenuOpen = ref(false)
 const citeFilters = ref({
-  closed: true,
+  closed: false,
   mine: false,
   sameType: false,
-  range: '90',
+  range: 'all',
   date_from: '',
   date_to: ''
 })
@@ -326,8 +329,8 @@ const caseTypes = [
 
 
 const sec2Map = {
-  REPAIR:      { title: '障礙描述',   hint: '描述清楚可讓 SE 更快排查',           placeholder: '請描述發生的障礙、發生頻率、預期行為、實際行為…' },
-  EVALUATION:  { title: '評估需求',   hint: '說明評估範圍與目標，供 SE 回報工時', placeholder: '請描述要評估的範圍、預期產出、交付期限…' },
+  REPAIR:      { title: '障礙描述',   hint: '描述清楚可讓專案成員更快排查',           placeholder: '請描述發生的障礙、發生頻率、預期行為、實際行為…' },
+  EVALUATION:  { title: '評估需求',   hint: '說明評估範圍與目標，供專案成員回報工時', placeholder: '請描述要評估的範圍、預期產出、交付期限…' },
   MAINTENANCE: { title: '維運內容',   hint: '詳述需要執行的日常維運項目',  placeholder: '請描述維運作業內容、影響範圍、預期完成時間…' },
   UHD:         { title: 'UHD 申請內容', hint: 'UHD 協助作業說明',                    placeholder: '請描述需要協助的作業內容、相關帳號或資料範圍…' },
   INQUIRY:     { title: '詢問內容',   hint: '查詢操作方式或資料確認等',       placeholder: '請描述要詢問的問題或希望協助確認的內容…' }
@@ -348,6 +351,8 @@ const quickDates = [
   { label: '+3 天', h: 72 },
   { label: '+1 週', h: 168 }
 ]
+
+const timeOptions = Array.from({ length: 24 }, (_, i) => `${pad(i)}:00`)
 
 const form = ref({
   project_id: null,
@@ -387,6 +392,18 @@ const sec2Title = computed(() => sec2Map[form.value.case_type]?.title || sec2Map
 const sec2Hint = computed(() => sec2Map[form.value.case_type]?.hint || sec2Map.REPAIR.hint)
 const sec2Placeholder = computed(() => sec2Map[form.value.case_type]?.placeholder || sec2Map.REPAIR.placeholder)
 const descriptionCountClass = computed(() => form.value.description.length > maxDescriptionLength ? 'text-rose-500' : 'text-slate-400')
+const dueDate = computed({
+  get: () => (form.value.due_at ? form.value.due_at.slice(0, 10) : ''),
+  set: (value) => setDueAt(value, dueTime.value)
+})
+const dueTime = computed({
+  get: () => {
+    if (!form.value.due_at) return '09:00'
+    const hour = new Date(form.value.due_at).getHours()
+    return `${pad(hour)}:00`
+  },
+  set: (value) => setDueAt(dueDate.value, value)
+})
 const canSubmit = computed(() => {
   return Boolean(
     form.value.project_id &&
@@ -421,7 +438,16 @@ function pad(number) {
 }
 
 function toLocalInput(date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:00`
+}
+
+function setDueAt(date, time) {
+  if (!date) {
+    form.value.due_at = ''
+    return
+  }
+  const normalizedHour = String(time || '00:00').slice(0, 2)
+  form.value.due_at = `${date}T${normalizedHour}:00`
 }
 
 function formatFileSize(bytes) {
@@ -432,7 +458,7 @@ function formatFileSize(bytes) {
 
 function formatDate(value) {
   if (!value) return '—'
-  return new Date(value).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  return new Date(value).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 function caseTypeLabel(value) {
@@ -474,6 +500,7 @@ function onProjectChange() {
 function addDueHours(hours) {
   const base = form.value.due_at ? new Date(form.value.due_at) : new Date()
   base.setHours(base.getHours() + hours)
+  base.setMinutes(0, 0, 0)
   form.value.due_at = toLocalInput(base)
 }
 
@@ -571,6 +598,7 @@ function selectRange(value) {
   citeFilters.value.date_from = ''
   citeFilters.value.date_to = ''
   dateMenuOpen.value = false
+  searchSimilar()
 }
 
 function applyCustomDateRange() {
@@ -580,14 +608,18 @@ function applyCustomDateRange() {
   }
   citeFilters.value.range = 'custom'
   dateMenuOpen.value = false
+  searchSimilar()
 }
 
 function buildSimilarSearchParams() {
-  const params = { page_size: 10 }
+  const params = { page_size: 50 }
   if (similarQuery.value.trim()) params.q = similarQuery.value.trim()
   if (citeFilters.value.closed) params.status = 50
   if (citeFilters.value.mine) params.created_by_me = true
-  if (citeFilters.value.sameType) params.case_type = form.value.case_type
+  if (citeFilters.value.sameType) {
+    if (form.value.category_id) params.category_id = form.value.category_id
+    else if (form.value.case_type) params.case_type = form.value.case_type
+  }
 
   if (citeFilters.value.date_from && citeFilters.value.date_to) {
     params.date_from = citeFilters.value.date_from

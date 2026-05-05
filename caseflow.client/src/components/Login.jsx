@@ -85,7 +85,7 @@ export default {
             <div class="flex items-center justify-between">
               <button
                 type="submit"
-                class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
+                class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-black rounded-md hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
                 disabled={loading.value}
               >
                 {loading.value ? '登入中...' : '登入'}

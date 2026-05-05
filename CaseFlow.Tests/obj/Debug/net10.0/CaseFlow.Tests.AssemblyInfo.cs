@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CaseFlow.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3c3c00ce7e59ab96f7d000070d3e20627eb38f90")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c0100a4a9ee19915e54e9ee0a3821f9daecd7496")]
 [assembly: System.Reflection.AssemblyProductAttribute("CaseFlow.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CaseFlow.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

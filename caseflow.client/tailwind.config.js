@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['"Noto Sans TC"', '"PingFang TC"', 'system-ui', 'sans-serif'],
         num: ['Inter', '"Noto Sans TC"', 'sans-serif'],
       },
       colors: {

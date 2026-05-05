@@ -97,7 +97,7 @@
               placeholder="請輸入帳號"
               autocomplete="username"
               required
-              class="w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-400"
+              class="w-full rounded-lg px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -110,7 +110,7 @@
               placeholder="••••••••"
               autocomplete="current-password"
               required
-              class="w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-400"
+              class="w-full rounded-lg px-4 py-2.5 text-sm text-slate-800 bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -120,11 +120,11 @@
               <input
                 v-model="rememberMe"
                 type="checkbox"
-                class="w-4 h-4 rounded accent-indigo-600"
+                class="w-4 h-4 rounded accent-brand-600"
               />
               <span class="text-sm text-slate-600">記住我</span>
             </label>
-            <a href="#" class="justify-self-end text-sm text-indigo-600 hover:text-indigo-800 hover:underline transition-colors">
+            <a href="#" class="justify-self-end text-sm text-brand-700 hover:text-brand-900 hover:underline">
               忘記密碼？
             </a>
           </div>

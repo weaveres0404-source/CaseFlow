@@ -1,3 +1,4 @@
+@config "../../tailwind.config.js";
 @import "tailwindcss";
 
 /* base.css variables only – no layout overrides */
@@ -9,4 +10,62 @@
   padding: 0;
   margin: 0;
   max-width: none;
+}
+
+/* ── Global utility classes (matching HTML prototype) ── */
+.num {
+  font-family: Inter, "Noto Sans TC", sans-serif;
+  font-feature-settings: "tnum";
+}
+
+/* Card container */
+.card-section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.02);
+}
+
+/* Labelled field header (inside card-section) */
+.field-label, .label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Unified form input */
+.input-base {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  background: #fff;
+  font-family: inherit;
+  transition: box-shadow .15s;
+}
+.input-base:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #6366f1;
+}
+
+/* Thin scrollbar */
+.thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* Nav active indicator bar */
+.nav-active-bar {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: #4338ca;
+  border-radius: 0 3px 3px 0;
 }
