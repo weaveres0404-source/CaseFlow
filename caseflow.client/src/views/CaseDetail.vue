@@ -102,16 +102,7 @@
     </div>
 
     <!-- Action bar -->
-    <div v-if="availableActions.length" class="rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-2.5 flex items-center gap-3 flex-wrap">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 grid place-items-center shrink-0">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <div class="leading-tight">
-          <div class="text-[12px] font-semibold text-amber-900">可執行動作</div>
-          <div class="text-[10.5px] text-amber-800/80">依當前狀態 <b>{{ meta.statusMap[caseData.status]?.label }}</b> × 角色 <b>{{ auth.role }}</b> 動態顯示</div>
-        </div>
-      </div>
+    <div v-if="availableActions.length" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 flex items-center gap-3 flex-wrap shadow-sm">
       <div class="flex-1"></div>
       <div class="flex flex-wrap gap-2">
         <button v-for="action in availableActions" :key="action.label"
@@ -122,9 +113,6 @@
           {{ action.label }}
         </button>
       </div>
-      <button class="h-8 px-2 inline-flex items-center rounded-lg hover:bg-amber-100 text-amber-800" title="更多">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 12h.01M12 12h.01M7 12h.01"/></svg>
-      </button>
     </div>
 
     <!-- Tabs container -->
@@ -246,7 +234,7 @@
               <span>共 <strong class="text-slate-800 tabular-nums">{{ caseData.logs?.length || 0 }}</strong> 筆紀錄</span>
             </div>
             <button @click="showLogForm = !showLogForm"
-              class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-xs font-medium text-black shadow-sm transition hover:bg-slate-800">
+              class="inline-flex h-8 items-center rounded-lg border border-brand-700 bg-brand-700 px-3 text-xs font-medium text-white shadow-sm transition hover:border-brand-800 hover:bg-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">
               + 新增紀錄
             </button>
           </div>
@@ -286,7 +274,7 @@
             </div>
             <div class="flex justify-end gap-2">
               <button @click="cancelLogForm" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
-              <button @click="submitLog" class="inline-flex h-8 items-center rounded-lg border border-slate-900 bg-slate-900 px-3 text-sm text-black shadow-sm transition hover:bg-slate-800">✓ 送出</button>
+              <button @click="submitLog" class="inline-flex h-8 items-center rounded-lg border border-brand-700 bg-brand-700 px-3 text-sm text-white shadow-sm transition hover:border-brand-800 hover:bg-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">✓ 送出</button>
             </div>
           </div>
           <div class="divide-y divide-slate-100">
@@ -478,7 +466,7 @@
         <button
           @click="submitAssign"
           :disabled="assignModal.selectedIds.length === 0 || assignModal.submitting"
-          class="h-9 px-4 rounded-lg bg-indigo-700 hover:bg-indigo-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-[13px] font-medium inline-flex items-center gap-1.5"
+          class="h-9 px-4 rounded-lg bg-brand-700 hover:bg-brand-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-[13px] font-medium inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           {{ assignModal.submitting ? '派工中…' : '確認派工' }}
@@ -512,7 +500,7 @@
       <p v-if="confirmDialog.error" class="text-sm text-red-600 mt-2">{{ confirmDialog.error }}</p>
       <div class="flex justify-end gap-3 mt-4">
         <button @click="confirmDialog.show = false" :disabled="confirmDialog.loading" class="px-4 py-2 border rounded-lg text-sm disabled:opacity-50">取消</button>
-        <button @click="handleConfirm" :disabled="confirmDialog.loading" :class="confirmDialog.btnClass" class="px-4 py-2 rounded-lg text-sm text-black disabled:opacity-50">
+        <button @click="handleConfirm" :disabled="confirmDialog.loading" :class="confirmDialog.btnClass" class="px-4 py-2 rounded-lg text-sm text-white disabled:opacity-50">
           <span v-if="confirmDialog.loading">處理中...</span>
           <span v-else>確認</span>
         </button>
@@ -573,7 +561,7 @@ const assignModal = ref({
 })
 const estForm = ref({ request_date: localDateStr(), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' })
 const replyForm = ref({ reply_date: localDateStr(), reply_content: '' })
-const confirmDialog = ref({ show: false, title: '', message: '', onConfirm: () => {}, btnClass: 'bg-indigo-600', loading: false, error: '' })
+const confirmDialog = ref({ show: false, title: '', message: '', onConfirm: () => {}, btnClass: 'bg-brand-700 hover:bg-brand-800', loading: false, error: '' })
 
 const caseId = computed(() => route.params.id)
 
@@ -652,13 +640,17 @@ const availableActions = computed(() => {
     rotate:  '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v5h5"/>'
   }
 
-  // 新增處理紀錄: [10,20,30,35], PM/SE/SysAdmin — status 30 時降格為 outline
+  const primaryActionClass = 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800 hover:border-brand-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300'
+
+  // 新增處理紀錄: [10,20,30,35], PM/SE/SysAdmin
   if ([10, 20, 30, 35].includes(s) && ['PM', 'SE', 'SysAdmin'].includes(r))
     actions.push({
       label: '新增處理紀錄',
       icon: I.wrench,
       handler: () => { activeTab.value = 'logs'; showLogForm.value = true },
-      class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+      class: [10, 20].includes(s)
+        ? primaryActionClass
+        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
     })
 
   // 轉派 SE: [10,20,30,35], PM/SysAdmin
@@ -667,7 +659,7 @@ const availableActions = computed(() => {
 
   // 回報完工: [30] only — 必須先進入處理中才可完工
   if (s === 30 && ['SE', 'PM', 'SysAdmin'].includes(r))
-    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: 'border-emerald-600 bg-emerald-600 text-black hover:bg-emerald-700 shadow-sm animate-pulse' })
+    actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: primaryActionClass })
 
   // 回覆客戶: [10,30], PM/SysAdmin
   if ([10, 30].includes(s) && ['PM', 'SysAdmin'].includes(r))
@@ -675,7 +667,7 @@ const availableActions = computed(() => {
 
   // 確認結案 + 退回: [40], PM/SysAdmin
   if (s === 40 && ['PM', 'SysAdmin'].includes(r)) {
-    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: 'border-slate-900 bg-slate-900 text-black hover:bg-slate-700 shadow-sm' })
+    actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: primaryActionClass })
     actions.push({ label: '退回', icon: I.undo, handler: () => doAction('return', '確認退回此案件？'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
   }
 
@@ -700,7 +692,7 @@ function doAction(action, message) {
     show: true,
     title: '確認操作',
     message,
-    btnClass: action === 'cancel' ? 'bg-red-600' : 'bg-indigo-600',
+    btnClass: action === 'cancel' ? 'bg-red-600 hover:bg-red-700' : 'bg-brand-700 hover:bg-brand-800',
     loading: false,
     error: '',
     onConfirm: async () => {
