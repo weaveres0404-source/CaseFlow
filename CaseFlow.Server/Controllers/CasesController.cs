@@ -290,13 +290,13 @@ namespace CaseFlow.Server.Controllers
             var userId = User.GetUserId();
             var creatorRole = User.GetRole();
 
-            // SE 無權建立案件
-            if (creatorRole == "SE")
-                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "SE 無法建立新案件" } });
+            // 非 PM / SysAdmin 無權建立案件
+            if (creatorRole != "PM" && creatorRole != "SysAdmin")
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "只有專案 PM 可以立案" } });
 
-            // PM 只能對所屬專案立案
-            if (creatorRole == "PM" && !await HasProjectAccessAsync(dto.ProjectId, userId))
-                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能對所屬專案立案" } });
+            // PM 只能對「自己在 project_members 中具有 PM 角色」的專案立案
+            if (creatorRole == "PM" && !await HasProjectPMAccessAsync(dto.ProjectId, userId))
+                return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "PM 只能對自己所屬且擔任 PM 角色的專案立案" } });
 
             // 自動產生案件編號: 專案代碼-YYYYMM-流水號
             var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.ProjectId == dto.ProjectId);
@@ -1087,10 +1087,15 @@ namespace CaseFlow.Server.Controllers
             // 若記錄已存在（含 is_active=false），保持原狀不修改
         }
 
-        /// <summary>PM 是否具有該專案的存取權（project_members is_active=TRUE）</summary>
+        /// <summary>使用者是否為該專案的有效成員（project_members is_active=TRUE，不限角色）</summary>
         private async Task<bool> HasProjectAccessAsync(int projectId, int userId)
             => await _db.ProjectMembers.AnyAsync(pm =>
                 pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive);
+
+        /// <summary>使用者是否為該專案的 PM 角色成員（project_members is_active=TRUE AND member_role='PM'）</summary>
+        private async Task<bool> HasProjectPMAccessAsync(int projectId, int userId)
+            => await _db.ProjectMembers.AnyAsync(pm =>
+                pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive && pm.MemberRole == "PM");
 
         /// <summary>SE 是否有該案件的有效派工（case_assignments is_active=TRUE）</summary>
         private async Task<bool> HasCaseAssignmentAsync(int caseId, int userId)

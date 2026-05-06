@@ -185,6 +185,56 @@
               </div>
             </div>
           </div>
+
+          <!-- 工時評估（已移至基本資訊區塊下方） -->
+          <div class="pt-3">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-slate-500">工時評估紀錄</p>
+              <button @click="showEstForm = !showEstForm"
+                class="h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
+                + 新增評估
+              </button>
+            </div>
+            <div v-if="showEstForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mt-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div><label class="label">提出日期 *</label><input v-model="estForm.request_date" type="date" class="input-base" /></div>
+                <div><label class="label">評估工時 (hr) *</label><input v-model.number="estForm.estimated_hours" type="number" step="0.5" class="input-base" /></div>
+                <div>
+                  <label class="label">評估人員 *</label>
+                  <select v-model="estForm.estimator_user_id" class="input-base">
+                    <option v-for="u in meta.users" :key="u.id" :value="u.id">{{ u.full_name }} ({{ u.role }})</option>
+                  </select>
+                </div>
+              </div>
+              <div><label class="label">概要 *</label><textarea v-model="estForm.summary" rows="2" class="input-base"></textarea></div>
+              <div><label class="label">備註</label><textarea v-model="estForm.remarks" rows="2" class="input-base"></textarea></div>
+              <div class="flex justify-end gap-2">
+                <button @click="showEstForm = false" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
+                <button @click="submitEstimation" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">送出</button>
+              </div>
+            </div>
+
+            <div v-if="(caseData.estimations || []).length > 0" class="overflow-x-auto rounded-xl border border-slate-200 mt-3">
+              <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50"><tr>
+                  <th class="th-cell">項次</th><th class="th-cell">提出日</th><th class="th-cell">概要</th>
+                  <th class="th-cell">評估工時</th><th class="th-cell">狀態</th><th class="th-cell">評估人員</th>
+                </tr></thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="e in caseData.estimations" :key="e.id" class="hover:bg-slate-50/70">
+                    <td class="td-cell tabular-nums">{{ e.seq_no }}</td>
+                    <td class="td-cell tabular-nums">{{ e.request_date }}</td>
+                    <td class="td-cell max-w-xs truncate">{{ e.summary }}</td>
+                    <td class="td-cell tabular-nums">{{ e.estimated_hours }} hr</td>
+                    <td class="td-cell"><span class="badge" :class="estStatusColor(e.estimation_status)">{{ estStatusLabel(e.estimation_status) }}</span></td>
+                    <td class="td-cell">{{ e.estimator?.full_name }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else-if="!showEstForm" class="py-8 text-center text-sm text-slate-400">尚無工時評估紀錄</div>
+          </div>
+
         </div>
 
         <!-- Tab: 處理歷程 -->
@@ -200,13 +250,16 @@
               + 新增紀錄
             </button>
           </div>
-          <div v-if="showLogForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div v-if="showLogForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
             <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">新增處理紀錄</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
               <div><label class="label">工時 (hr) *</label><input v-model.number="logForm.hours_spent" type="number" step="0.5" min="0" class="input-base" /></div>
             </div>
-            <div><label class="label">處理方式 *</label><textarea v-model="logForm.handling_method" rows="4" class="input-base resize-y" placeholder="本次做了什麼（例：檢查 Log、重現問題、調整設定…）"></textarea></div>
+            <div>
+              <label class="label">處理方式 *</label>
+              <textarea v-model="logForm.handling_method" rows="4" class="input-base resize-y" placeholder="本次做了什麼（例：檢查 Log、重現問題、調整設定…）" required></textarea>
+            </div>
             <div><label class="label">處理結果 / 下一步</label><textarea v-model="logForm.handling_result" rows="3" class="input-base resize-y" placeholder="結果、觀察、尚待確認事項…"></textarea></div>
             <!-- 附件 -->
             <div>
@@ -283,7 +336,7 @@
               @click="openAssignModal"
               class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-              轉派 SE
+              轉派 專案成員
             </button>
           </div>
           <div class="space-y-2">
@@ -299,7 +352,7 @@
               <span v-if="a.expected_completion_date" class="text-xs text-slate-400 whitespace-nowrap">預計 {{ a.expected_completion_date }}</span>
               <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">處理中</span>
             </div>
-            <div v-if="activeAssignments.length === 0" class="py-8 text-center text-sm text-slate-400">尚未指派工程師</div>
+            <div v-if="activeAssignments.length === 0" class="py-8 text-center text-sm text-slate-400">尚未指派專案成員</div>
           </div>
           <div v-if="inactiveAssignments.length > 0">
             <p class="text-xs text-slate-400 mb-2">歷史派工紀錄</p>
@@ -315,53 +368,7 @@
           </div>
         </div>
 
-        <!-- Tab: 工時評估 -->
-        <div v-if="activeTab === 'estimation'" class="space-y-4">
-          <div class="flex items-center justify-between">
-            <p class="text-sm text-slate-500">工時評估紀錄</p>
-            <button @click="showEstForm = !showEstForm"
-              class="h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
-              + 新增評估
-            </button>
-          </div>
-          <div v-if="showEstForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div><label class="label">提出日期 *</label><input v-model="estForm.request_date" type="date" class="input-base" /></div>
-              <div><label class="label">評估工時 (hr) *</label><input v-model.number="estForm.estimated_hours" type="number" step="0.5" class="input-base" /></div>
-              <div>
-                <label class="label">評估人員 *</label>
-                <select v-model="estForm.estimator_user_id" class="input-base">
-                  <option v-for="u in meta.users" :key="u.id" :value="u.id">{{ u.full_name }} ({{ u.role }})</option>
-                </select>
-              </div>
-            </div>
-            <div><label class="label">概要 *</label><textarea v-model="estForm.summary" rows="2" class="input-base"></textarea></div>
-            <div><label class="label">備註</label><textarea v-model="estForm.remarks" rows="2" class="input-base"></textarea></div>
-            <div class="flex justify-end gap-2">
-              <button @click="showEstForm = false" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
-              <button @click="submitEstimation" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">送出</button>
-            </div>
-          </div>
-          <div v-if="(caseData.estimations || []).length > 0" class="overflow-x-auto rounded-xl border border-slate-200">
-            <table class="min-w-full divide-y divide-slate-200">
-              <thead class="bg-slate-50"><tr>
-                <th class="th-cell">項次</th><th class="th-cell">提出日</th><th class="th-cell">概要</th>
-                <th class="th-cell">評估工時</th><th class="th-cell">狀態</th><th class="th-cell">評估人員</th>
-              </tr></thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr v-for="e in caseData.estimations" :key="e.id" class="hover:bg-slate-50/70">
-                  <td class="td-cell tabular-nums">{{ e.seq_no }}</td>
-                  <td class="td-cell tabular-nums">{{ e.request_date }}</td>
-                  <td class="td-cell max-w-xs truncate">{{ e.summary }}</td>
-                  <td class="td-cell tabular-nums">{{ e.estimated_hours }} hr</td>
-                  <td class="td-cell"><span class="badge" :class="estStatusColor(e.estimation_status)">{{ estStatusLabel(e.estimation_status) }}</span></td>
-                  <td class="td-cell">{{ e.estimator?.full_name }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-else-if="!showEstForm" class="py-8 text-center text-sm text-slate-400">尚無工時評估紀錄</div>
-        </div>
+        
 
         <!-- Tab: 客戶回覆 -->
         <div v-if="activeTab === 'replies'" class="space-y-4">
@@ -574,7 +581,6 @@ const tabs = computed(() => [
   { key: 'info', label: '基本資訊' },
   { key: 'logs', label: '處理歷程', count: caseData.value?.logs?.length || 0 },
   { key: 'assign', label: '派工', count: activeAssignments.value.length },
-  { key: 'estimation', label: '工時評估', count: caseData.value?.estimations?.length || 0 },
   { key: 'replies', label: '客戶回覆', count: caseData.value?.replies?.length || 0 }
 ])
 
@@ -589,7 +595,7 @@ function logAttachmentsByLog(logId) {
 
 const availableSEs = computed(() => {
   if (!caseData.value) return []
-  return meta.getProjectSEs(caseData.value.project?.id)
+  return meta.getProjectAllMembers(caseData.value.project?.id, auth.user?.user_id)
 })
 
 const filteredAssignSEs = computed(() => {
@@ -723,8 +729,8 @@ async function handleConfirm() {
 }
 
 async function submitLog() {
-  if (!logForm.value.hours_spent || logForm.value.hours_spent <= 0) {
-    alert('請填入工時（必須大於 0）')
+  if (!logForm.value.handling_method || !logForm.value.handling_method.trim()) {
+    alert('處理方式為必填，請輸入處理方式')
     return
   }
   const { data: res } = await api.post(`/cases/${caseId.value}/logs`, logForm.value)

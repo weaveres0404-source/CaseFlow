@@ -22,7 +22,7 @@
           <button @click="refresh" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm text-slate-700">
             重新整理
           </button>
-          <router-link to="/cases/new" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-sm">
+          <router-link v-if="canCreateCase" to="/cases/new" class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-sm">
             + 立案新案件
           </router-link>
         </div>
@@ -175,6 +175,13 @@ defineOptions({ name: 'DashboardView' })
 const router = useRouter()
 const auth = useAuthStore()
 const meta = useMetaStore()
+
+// 只有 SysAdmin，或在任一專案中具有 PM 角色的成員，才能立案
+const canCreateCase = computed(() => {
+  if (auth.role === 'SysAdmin') return true
+  const userId = auth.user?.user_id ?? auth.user?.id
+  return meta.projectMembers.some(pm => pm.user_id === userId && pm.role === 'PM')
+})
 
 // ── user info ─────────────────────────────────────────────
 const userName = computed(() => auth.user?.full_name || auth.user?.username || '用戶')

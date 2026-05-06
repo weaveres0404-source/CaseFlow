@@ -50,6 +50,16 @@ export const useMetaStore = defineStore('meta', () => {
     return users.value.filter(u => seUserIds.includes(u.id))
   }
 
+  // 取得專案所有成員（不限角色），可排除指定 userId
+  function getProjectAllMembers(projectId, excludeUserId = null) {
+    const memberUserIds = projectMembers.value
+      .filter(pm => pm.project_id === projectId)
+      .map(pm => pm.user_id)
+    let result = users.value.filter(u => memberUserIds.includes(u.id))
+    if (excludeUserId != null) result = result.filter(u => u.id !== excludeUserId)
+    return result
+  }
+
   const statusMap = {
     10: { label: '待處理', color: 'bg-slate-100 text-slate-600' },
     20: { label: '已派工', color: 'bg-blue-100 text-blue-700' },
@@ -77,7 +87,7 @@ export const useMetaStore = defineStore('meta', () => {
 
   return {
     customers, projects, categories, modules, users, projectMembers, enums, loaded,
-    fetchDropdowns, getModulesByProject, getUsersByRole, getProjectPMs, getProjectSEs,
+    fetchDropdowns, getModulesByProject, getUsersByRole, getProjectPMs, getProjectSEs, getProjectAllMembers,
     statusMap, priorityMap, caseTypeMap
   }
 })

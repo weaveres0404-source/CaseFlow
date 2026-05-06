@@ -21,7 +21,7 @@
         <button type="button" disabled class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-400 cursor-not-allowed" title="欄位設定預留中">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M10 18h4"/></svg>
         </button>
-        <router-link v-if="auth.role !== 'SE'" to="/cases/new"
+        <router-link v-if="canCreateCase" to="/cases/new"
           class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           新增案件
@@ -385,6 +385,13 @@ const isCreator = (item) => {
   const creatorId = item?.created_by?.id ?? item?.created_by?.user_id
   return !!myId && !!creatorId && String(myId) === String(creatorId)
 }
+
+// 只有 SysAdmin，或在任一專案中具有 PM 角色的成員，才能立案
+const canCreateCase = computed(() => {
+  if (auth.role === 'SysAdmin') return true
+  const userId = auth.user?.user_id ?? auth.user?.id
+  return meta.projectMembers.some(pm => pm.user_id === userId && pm.role === 'PM')
+})
 
 const cases = ref([])
 const page = ref(1)

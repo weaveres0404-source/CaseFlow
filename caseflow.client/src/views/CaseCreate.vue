@@ -172,12 +172,18 @@
       <div class="sticky bottom-0 -mx-4 bg-gradient-to-t from-slate-50 via-slate-50 to-slate-50/0 px-4 py-4 md:-mx-6 md:px-6 lg:-mx-7 lg:px-7">
         <div class="card-section flex items-center gap-3 px-4 py-3">
 
-          <div class="flex-1"></div>
+          <div class="flex-1 text-xs text-slate-500">
+            <span v-if="hasSavedDraft">目前草稿已儲存在此瀏覽器</span>
+          </div>
           <div class="grid gap-2 sm:grid-flow-col sm:auto-cols-max sm:justify-end">
             <router-link to="/cases" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg px-4 text-sm text-slate-600 hover:bg-slate-100">取消</router-link>
             <button type="button" @click="saveDraft" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-700 hover:bg-slate-50">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               儲存草稿
+            </button>
+            <button type="button" @click="clearDraftRecord" :disabled="!hasSavedDraft" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3.5 text-sm text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V5h6v2m-7 4v6m4-6v6m4-6v6M5 7l1 12h12l1-12"/></svg>
+              清除草稿紀錄
             </button>
             <button type="submit" :disabled="!canSubmit || submitting" class="inline-grid h-9 grid-flow-col auto-cols-max items-center gap-1.5 rounded-lg bg-brand-700 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand-800 disabled:cursor-not-allowed disabled:bg-slate-300">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -301,6 +307,7 @@ const attachments = ref([])
 const isDragActive = ref(false)
 const submitting = ref(false)
 const citedFrom = ref(null)
+const hasSavedDraft = ref(false)
 
 const showSimilarModal = ref(false)
 const similarQuery = ref('')
@@ -370,10 +377,10 @@ const form = ref({
 const availableProjects = computed(() => {
   if (auth.role === 'SysAdmin') return meta.projects
   const userId = auth.user?.user_id
-  const myProjectIds = new Set(
-    meta.projectMembers.filter(pm => pm.user_id === userId).map(pm => pm.project_id)
+  const myPMProjectIds = new Set(
+    meta.projectMembers.filter(pm => pm.user_id === userId && pm.role === 'PM').map(pm => pm.project_id)
   )
-  return meta.projects.filter(p => myProjectIds.has(p.id))
+  return meta.projects.filter(p => myPMProjectIds.has(p.id))
 })
 
 const filteredModules = computed(() => form.value.project_id ? meta.getModulesByProject(form.value.project_id) : [])
@@ -559,14 +566,22 @@ function removeAttachment(localId) {
   attachments.value = attachments.value.filter(item => item.localId !== localId)
 }
 
+function syncDraftState() {
+  hasSavedDraft.value = !!localStorage.getItem(draftStorageKey)
+}
+
 function saveDraft() {
   localStorage.setItem(draftStorageKey, JSON.stringify({ form: form.value, citedFrom: citedFrom.value }))
+  syncDraftState()
   window.alert('草稿已儲存')
 }
 
 function loadDraft() {
   const raw = localStorage.getItem(draftStorageKey)
-  if (!raw) return
+  if (!raw) {
+    hasSavedDraft.value = false
+    return
+  }
   try {
     const draft = JSON.parse(raw)
     if (draft?.form) {
@@ -580,13 +595,23 @@ function loadDraft() {
     if (draft?.citedFrom) {
       citedFrom.value = draft.citedFrom
     }
+    hasSavedDraft.value = true
   } catch {
     localStorage.removeItem(draftStorageKey)
+    hasSavedDraft.value = false
   }
 }
 
 function clearDraft() {
   localStorage.removeItem(draftStorageKey)
+  hasSavedDraft.value = false
+}
+
+function clearDraftRecord() {
+  if (!hasSavedDraft.value) return
+  if (!window.confirm('確定要清除此瀏覽器中的草稿紀錄嗎？目前表單內容不會被重設。')) return
+  clearDraft()
+  window.alert('草稿紀錄已清除')
 }
 
 function clearCite() {
