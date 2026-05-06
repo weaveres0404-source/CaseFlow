@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto flex w-full max-w-[1200px] flex-col gap-4">
-    <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div class="flex flex-col gap-2">
       <div>
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
           <router-link to="/dashboard" class="hover:text-slate-700">儀表板</router-link>
@@ -9,11 +9,6 @@
         </div>
         <h1 class="text-2xl md:text-[28px] font-bold text-slate-900 tracking-tight">個人設定</h1>
         <p class="text-sm text-slate-500 mt-1">檢視目前登入身分、角色權限與最近一次登入資訊。</p>
-      </div>
-      <div class="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-500 shadow-sm w-fit max-w-full">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        登入中
-        <span class="font-medium text-slate-700 text-white break-words [overflow-wrap:anywhere]">{{ displayName }}</span>
       </div>
     </div>
 
@@ -106,10 +101,6 @@
             </ul>
           </div>
 
-          <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 md:p-5">
-            <div class="font-medium mb-1">權限提示</div>
-            <p class="leading-relaxed">您目前以 {{ roleLabel }} 身分操作系統；側邊選單與案件操作按鈕會依此角色自動調整。</p>
-          </div>
         </section>
       </div>
     </section>
