@@ -242,7 +242,17 @@
             <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">新增處理紀錄</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
-              <div><label class="label">工時 (hr) *</label><input v-model.number="logForm.hours_spent" type="number" step="0.5" min="0" class="input-base" /></div>
+              <div>
+                <label class="label">工時 (hr) *</label>
+                <input
+                  :value="hoursInput"
+                  @input="onHoursInput($event)"
+                  type="text"
+                  inputmode="decimal"
+                  maxlength="4"
+                  class="input-base"
+                />
+              </div>
             </div>
             <div>
               <label class="label">處理方式 *</label>
@@ -534,6 +544,30 @@ const showEstForm = ref(false)
 const showReplyForm = ref(false)
 
 const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 })
+
+// separate input binding to allow user to type '.' without being clobbered by numeric coercion
+const hoursInput = ref(String(logForm.value.hours_spent || '0'))
+
+function onHoursInput(e) {
+  // get raw value from input or from hoursInput (v-model)
+  let s = e?.target?.value ?? hoursInput.value ?? ''
+  s = String(s)
+  // keep only digits and dot
+  s = s.replace(/[^0-9.]/g, '')
+  // keep only first dot
+  const firstDot = s.indexOf('.')
+  if (firstDot !== -1) {
+    s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '')
+  }
+  // limit total length to 4 characters (including dot)
+  if (s.length > 4) s = s.slice(0, 4)
+  // write back to visible input model
+  hoursInput.value = s
+  if (e && e.target) e.target.value = s
+  // update numeric model when parseable
+  const num = Number(s)
+  logForm.value.hours_spent = (s === '' || s === '.' || !Number.isFinite(num)) ? 0 : num
+}
 const logAttachments = ref([])
 
 function onLogFileChange(e) {
@@ -739,6 +773,7 @@ async function submitLog() {
   }
   showLogForm.value = false
   logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 }
+  hoursInput.value = '0'
   logAttachments.value = []
   await fetchCase()
 }
