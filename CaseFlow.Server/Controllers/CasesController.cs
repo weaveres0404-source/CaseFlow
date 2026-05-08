@@ -53,6 +53,7 @@ namespace CaseFlow.Server.Controllers
             var query = _db.Cases.AsNoTracking()
                 .Include(c => c.Project)
                 .Include(c => c.Customer)
+                .Include(c => c.Category)
                 .Include(c => c.CreatedByNavigation)
                 .Include(c => c.AssignedPm)
                 .Include(c => c.CaseAssignments.Where(a => a.IsActive))
@@ -128,6 +129,10 @@ namespace CaseFlow.Server.Controllers
                     case_number = c.CaseNumber,
                     project = new { id = c.Project.ProjectId, code = c.Project.ProjectCode, name = c.Project.ProjectName },
                     customer = new { id = c.Customer.CustomerId, name = c.Customer.CustomerName },
+                    category = c.Category != null ? new { id = c.Category.CategoryId, name = c.Category.CategoryName } : null,
+                    reporter_name = c.ReporterName,
+                    description = c.Description,
+                    total_hours = c.TotalHours,
                     case_type = c.CaseType,
                     priority = c.Priority,
                     status = c.Status,

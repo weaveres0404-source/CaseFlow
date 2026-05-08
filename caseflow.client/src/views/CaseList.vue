@@ -364,6 +364,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import ExcelJS from 'exceljs'
 import { useMetaStore } from '../stores/meta'
 import { useAuthStore } from '../stores/auth'
 import api from '../utils/api'
@@ -659,6 +660,49 @@ function relativeTime(dt) {
   return new Date(dt).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit' })
 }
 
+function formatDateTimeForExport(dt) {
+  if (!dt) return ''
+  const d = new Date(dt)
+  if (Number.isNaN(d.getTime())) return ''
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mi = String(d.getMinutes()).padStart(2, '0')
+  return `${yyyy}/${mm}/${dd} ${hh}:${mi}`
+}
+
+function buildCaseQueryParams(pageNumber = page.value, size = pageSize.value) {
+  const params = { page: pageNumber, page_size: size }
+  if (activeScopeKey.value === 'mine') params.assigned_to_me = true
+  if (activeScopeKey.value === 'created') params.created_by_me = true
+  if (activeScopeKey.value === 'open') params.open_only = true
+  Object.entries(filters.value).forEach(([k, v]) => {
+    if (v !== null && v !== undefined && v !== '') params[k] = v
+  })
+  return params
+}
+
+async function fetchAllCasesForExport() {
+  const exportPageSize = 100
+  const all = []
+  let currentPage = 1
+  let totalPagesForExport = 1
+
+  while (currentPage <= totalPagesForExport) {
+    const params = buildCaseQueryParams(currentPage, exportPageSize)
+    const { data: res } = await api.get('/cases', { params })
+    if (!res?.success) break
+
+    all.push(...(res.data || []))
+    const total = res.meta?.total || 0
+    totalPagesForExport = Math.max(1, Math.ceil(total / exportPageSize))
+    currentPage += 1
+  }
+
+  return all
+}
+
 function toNullableInt(value) {
   if (value === undefined || value === null || value === '') return null
   const parsed = Number(value)
@@ -695,11 +739,7 @@ async function fetchCases(p = page.value) {
   loading.value = true
   page.value = p
   try {
-    const params = { page: p, page_size: pageSize.value }
-    if (activeScopeKey.value === 'mine') params.assigned_to_me = true
-    if (activeScopeKey.value === 'created') params.created_by_me = true
-    if (activeScopeKey.value === 'open') params.open_only = true
-    Object.entries(filters.value).forEach(([k, v]) => { if (v) params[k] = v })
+    const params = buildCaseQueryParams(p, pageSize.value)
     const { data: res } = await api.get('/cases', { params })
     if (res.success) {
       cases.value = res.data
@@ -775,17 +815,112 @@ function exportSelectedCases() {
 
 async function exportCases() {
   try {
-    const payload = {
-      report_type: 'hours',
-      project_id: filters.value.project_id || null,
-      date_from: filters.value.date_from || null,
-      date_to: filters.value.date_to || null
+    const rows = await fetchAllCasesForExport()
+
+    if (rows.length === 0) {
+      alert('目前沒有可匯出的資料')
+      return
     }
-    const res = await api.post('/reports/export', payload, { responseType: 'blob' })
-    const url = URL.createObjectURL(res.data)
+
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet('案件列表', {
+      views: [{ state: 'frozen', ySplit: 1 }]
+    })
+
+    const headers = ['案件編號', '客戶', '所屬專案', '案件類型', '問題分類', '報修人', '問題描述', '立案人', '案件狀態', '案件總工時', '更新時間']
+    const highlightHeaderIndex = new Set([6, 7, 8])
+
+    sheet.columns = [
+      { width: 18 },
+      { width: 12 },
+      { width: 16 },
+      { width: 12 },
+      { width: 12 },
+      { width: 16 },
+      { width: 24 },
+      { width: 14 },
+      { width: 14 },
+      { width: 12 },
+      { width: 14 }
+    ]
+
+    sheet.addRow(headers)
+
+    const headerRow = sheet.getRow(1)
+    headerRow.height = 24
+    headerRow.eachCell((cell, colNumber) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      }
+      cell.font = {
+        bold: true,
+        color: { argb: highlightHeaderIndex.has(colNumber) ? 'FFFFFF00' : 'FFFFFFFF' },
+        size: 12
+      }
+      cell.alignment = { vertical: 'middle', horizontal: 'left' }
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
+      }
+    })
+
+    rows.forEach((item) => {
+      const caseType = meta.caseTypeMap[item.case_type]?.label || item.case_type || ''
+      const statusText = meta.statusMap[item.status]?.label || String(item.status || '')
+      const projectText = `${item.project?.code || ''} ${item.project?.name || ''}`.trim()
+
+      const row = sheet.addRow([
+        item.case_number || '',
+        item.customer?.name || '',
+        projectText,
+        caseType,
+        item.category?.name || '',
+        item.reporter_name || '',
+        item.description || '',
+        item.created_by?.full_name || '',
+        statusText,
+        Number(item.total_hours || 0),
+        formatDateTimeForExport(item.updated_at)
+      ])
+
+      row.height = 22
+      row.eachCell((cell, colNumber) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFEDEDED' }
+        }
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } }
+        }
+        cell.alignment = {
+          vertical: 'middle',
+          horizontal: colNumber === 10 ? 'right' : 'left',
+          wrapText: colNumber === 7
+        }
+      })
+
+      row.getCell(10).numFmt = '0.##'
+    })
+
+    sheet.autoFilter = {
+      from: 'A1',
+      to: 'K1'
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `cases_export_${new Date().toISOString().slice(0, 10)}.xlsx`
+    a.download = `案件列表_${new Date().toISOString().slice(0, 10)}.xlsx`
     a.click()
     URL.revokeObjectURL(url)
   } catch {
