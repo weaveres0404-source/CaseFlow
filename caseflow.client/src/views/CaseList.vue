@@ -18,9 +18,6 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           <span class="hidden sm:inline">匯出</span>
         </button>
-        <button type="button" disabled class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-400 cursor-not-allowed" title="欄位設定預留中">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M10 18h4"/></svg>
-        </button>
         <router-link v-if="canCreateCase" to="/cases/new"
           class="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-sm font-medium shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -112,7 +109,7 @@
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">處理專案成員</label>
+            <label class="block text-[11px] font-medium text-slate-500 mb-1">處理轉派人員</label>
             <select v-model="filters.se_user_id" class="w-full h-9 px-2 rounded-lg border border-slate-300 text-sm">
               <option :value="null">全部</option>
               <option v-for="u in meta.users.filter(u => u.role === 'SE')" :key="u.id" :value="u.id">{{ u.full_name }}</option>
@@ -193,7 +190,7 @@
               <th class="min-w-[90px]">類型</th>
               <th class="min-w-[90px]">狀態</th>
               <th class="min-w-[100px]">立案人</th>
-              <th class="min-w-[160px]">專案成員</th>
+              <th class="min-w-[160px]">轉派人員</th>
               <th class="min-w-[120px]">
                 最後更新
                 <svg class="w-3 h-3 inline text-slate-600 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -310,7 +307,7 @@
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-semibold text-slate-900">批次派工</h2>
-            <p class="text-xs text-slate-500 mt-0.5">將 {{ selectedCount }} 件案件指派給一位或多位專案成員。</p>
+            <p class="text-xs text-slate-500 mt-0.5">將 {{ selectedCount }} 件案件指派給一位或多位轉派人員。</p>
           </div>
           <button type="button" @click="closeAssignModal" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -319,7 +316,7 @@
 
         <div class="px-5 py-5 space-y-4">
           <div>
-            <div class="text-sm font-medium text-slate-700 mb-2">選擇處理專案成員</div>
+            <div class="text-sm font-medium text-slate-700 mb-2">選擇處理轉派人員</div>
             <div class="grid gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto">
               <label v-for="user in seOptions" :key="user.id" class="flex items-start gap-3 rounded-xl border border-slate-200 p-3 hover:border-brand-300 hover:bg-brand-50/40 cursor-pointer">
                 <input :checked="assignForm.seUserIds.includes(user.id)" type="checkbox" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" @change="toggleAssignSe(user.id)" />
@@ -333,7 +330,7 @@
           </div>
 
           <div v-if="assignForm.seUserIds.length > 1">
-            <label class="block text-sm font-medium text-slate-700 mb-1.5">主要負責專案成員</label>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">主要負責轉派人員</label>
             <select v-model="assignForm.primarySeUserId" class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
               <option v-for="user in selectedSeUsers" :key="user.id" :value="user.id">{{ user.full_name }}</option>
             </select>
@@ -500,7 +497,7 @@ const activeFilterChips = computed(() => {
     customer_id: '客戶',
     status: '狀態',
     case_type: '類型',
-    se_user_id: '處理專案成員',
+    se_user_id: '處理轉派人員',
     created_by: '立案人'
   }
   if (f.q) chips.push({ key: 'q', label: filterLabelMap.q, valueLabel: f.q })
@@ -734,7 +731,7 @@ function saveCurrentView() {
 async function submitBatchAssign() {
   assignError.value = ''
   if (assignForm.value.seUserIds.length === 0) {
-    assignError.value = '請至少選擇一位專案成員'
+    assignError.value = '請至少選擇一位轉派人員'
     return
   }
 

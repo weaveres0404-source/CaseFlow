@@ -371,7 +371,7 @@
         <!-- Tab: 客戶回覆 -->
         <div v-if="activeTab === 'replies'" class="space-y-4">
           <div class="flex items-center justify-between">
-            <p class="text-sm text-slate-500">客戶回覆紀錄</p>
+            <p class="text-sm text-slate-500">回覆客戶紀錄</p>
             <button @click="showReplyForm = !showReplyForm"
               class="h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
               + 新增回覆
@@ -489,10 +489,10 @@
   <div v-if="imagePreview.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" @click.self="closeImagePreview">
     <div class="relative max-w-4xl max-h-full flex flex-col items-center">
       <div class="flex items-center justify-between w-full mb-2 px-1">
-        <span class="text-black text-sm truncate max-w-xs">{{ imagePreview.fileName }}</span>
+        <span class="text-white text-sm truncate max-w-xs">{{ imagePreview.fileName }}</span>
         <div class="flex items-center gap-3">
-          <button @click="downloadAttachment(imagePreview.att)" class="text-black/80 hover:text-black text-xs border border-white/30 rounded-lg px-3 py-1">下載</button>
-          <button @click="closeImagePreview" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-black grid place-items-center">
+          <button @click="downloadAttachment(imagePreview.att)" class="text-white text-xs border border-white/35 bg-black/35 hover:bg-black/55 rounded-lg px-3 py-1 transition-colors">下載</button>
+          <button @click="closeImagePreview" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white grid place-items-center transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -603,7 +603,7 @@ const tabs = computed(() => [
   { key: 'info', label: '基本資訊' },
   { key: 'logs', label: '處理歷程', count: caseData.value?.logs?.length || 0 },
   { key: 'assign', label: '派工', count: activeAssignments.value.length },
-  { key: 'replies', label: '客戶回覆', count: caseData.value?.replies?.length || 0 }
+  { key: 'replies', label: '回覆客戶', count: caseData.value?.replies?.length || 0 }
 ])
 
 const activeAssignments = computed(() => (caseData.value?.assignments || []).filter(a => a.is_active))
