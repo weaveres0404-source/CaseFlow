@@ -175,7 +175,10 @@ namespace CaseFlow.Server.Controllers
             var viewerRole = User.GetRole();
             if (viewerRole == "PM")
             {
-                if (!await HasProjectAccessAsync(c.ProjectId, viewerUserId))
+                // PM：可查看所屬專案的案件，或被派工至此案件的案件
+                bool hasProjectAccess = await HasProjectAccessAsync(c.ProjectId, viewerUserId);
+                bool hasCaseAssignment = await HasCaseAssignmentAsync(id, viewerUserId);
+                if (!hasProjectAccess && !hasCaseAssignment)
                     return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您無權存取此案件" } });
             }
             else if (viewerRole == "SE")
