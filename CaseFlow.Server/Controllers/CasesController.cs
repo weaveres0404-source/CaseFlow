@@ -179,12 +179,12 @@ namespace CaseFlow.Server.Controllers
                 bool hasProjectAccess = await HasProjectAccessAsync(c.ProjectId, viewerUserId);
                 bool hasCaseAssignment = await HasCaseAssignmentAsync(id, viewerUserId);
                 if (!hasProjectAccess && !hasCaseAssignment)
-                    return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您無權存取此案件" } });
+                    return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
             }
             else if (viewerRole == "SE")
             {
                 if (!await HasCaseAssignmentAsync(id, viewerUserId))
-                    return StatusCode(403, new { success = false, error = new { code = "PERMISSION_DENIED", message = "您未被派工至此案件" } });
+                    return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
             }
             var attachments = await _db.Attachments.AsNoTracking()
                 .Include(a => a.UploadedByNavigation)
