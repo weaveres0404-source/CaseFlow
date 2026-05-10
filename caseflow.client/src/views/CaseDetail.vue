@@ -40,7 +40,7 @@
               :class="slaUrgent ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'">
               {{ slaBadge }}
             </span>
-            <router-link v-if="caseData.related_case" :to="`/cases/${caseData.related_case.id}`"
+            <router-link v-if="caseData.related_case" :to="`/cases/${caseData.related_case.short_id || caseData.related_case.id}`"
               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-indigo-50 text-indigo-700 hover:underline">
               ↩ {{ caseData.related_case.case_number }}
             </router-link>
@@ -788,7 +788,7 @@ function doAction(action, message) {
     onConfirm: async () => {
       if (action === 'reopen') {
         const { data: res } = await api.post(`/cases/${caseId.value}/${action}`)
-        if (res.success) router.push(`/cases/${res.data.id}`)
+        if (res.success) router.push(`/cases/${res.data.short_id || res.data.id}`)
       } else {
         await api.post(`/cases/${caseId.value}/${action}`)
         await fetchCase()

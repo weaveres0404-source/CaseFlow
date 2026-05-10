@@ -12,10 +12,12 @@ namespace CaseFlow.Server.Controllers
     public class NotificationsController : ControllerBase
     {
         private readonly CaseFlowDbContext _db;
+        private readonly string _casePublicIdSalt;
 
-        public NotificationsController(CaseFlowDbContext db)
+        public NotificationsController(CaseFlowDbContext db, IConfiguration configuration)
         {
             _db = db;
+            _casePublicIdSalt = configuration["Security:CasePublicIdSalt"] ?? "CaseFlow-Default-CasePublicId-Salt-2026";
         }
 
         // GET /api/v1/notifications?is_read=false&page=1&page_size=20
@@ -39,7 +41,7 @@ namespace CaseFlow.Server.Controllers
 
             var total = await query.CountAsync();
 
-            var items = await query
+            var rawItems = await query
                 .OrderByDescending(n => n.CreatedAt)
                 .Skip((page - 1) * page_size)
                 .Take(page_size)
@@ -54,6 +56,20 @@ namespace CaseFlow.Server.Controllers
                     created_at = n.CreatedAt
                 })
                 .ToListAsync();
+
+            var items = rawItems
+                .Select(n => new
+                {
+                    n.id,
+                    n.notification_type,
+                    n.title,
+                    n.message,
+                    n.case_id,
+                    case_short_id = n.case_id.HasValue ? CasePublicIdCodec.Encode(n.case_id.Value, _casePublicIdSalt) : null,
+                    n.is_read,
+                    n.created_at
+                })
+                .ToList();
 
             return Ok(new { success = true, data = items, meta = new { page, page_size, total } });
         }

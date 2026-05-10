@@ -689,9 +689,7 @@ function closeSimilarModal() {
 }
 
 function appendReferencedDescription(sourceCase) {
-  const prefix = `【引用自 ${sourceCase.case_number}】${sourceCase.title}`
-  const body = [prefix, '', sourceCase.description || '', '', '---', '（以下請補充本次案件的實際差異）', ''].join('\n')
-  form.value.description = body
+  form.value.description = (sourceCase?.description || '').trim()
 }
 
 async function applySelectedSimilar(mode) {
@@ -704,7 +702,7 @@ async function applySelectedSimilar(mode) {
   if (mode === 'full') {
     // 必須取完整 detail，list API 不含 reporter_name、phone、email、category_id、module_id
     try {
-      const { data: res } = await api.get(`/cases/${selected.id}`)
+      const { data: res } = await api.get(`/cases/${selected.short_id || selected.id}`)
       if (res.success) {
         const detail = res.data
         form.value.project_id  = detail.project?.id   ?? null
@@ -780,6 +778,7 @@ async function submit() {
     }
 
     const caseId = res.data.id
+    const caseShortId = res.data.short_id || caseId
     const failedUploads = await uploadAttachments(caseId)
 
     clearDraft()
@@ -788,7 +787,7 @@ async function submit() {
       window.alert(`案件已建立，但以下附件上傳失敗，可在案件詳情補傳：${failedUploads.join('、')}`)
     }
 
-    router.push(`/cases/${caseId}`)
+    router.push(`/cases/${caseShortId}`)
   } catch (error) {
     window.alert(error?.response?.data?.error?.message || error?.message || '建立失敗')
   } finally {

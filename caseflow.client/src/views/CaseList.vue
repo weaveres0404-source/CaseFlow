@@ -201,7 +201,7 @@
             <tr v-for="c in cases" :key="c.id"
               class="bg-white hover:bg-slate-50 transition cursor-pointer group"
               :class="selectedIds.includes(c.id) ? 'selected-row' : ''"
-              @click="$router.push(`/cases/${c.id}`)">
+              @click="$router.push(`/cases/${c.short_id || c.id}`)">
               <td class="sticky left-0 bg-white group-hover:bg-slate-50 transition z-[1]">
                 <div class="flex items-center gap-2 flex-wrap">
                   <input :checked="selectedIds.includes(c.id)" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600" @click.stop @change="toggleRowSelection(c.id)" />
@@ -247,7 +247,7 @@
 
       <!-- Mobile Cards -->
       <div class="md:hidden divide-y divide-slate-100">
-        <router-link v-for="c in cases" :key="c.id" :to="`/cases/${c.id}`"
+        <router-link v-for="c in cases" :key="c.id" :to="`/cases/${c.short_id || c.id}`"
           class="block p-4 hover:bg-slate-50 active:bg-slate-100">
           <div class="flex items-start justify-between gap-2 mb-1.5">
               <div class="flex items-center gap-1.5 flex-wrap">
@@ -448,6 +448,13 @@ const visibleIds = computed(() => cases.value.map(item => item.id))
 const allSelectedOnPage = computed(() => visibleIds.value.length > 0 && visibleIds.value.every(id => selectedIds.value.includes(id)))
 const seOptions = computed(() => meta.users.filter(user => user.role === 'SE'))
 const selectedSeUsers = computed(() => seOptions.value.filter(user => assignForm.value.seUserIds.includes(user.id)))
+const userRoleMap = computed(() => {
+  const roleMap = new Map()
+  for (const user of meta.users || []) {
+    roleMap.set(String(user.id), user.role || null)
+  }
+  return roleMap
+})
 const activeScopeKey = computed(() => {
   const saved = savedViews.value.find(view => view.key === activeTab.value)
   return saved?.sourceTab || activeTab.value
@@ -622,7 +629,17 @@ function toggleAssignSe(userId) {
 }
 
 function activeSEs(c) {
-  return c.assigned_ses || []
+  return (c.assigned_ses || []).map((item) => {
+    if (typeof item === 'string') {
+      return { full_name: item, role: null }
+    }
+
+    const resolvedRole = item?.role || userRoleMap.value.get(String(item?.id)) || null
+    return {
+      ...item,
+      role: resolvedRole
+    }
+  })
 }
 
 function slaText(c) {
@@ -784,7 +801,8 @@ async function submitBatchAssign() {
       expectedCompletionDate: assignForm.value.expectedCompletionDate || null
     }
 
-    await Promise.all(selectedIds.value.map(caseId => api.post(`/cases/${caseId}/assign`, payload)))
+    const selectedCases = cases.value.filter(item => selectedIds.value.includes(item.id))
+    await Promise.all(selectedCases.map(item => api.post(`/cases/${item.short_id || item.id}/assign`, payload)))
     closeAssignModal()
     clearSelection()
     await fetchCases(page.value)

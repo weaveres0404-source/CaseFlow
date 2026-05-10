@@ -71,7 +71,7 @@
             v-for="item in openCases"
             :key="item.id"
             class="flex cursor-pointer items-start gap-3 px-5 py-3 transition hover:bg-slate-50"
-            @click="goToCase(item.id)"
+            @click="goToCase(item.short_id || item.id)"
           >
             <span class="mt-1.5 w-2 h-2 rounded-full shrink-0" :class="statusDotColor(item.status)"></span>
             <div class="flex-1 min-w-0">
@@ -105,7 +105,7 @@
             v-for="n in notifications"
             :key="n.id"
             class="flex cursor-pointer gap-3 px-5 py-3 transition hover:bg-slate-50"
-            @click="goToCase(n.case_id)"
+            @click="goToCase(n.case_short_id || n.case_id)"
           >
             <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-base text-indigo-700">📩</div>
             <div class="flex-1 min-w-0">

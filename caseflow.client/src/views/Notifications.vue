@@ -151,7 +151,7 @@ async function goToCase(n) {
     await api.patch('/notifications/read', { notification_ids: [n.id] })
     n.is_read = true
   }
-  if (n.case_id) router.push(`/cases/${n.case_id}`)
+  if (n.case_short_id || n.case_id) router.push(`/cases/${n.case_short_id || n.case_id}`)
 }
 
 function notificationTitle(notification) {

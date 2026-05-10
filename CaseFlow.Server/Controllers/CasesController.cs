@@ -12,10 +12,12 @@ namespace CaseFlow.Server.Controllers
     public class CasesController : ControllerBase
     {
         private readonly CaseFlowDbContext _db;
+        private readonly string _casePublicIdSalt;
 
-        public CasesController(CaseFlowDbContext db)
+        public CasesController(CaseFlowDbContext db, IConfiguration configuration)
         {
             _db = db;
+            _casePublicIdSalt = configuration["Security:CasePublicIdSalt"] ?? "CaseFlow-Default-CasePublicId-Salt-2026";
         }
 
         // GET /api/v1/cases — 案件列表 (含分頁、篩選、搜尋)
@@ -120,7 +122,7 @@ namespace CaseFlow.Server.Controllers
 
             var total = await query.CountAsync();
 
-            var items = await query
+            var rawItems = await query
                 .Skip((page - 1) * page_size)
                 .Take(page_size)
                 .Select(c => new
@@ -143,13 +145,36 @@ namespace CaseFlow.Server.Controllers
                 })
                 .ToListAsync();
 
+            var items = rawItems.Select(c => new
+            {
+                c.id,
+                short_id = ToCasePublicId(c.id),
+                c.case_number,
+                c.project,
+                c.customer,
+                c.category,
+                c.reporter_name,
+                c.description,
+                c.total_hours,
+                c.case_type,
+                c.priority,
+                c.status,
+                c.created_by,
+                c.assigned_pm,
+                c.assigned_ses,
+                c.updated_at
+            }).ToList();
+
             return Ok(new { success = true, data = items, meta = new { page, page_size, total } });
         }
 
         // GET /api/v1/cases/:id — 案件詳情 (胖 Payload)
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{caseKey}")]
+        public async Task<IActionResult> GetById(string caseKey)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var c = await _db.Cases.AsNoTracking().AsSplitQuery()
                 .Include(x => x.Project)
                 .Include(x => x.Customer)
@@ -208,6 +233,7 @@ namespace CaseFlow.Server.Controllers
             var result = new
             {
                 id = c.CaseId,
+                short_id = ToCasePublicId(c.CaseId),
                 case_number = c.CaseNumber,
                 project = new { id = c.Project.ProjectId, code = c.Project.ProjectCode, name = c.Project.ProjectName },
                 customer = new { id = c.Customer.CustomerId, name = c.Customer.CustomerName },
@@ -224,7 +250,7 @@ namespace CaseFlow.Server.Controllers
                 assigned_pm = c.AssignedPm != null ? new { id = c.AssignedPm.UserId, full_name = c.AssignedPm.FullName } : null,
                 closed_by = c.ClosedByNavigation != null ? new { id = c.ClosedByNavigation.UserId, full_name = c.ClosedByNavigation.FullName } : null,
                 cancelled_by = c.CancelledByNavigation != null ? new { id = c.CancelledByNavigation.UserId, full_name = c.CancelledByNavigation.FullName } : null,
-                related_case = c.RelatedCase != null ? new { id = c.RelatedCase.CaseId, case_number = c.RelatedCase.CaseNumber } : null,
+                related_case = c.RelatedCase != null ? new { id = c.RelatedCase.CaseId, short_id = ToCasePublicId(c.RelatedCase.CaseId), case_number = c.RelatedCase.CaseNumber } : null,
                 relation_type = c.RelationType,
                 closed_at = c.ClosedAt,
                 cancelled_at = c.CancelledAt,
@@ -394,14 +420,18 @@ namespace CaseFlow.Server.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.CaseId },
-                new { success = true, data = new { id = entity.CaseId, case_number = caseNumber } });
+            var newCaseShortId = ToCasePublicId(entity.CaseId);
+            return CreatedAtAction(nameof(GetById), new { caseKey = newCaseShortId },
+                new { success = true, data = new { id = entity.CaseId, short_id = newCaseShortId, case_number = caseNumber } });
         }
 
         // PATCH /api/v1/cases/:id — 修改案件基本欄位
-        [HttpPatch("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] CaseUpdateDto dto)
+        [HttpPatch("{caseKey}")]
+        public async Task<IActionResult> Update(string caseKey, [FromBody] CaseUpdateDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -421,15 +451,18 @@ namespace CaseFlow.Server.Controllers
 
             await _db.SaveChangesAsync();
 
-            return Ok(new { success = true, data = new { id = entity.CaseId } });
+            return Ok(new { success = true, data = new { id = entity.CaseId, short_id = ToCasePublicId(entity.CaseId) } });
         }
 
         #region RPC 狀態流轉
 
         // POST /api/v1/cases/:id/assign — 派工
-        [HttpPost("{id:int}/assign")]
-        public async Task<IActionResult> Assign(int id, [FromBody] AssignDto dto)
+        [HttpPost("{caseKey}/assign")]
+        public async Task<IActionResult> Assign(string caseKey, [FromBody] AssignDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -528,13 +561,16 @@ namespace CaseFlow.Server.Controllers
 
             await _db.SaveChangesAsync();
 
-            return Ok(new { success = true, data = new { id, status = entity.Status } });
+            return Ok(new { success = true, data = new { id, short_id = ToCasePublicId(id), status = entity.Status } });
         }
 
         // POST /api/v1/cases/:id/complete
-        [HttpPost("{id:int}/complete")]
-        public async Task<IActionResult> Complete(int id)
+        [HttpPost("{caseKey}/complete")]
+        public async Task<IActionResult> Complete(string caseKey)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -593,13 +629,16 @@ namespace CaseFlow.Server.Controllers
             _db.AuditLogs.Add(new AuditLog { UserId = User.GetUserId(), CaseId = id, Action = "WORK_COMPLETED", EntityType = "case", EntityId = id, CreatedAt = now });
 
             await _db.SaveChangesAsync();
-            return Ok(new { success = true, data = new { id, status = 40 } });
+            return Ok(new { success = true, data = new { id, short_id = ToCasePublicId(id), status = 40 } });
         }
 
         // POST /api/v1/cases/:id/return — 退回
-        [HttpPost("{id:int}/return")]
-        public async Task<IActionResult> Return(int id, [FromBody] ReturnDto? dto)
+        [HttpPost("{caseKey}/return")]
+        public async Task<IActionResult> Return(string caseKey, [FromBody] ReturnDto? dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -652,13 +691,16 @@ namespace CaseFlow.Server.Controllers
             _db.AuditLogs.Add(new AuditLog { UserId = User.GetUserId(), CaseId = id, Action = "CASE_RETURNED", EntityType = "case", EntityId = id, CreatedAt = now });
 
             await _db.SaveChangesAsync();
-            return Ok(new { success = true, data = new { id, status = 35 } });
+            return Ok(new { success = true, data = new { id, short_id = ToCasePublicId(id), status = 35 } });
         }
 
         // POST /api/v1/cases/:id/close — 結案
-        [HttpPost("{id:int}/close")]
-        public async Task<IActionResult> Close(int id)
+        [HttpPost("{caseKey}/close")]
+        public async Task<IActionResult> Close(string caseKey)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -697,13 +739,16 @@ namespace CaseFlow.Server.Controllers
             _db.AuditLogs.Add(new AuditLog { UserId = User.GetUserId(), CaseId = id, Action = "CASE_CLOSED", EntityType = "case", EntityId = id, CreatedAt = now });
 
             await _db.SaveChangesAsync();
-            return Ok(new { success = true, data = new { id, status = 50 } });
+            return Ok(new { success = true, data = new { id, short_id = ToCasePublicId(id), status = 50 } });
         }
 
         // POST /api/v1/cases/:id/cancel — 取消
-        [HttpPost("{id:int}/cancel")]
-        public async Task<IActionResult> Cancel(int id, [FromBody] ReturnDto? dto)
+        [HttpPost("{caseKey}/cancel")]
+        public async Task<IActionResult> Cancel(string caseKey, [FromBody] ReturnDto? dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var entity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -763,13 +808,16 @@ namespace CaseFlow.Server.Controllers
             _db.AuditLogs.Add(new AuditLog { UserId = cancellerId, CaseId = id, Action = "CASE_CANCELLED", EntityType = "case", EntityId = id, CreatedAt = now });
 
             await _db.SaveChangesAsync();
-            return Ok(new { success = true, data = new { id, status = 60 } });
+            return Ok(new { success = true, data = new { id, short_id = ToCasePublicId(id), status = 60 } });
         }
 
         // POST /api/v1/cases/:id/reopen — 建新案件
-        [HttpPost("{id:int}/reopen")]
-        public async Task<IActionResult> Reopen(int id)
+        [HttpPost("{caseKey}/reopen")]
+        public async Task<IActionResult> Reopen(string caseKey)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var original = await _db.Cases.AsNoTracking().FirstOrDefaultAsync(x => x.CaseId == id);
             if (original == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -831,8 +879,20 @@ namespace CaseFlow.Server.Controllers
 
             await _db.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = newCase.CaseId },
-                new { success = true, data = new { id = newCase.CaseId, case_number = newCase.CaseNumber, related_case_id = id } });
+            var newCaseShortId = ToCasePublicId(newCase.CaseId);
+            return CreatedAtAction(nameof(GetById), new { caseKey = newCaseShortId },
+                new
+                {
+                    success = true,
+                    data = new
+                    {
+                        id = newCase.CaseId,
+                        short_id = newCaseShortId,
+                        case_number = newCase.CaseNumber,
+                        related_case_id = id,
+                        related_case_short_id = ToCasePublicId(id)
+                    }
+                });
         }
 
         #endregion
@@ -840,9 +900,12 @@ namespace CaseFlow.Server.Controllers
         #region 子資源寫入
 
         // POST /api/v1/cases/:id/logs  — 建立處理紀錄（含 §4.1 狀態轉換副作用）
-        [HttpPost("{id:int}/logs")]
-        public async Task<IActionResult> CreateLog(int id, [FromBody] CaseLogDto dto)
+        [HttpPost("{caseKey}/logs")]
+        public async Task<IActionResult> CreateLog(string caseKey, [FromBody] CaseLogDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var caseEntity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (caseEntity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -929,13 +992,16 @@ namespace CaseFlow.Server.Controllers
 
             await _db.SaveChangesAsync();
 
-            return Created($"/api/v1/cases/{id}/logs/{log.LogId}", new { success = true, data = new { id = log.LogId, case_status = newStatus } });
+            return Created($"/api/v1/cases/{caseKey}/logs/{log.LogId}", new { success = true, data = new { id = log.LogId, case_status = newStatus } });
         }
 
         // PATCH /api/v1/cases/:id/logs/:logId
-        [HttpPatch("{id:int}/logs/{logId:int}")]
-        public async Task<IActionResult> UpdateLog(int id, int logId, [FromBody] CaseLogDto dto)
+        [HttpPatch("{caseKey}/logs/{logId:int}")]
+        public async Task<IActionResult> UpdateLog(string caseKey, int logId, [FromBody] CaseLogDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var log = await _db.CaseLogs.FirstOrDefaultAsync(l => l.LogId == logId && l.CaseId == id);
             if (log == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Log not found" } });
@@ -958,9 +1024,12 @@ namespace CaseFlow.Server.Controllers
         }
 
         // POST /api/v1/cases/:id/estimations
-        [HttpPost("{id:int}/estimations")]
-        public async Task<IActionResult> CreateEstimation(int id, [FromBody] EstimationDto dto)
+        [HttpPost("{caseKey}/estimations")]
+        public async Task<IActionResult> CreateEstimation(string caseKey, [FromBody] EstimationDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var caseEntity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (caseEntity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -987,13 +1056,16 @@ namespace CaseFlow.Server.Controllers
             caseEntity.UpdatedAt = now;
             await _db.SaveChangesAsync();
 
-            return Created($"/api/v1/cases/{id}/estimations/{est.EstimationId}", new { success = true, data = new { id = est.EstimationId } });
+            return Created($"/api/v1/cases/{caseKey}/estimations/{est.EstimationId}", new { success = true, data = new { id = est.EstimationId } });
         }
 
         // PATCH /api/v1/cases/:id/estimations/:eid
-        [HttpPatch("{id:int}/estimations/{eid:int}")]
-        public async Task<IActionResult> UpdateEstimation(int id, int eid, [FromBody] EstimationDto dto)
+        [HttpPatch("{caseKey}/estimations/{eid:int}")]
+        public async Task<IActionResult> UpdateEstimation(string caseKey, int eid, [FromBody] EstimationDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var est = await _db.CaseEstimations.FirstOrDefaultAsync(e => e.EstimationId == eid && e.CaseId == id);
             if (est == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Estimation not found" } });
@@ -1030,9 +1102,12 @@ namespace CaseFlow.Server.Controllers
         }
 
         // POST /api/v1/cases/:id/replies
-        [HttpPost("{id:int}/replies")]
-        public async Task<IActionResult> CreateReply(int id, [FromBody] ReplyDto dto)
+        [HttpPost("{caseKey}/replies")]
+        public async Task<IActionResult> CreateReply(string caseKey, [FromBody] ReplyDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var caseEntity = await _db.Cases.FirstOrDefaultAsync(x => x.CaseId == id);
             if (caseEntity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
@@ -1052,13 +1127,16 @@ namespace CaseFlow.Server.Controllers
             caseEntity.UpdatedAt = now;
             await _db.SaveChangesAsync();
 
-            return Created($"/api/v1/cases/{id}/replies/{reply.ReplyId}", new { success = true, data = new { id = reply.ReplyId } });
+            return Created($"/api/v1/cases/{caseKey}/replies/{reply.ReplyId}", new { success = true, data = new { id = reply.ReplyId } });
         }
 
         // PATCH /api/v1/cases/:id/replies/:rid
-        [HttpPatch("{id:int}/replies/{rid:int}")]
-        public async Task<IActionResult> UpdateReply(int id, int rid, [FromBody] ReplyDto dto)
+        [HttpPatch("{caseKey}/replies/{rid:int}")]
+        public async Task<IActionResult> UpdateReply(string caseKey, int rid, [FromBody] ReplyDto dto)
         {
+            if (!TryResolveCaseId(caseKey, out var id))
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
+
             var reply = await _db.CaseReplies.FirstOrDefaultAsync(r => r.ReplyId == rid && r.CaseId == id);
             if (reply == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Reply not found" } });
@@ -1109,6 +1187,12 @@ namespace CaseFlow.Server.Controllers
         private async Task<bool> HasCaseAssignmentAsync(int caseId, int userId)
             => await _db.CaseAssignments.AnyAsync(a =>
                 a.CaseId == caseId && a.SeUserId == userId && a.IsActive);
+
+        private bool TryResolveCaseId(string caseKey, out int caseId)
+            => CasePublicIdCodec.TryDecode(caseKey, _casePublicIdSalt, out caseId);
+
+        private string ToCasePublicId(int caseId)
+            => CasePublicIdCodec.Encode(caseId, _casePublicIdSalt);
 
         #endregion
     }
