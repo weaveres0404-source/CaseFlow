@@ -141,6 +141,7 @@ namespace CaseFlow.Server.Controllers
                     created_by = new { id = c.CreatedByNavigation.UserId, full_name = c.CreatedByNavigation.FullName },
                     assigned_pm = c.AssignedPm != null ? new { id = c.AssignedPm.UserId, full_name = c.AssignedPm.FullName } : null,
                     assigned_ses = c.CaseAssignments.Where(a => a.IsActive).Select(a => new { id = a.SeUser.UserId, full_name = a.SeUser.FullName }),
+                    created_at = c.CreatedAt,
                     updated_at = c.UpdatedAt
                 })
                 .ToListAsync();
@@ -162,6 +163,7 @@ namespace CaseFlow.Server.Controllers
                 c.created_by,
                 c.assigned_pm,
                 c.assigned_ses,
+                c.created_at,
                 c.updated_at
             }).ToList();
 

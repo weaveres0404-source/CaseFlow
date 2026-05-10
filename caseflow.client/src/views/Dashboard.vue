@@ -81,7 +81,7 @@
 
               </div>
               <div class="mt-1.5 break-words text-[15px] font-medium text-slate-800 [overflow-wrap:anywhere]">{{ item.project?.code }} · {{ item.customer?.name }}</div>
-              <div class="mt-1 break-words text-[11px] text-slate-500 [overflow-wrap:anywhere]">立案人 {{ item.created_by?.full_name || '—' }} · {{ formatTime(item.updated_at) }}</div>
+              <div class="mt-1 break-words text-[11px] text-slate-500 [overflow-wrap:anywhere]">立案人 {{ item.created_by?.full_name || '—' }} · {{ formatTime(item.created_at) }}</div>
             </div>
           </li>
           <li v-if="openCases.length === 0" class="px-5 py-10 text-center text-sm text-slate-400">目前沒有待辦案件</li>
