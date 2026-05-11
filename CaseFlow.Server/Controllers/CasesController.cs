@@ -485,17 +485,44 @@ namespace CaseFlow.Server.Controllers
 
             var now = TimeHelper.Now;
 
-            // 驗證所有被派工的 SE：若曾被明確移除（is_active=false），拒絕派工
+            // 驗證所有被派工的 SE：必須是此專案的有效成員，且不能是管理員角色
             foreach (var seId in dto.SeUserIds)
             {
                 var membership = await _db.ProjectMembers.FirstOrDefaultAsync(pm =>
                     pm.ProjectId == entity.ProjectId && pm.UserId == seId);
-                if (membership != null && !membership.IsActive)
+                var assigneeUser = await _db.Users
+                    .Where(u => u.UserId == seId)
+                    .Select(u => new { u.FullName, u.Role })
+                    .FirstOrDefaultAsync();
+                var seName = assigneeUser?.FullName ?? $"ID:{seId}";
+                if (assigneeUser?.Role == "Admin" || assigneeUser?.Role == "SysAdmin")
                 {
-                    var seName = await _db.Users
-                        .Where(u => u.UserId == seId)
-                        .Select(u => u.FullName)
-                        .FirstOrDefaultAsync() ?? $"ID:{seId}";
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = new
+                        {
+                            code = "CANNOT_ASSIGN_ADMIN",
+                            message = $"{seName} 是管理員，無法作為派工對象",
+                            details = new { se_user_id = seId }
+                        }
+                    });
+                }
+                if (membership == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = new
+                        {
+                            code = "NOT_PROJECT_MEMBER",
+                            message = $"{seName} 不是此專案成員，無法派工",
+                            details = new { project_id = entity.ProjectId, se_user_id = seId }
+                        }
+                    });
+                }
+                if (!membership.IsActive)
+                {
                     return BadRequest(new
                     {
                         success = false,

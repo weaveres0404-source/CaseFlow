@@ -50,12 +50,16 @@ export const useMetaStore = defineStore('meta', () => {
     return users.value.filter(u => seUserIds.includes(u.id))
   }
 
-  // 取得專案所有成員（不限角色），可排除指定 userId
+  // 取得專案所有成員（不限角色），可排除指定 userId；排除管理員角色
   function getProjectAllMembers(projectId, excludeUserId = null) {
     const memberUserIds = projectMembers.value
       .filter(pm => pm.project_id === projectId)
       .map(pm => pm.user_id)
-    let result = users.value.filter(u => memberUserIds.includes(u.id))
+    let result = users.value.filter(u =>
+      memberUserIds.includes(u.id) &&
+      u.role !== 'Admin' &&
+      u.role !== 'SysAdmin'
+    )
     if (excludeUserId != null) result = result.filter(u => u.id !== excludeUserId)
     return result
   }
