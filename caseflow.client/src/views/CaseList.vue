@@ -846,7 +846,6 @@ async function exportCases() {
     })
 
     const headers = ['案件編號', '客戶', '所屬專案', '案件類型', '問題分類', '報修人', '問題描述', '立案人', '案件狀態', '案件總工時', '更新時間']
-    const highlightHeaderIndex = new Set([6, 7, 8])
 
     sheet.columns = [
       { width: 18 },
@@ -874,7 +873,7 @@ async function exportCases() {
       }
       cell.font = {
         bold: true,
-        color: { argb: highlightHeaderIndex.has(colNumber) ? 'FFFFFF00' : 'FFFFFFFF' },
+        color: { argb: 'FFFFFFFF' },
         size: 12
       }
       cell.alignment = { vertical: 'middle', horizontal: 'left' }

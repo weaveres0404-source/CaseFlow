@@ -95,7 +95,7 @@
             </div>
 
             <div class="md:col-span-2">
-              <label class="field-label">處理截止時間 <span class="req">*</span> <span class="text-slate-400 text-[10px] font-normal">（SLA 倒數與「剩 Xh」依此計算）</span></label>
+              <label class="field-label">處理截止時間 <span class="req">*</span></label>
               <div class="flex flex-wrap items-center gap-2">
                 <input v-model="dueDate" type="date" class="input-base !w-auto min-w-[180px]" />
                 <select v-model="dueTime" class="input-base !w-auto min-w-[120px] num">
