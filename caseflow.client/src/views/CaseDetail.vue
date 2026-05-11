@@ -174,55 +174,6 @@
             </div>
           </div>
 
-          <!-- 工時評估（已移至基本資訊區塊下方） -->
-          <div class="pt-3">
-            <div class="flex items-center justify-between">
-              <p class="text-sm text-slate-500">工時評估紀錄</p>
-              <button @click="showEstForm = !showEstForm"
-                class="h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
-                + 新增評估
-              </button>
-            </div>
-            <div v-if="showEstForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mt-3">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><label class="label">提出日期 *</label><input v-model="estForm.request_date" type="date" class="input-base" /></div>
-                <div><label class="label">評估工時 (hr) *</label><input v-model.number="estForm.estimated_hours" type="number" step="0.5" class="input-base" /></div>
-                <div>
-                  <label class="label">評估人員 *</label>
-                  <select v-model="estForm.estimator_user_id" class="input-base">
-                    <option v-for="u in meta.users" :key="u.id" :value="u.id">{{ u.full_name }} ({{ u.role }})</option>
-                  </select>
-                </div>
-              </div>
-              <div><label class="label">概要 *</label><textarea v-model="estForm.summary" rows="2" class="input-base"></textarea></div>
-              <div><label class="label">備註</label><textarea v-model="estForm.remarks" rows="2" class="input-base"></textarea></div>
-              <div class="flex justify-end gap-2">
-                <button @click="showEstForm = false" class="h-8 px-3 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">取消</button>
-                <button @click="submitEstimation" class="h-8 px-3 text-sm bg-brand-700 text-white rounded-lg hover:bg-brand-800">送出</button>
-              </div>
-            </div>
-
-            <div v-if="(caseData.estimations || []).length > 0" class="overflow-x-auto rounded-xl border border-slate-200 mt-3">
-              <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-slate-50"><tr>
-                  <th class="th-cell">項次</th><th class="th-cell">提出日</th><th class="th-cell">概要</th>
-                  <th class="th-cell">評估工時</th><th class="th-cell">狀態</th><th class="th-cell">評估人員</th>
-                </tr></thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="e in caseData.estimations" :key="e.id" class="hover:bg-slate-50/70">
-                    <td class="td-cell tabular-nums">{{ e.seq_no }}</td>
-                    <td class="td-cell tabular-nums">{{ e.request_date }}</td>
-                    <td class="td-cell max-w-xs truncate">{{ e.summary }}</td>
-                    <td class="td-cell tabular-nums">{{ e.estimated_hours }} hr</td>
-                    <td class="td-cell"><span class="badge" :class="estStatusColor(e.estimation_status)">{{ estStatusLabel(e.estimation_status) }}</span></td>
-                    <td class="td-cell">{{ e.estimator?.full_name }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else-if="!showEstForm" class="py-8 text-center text-sm text-slate-400">尚無工時評估紀錄</div>
-          </div>
-
         </div>
 
         <!-- Tab: 處理歷程 -->
@@ -232,6 +183,15 @@
               <span>總工時 <strong class="text-slate-800 tabular-nums">{{ caseData.summary?.total_hours ?? 0 }}</strong> hr</span>
               <span>·</span>
               <span>共 <strong class="text-slate-800 tabular-nums">{{ caseData.logs?.length || 0 }}</strong> 筆紀錄</span>
+              <template v-if="isEvaluationCase">
+                <span>·</span>
+                <span>
+                  評估回覆工時
+                  <strong class="text-slate-800 tabular-nums">{{ formatHours(repliedEstimationHours) }}</strong>
+                  h
+                </span>
+                <span class="text-slate-400">({{ repliedEstimationCount }} 項)</span>
+              </template>
             </div>
             <button @click="showLogForm = !showLogForm"
               class="inline-flex h-8 items-center rounded-lg border border-brand-700 bg-brand-700 px-3 text-xs font-medium text-white shadow-sm transition hover:border-brand-800 hover:bg-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">
@@ -252,6 +212,11 @@
                   maxlength="4"
                   class="input-base"
                 />
+              </div>
+              <div v-if="isEvaluationCase">
+                <label class="label">評估回覆工時 (h)</label>
+                <input v-model.number="logForm.estimated_hours" type="number" min="0" step="0.5" class="input-base" placeholder="例：40" />
+                <p class="mt-1 text-xs text-slate-400">僅工時評估案件需要填寫；未填則只記錄處理工時。</p>
               </div>
             </div>
             <div>
@@ -296,11 +261,27 @@
                   <span v-if="log.created_at" class="font-normal text-slate-400">{{ new Date(log.created_at).toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false }) }}</span>
                 </span>
                 <span class="text-xs text-slate-500">{{ log.handler?.full_name }}</span>
+                <span v-if="logEstimation(log.id)" class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700">
+                  工時評估回覆
+                </span>
                 <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-blue-50 text-blue-700 tabular-nums">{{ log.hours_spent }} hr</span>
               </div>
               <div class="border-l-2 border-brand-200 pl-3 space-y-1">
                 <div class="text-sm whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理方式</span>{{ log.handling_method }}</div>
                 <div v-if="log.handling_result" class="text-sm text-slate-600 whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理結果</span>{{ log.handling_result }}</div>
+                <div v-if="logEstimation(log.id)" class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 text-sm font-medium text-sky-900">
+                      <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                      工時評估回覆
+                    </div>
+                    <p v-if="logEstimation(log.id)?.summary" class="mt-1 text-sm text-sky-800 break-words [overflow-wrap:anywhere]">{{ logEstimation(log.id)?.summary }}</p>
+                  </div>
+                  <div class="shrink-0 text-right">
+                    <div class="text-3xl font-bold tracking-tight text-sky-900 tabular-nums">{{ formatHours(logEstimation(log.id)?.estimated_hours) }}</div>
+                    <div class="text-sm font-medium text-sky-700">h</div>
+                  </div>
+                </div>
                 <!-- 處理記錄附件 -->
                 <div v-if="logAttachmentsByLog(log.id).length" class="mt-1.5">
                   <p class="text-slate-400 text-xs mb-1">附件</p>
@@ -572,10 +553,9 @@ function localDateStr(d = new Date()) {
 }
 
 const showLogForm = ref(false)
-const showEstForm = ref(false)
 const showReplyForm = ref(false)
 
-const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 })
+const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null })
 
 // separate input binding to allow user to type '.' without being clobbered by numeric coercion
 const hoursInput = ref(String(logForm.value.hours_spent || '0'))
@@ -625,7 +605,6 @@ const assignModal = ref({
   submitting: false,
   error: ''
 })
-const estForm = ref({ request_date: localDateStr(), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' })
 const replyForm = ref({ reply_date: localDateStr(), reply_content: '' })
 const confirmDialog = ref({ show: false, title: '', message: '', onConfirm: () => {}, btnClass: 'bg-brand-700 hover:bg-brand-800', loading: false, error: '' })
 
@@ -641,10 +620,49 @@ const tabs = computed(() => [
 const activeAssignments = computed(() => (caseData.value?.assignments || []).filter(a => a.is_active))
 const inactiveAssignments = computed(() => (caseData.value?.assignments || []).filter(a => !a.is_active))
 const activeAssignmentIds = computed(() => activeAssignments.value.map(a => a.se?.id).filter(Boolean))
+const isEvaluationCase = computed(() => caseData.value?.case_type === 'EVALUATION')
+const repliedEstimations = computed(() => (caseData.value?.estimations || []).filter(e => e.estimation_status === 30 || e.reply_date))
+const repliedEstimationCount = computed(() => repliedEstimations.value.length)
+const repliedEstimationHours = computed(() => repliedEstimations.value.reduce((total, estimation) => total + Number(estimation.estimated_hours || 0), 0))
+const estimationByLogId = computed(() => {
+  const logs = caseData.value?.logs || []
+  const remaining = [...repliedEstimations.value]
+  const mapping = new Map()
+
+  for (const log of logs) {
+    const exactIndex = remaining.findIndex(estimation =>
+      estimation.estimator?.id === log.handler?.id &&
+      (estimation.reply_date === log.log_date || estimation.request_date === log.log_date)
+    )
+
+    if (exactIndex >= 0) {
+      mapping.set(log.id, remaining[exactIndex])
+      remaining.splice(exactIndex, 1)
+      continue
+    }
+
+    const fallbackIndex = remaining.findIndex(estimation => estimation.estimator?.id === log.handler?.id)
+    if (fallbackIndex >= 0) {
+      mapping.set(log.id, remaining[fallbackIndex])
+      remaining.splice(fallbackIndex, 1)
+    }
+  }
+
+  return mapping
+})
 
 const caseAttachments = computed(() => (caseData.value?.attachments || []).filter(a => a.entity_type === 'case'))
 function logAttachmentsByLog(logId) {
   return (caseData.value?.attachments || []).filter(a => a.entity_type === 'case_log' && a.entity_id === logId)
+}
+
+function logEstimation(logId) {
+  return estimationByLogId.value.get(logId) || null
+}
+
+function formatHours(value) {
+  const number = Number(value || 0)
+  return Number.isInteger(number) ? String(number) : number.toFixed(1)
 }
 
 const availableSEs = computed(() => {
@@ -823,8 +841,23 @@ async function submitLog() {
       await api.post('/attachments', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     }
   }
+
+  const estimatedHours = Number(logForm.value.estimated_hours || 0)
+  const estimatorUserId = auth.user?.user_id ?? auth.user?.id
+  if (isEvaluationCase.value && estimatedHours > 0 && estimatorUserId) {
+    await api.post(`/cases/${caseId.value}/estimations`, {
+      estimator_user_id: estimatorUserId,
+      request_date: logForm.value.log_date,
+      reply_date: logForm.value.log_date,
+      summary: logForm.value.handling_method.trim().slice(0, 120),
+      estimated_hours: estimatedHours,
+      estimation_status: 30,
+      remarks: logForm.value.handling_result || null
+    })
+  }
+
   showLogForm.value = false
-  logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0 }
+  logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null }
   hoursInput.value = '0'
   logAttachments.value = []
   await fetchCase()
@@ -855,13 +888,6 @@ async function submitAssign() {
   }
 }
 
-async function submitEstimation() {
-  await api.post(`/cases/${caseId.value}/estimations`, estForm.value)
-  showEstForm.value = false
-  estForm.value = { request_date: localDateStr(), summary: '', estimated_hours: 0, estimator_user_id: null, remarks: '' }
-  await fetchCase()
-}
-
 async function submitReply() {
   await api.post(`/cases/${caseId.value}/replies`, replyForm.value)
   showReplyForm.value = false
@@ -874,9 +900,6 @@ function formatFileSize(bytes) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
-
-function estStatusLabel(s) { return { 10: '待評估', 20: '評估中', 30: '已回覆' }[s] || s }
-function estStatusColor(s) { return { 10: 'bg-gray-100 text-gray-800', 20: 'bg-yellow-100 text-yellow-800', 30: 'bg-green-100 text-green-800' }[s] }
 
 // 附件下載 & 圖片預覽
 const IMAGE_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp']

@@ -2,8 +2,8 @@
   <div class="login-shell">
     <section class="brand-panel" aria-label="Case Flow">
       <div class="brand-grid" aria-hidden="true"></div>
-      <div class="brand-mark" aria-hidden="true">SL</div>
-      <div class="dragon-mark" aria-hidden="true"></div>
+      <img class="brand-mark" :src="brandMarkUrl" alt="" aria-hidden="true" />
+      <img class="dragon-mark" :src="dragonMarkUrl" alt="" aria-hidden="true" />
 
       <div class="brand-content">
         <h1>Case Flow</h1>
@@ -12,14 +12,15 @@
 
         <div class="brand-divider" aria-hidden="true"></div>
 
-        <div class="brand-logo">SQUARE LIGHT</div>
+        <img class="brand-logo" :src="brandLogoUrl" alt="SQUARE LIGHT 矩明數位" />
         <p class="brand-note">Built for internal operations</p>
       </div>
     </section>
 
     <main class="login-panel">
       <form class="login-form" @submit.prevent="submit">
-        <div class="login-company-logo" aria-label="矩明數位有限公司">
+        <div class="login-company-logo" aria-label="SQUARE LIGHT 矩明數位有限公司">
+          <img class="login-logo-base" :src="companyMarkUrl" alt="" aria-hidden="true" />
           <span class="login-logo-zh">矩明數位有限公司</span>
         </div>
 
@@ -95,6 +96,10 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import brandMarkUrl from '../assets/square-light-mark.svg'
+import brandLogoUrl from '../assets/square-light-logo.svg'
+import companyMarkUrl from '../assets/square-light-mark-en.svg'
+import dragonMarkUrl from '../assets/sld-watermark.png'
 
 defineOptions({ name: 'LoginView' })
 
@@ -143,6 +148,13 @@ async function submit() {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
 
+:root {
+  --teal: #19b8ae;
+  --teal-dark: #00676c;
+  --line: #d3d9de;
+  --panel: #fbfbfa;
+}
+
 :global(body) {
   font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', 'Segoe UI', Arial, sans-serif;
 }
@@ -150,7 +162,7 @@ async function submit() {
 .login-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(600px, 54fr) minmax(660px, 46fr);
+  grid-template-columns: minmax(520px, 54fr) minmax(520px, 46fr);
   overflow: hidden;
   background: radial-gradient(circle at 34% 37%, rgba(49, 115, 122, 0.18), transparent 34%), linear-gradient(135deg, #071a1f 0%, #082227 52%, #04181d 100%);
 }
@@ -180,6 +192,7 @@ async function submit() {
   background-image: radial-gradient(rgba(30, 194, 188, 0.22) 1px, transparent 1px), linear-gradient(105deg, transparent 54%, rgba(54, 120, 126, 0.11) 55%, transparent 82%);
   background-size: 14px 14px, 100% 100%;
   opacity: 0.36;
+  mask-image: radial-gradient(circle at 5% 23%, black 0 18%, transparent 38%), radial-gradient(circle at 84% 61%, black 0 20%, transparent 47%);
 }
 
 .brand-grid {
@@ -197,37 +210,35 @@ async function submit() {
 
 .brand-mark {
   position: absolute;
-  top: 18px;
-  left: 38px;
-  font-size: min(14vw, 190px);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  opacity: 0.06;
+  top: 20px;
+  left: 40px;
+  width: min(49.5vw, 402px);
+  max-width: 49.5%;
+  opacity: 0.055;
+  z-index: -1;
+  filter: drop-shadow(0 0 24px rgba(63, 150, 156, 0.38));
 }
 
 .dragon-mark {
   position: absolute;
-  right: -60px;
-  bottom: 70px;
+  right: 2px;
+  bottom: 84px;
   width: min(38vw, 323px);
-  height: min(38vw, 323px);
   opacity: 0.68;
   z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, rgba(98, 196, 190, 0.6), rgba(5, 37, 44, 0.08) 62%, transparent 75%);
 }
 
 .brand-content {
   position: relative;
-  top: 56%;
-  transform: translateY(-4%);
+  top: 50.5%;
+  transform: translateY(-8%);
   max-width: 470px;
 }
 
 .brand-content h1 {
   margin: 0 0 18px;
   color: #ffffff;
-  font-size: clamp(40px, 3.5vw, 56px);
+  font-size: clamp(48px, 4.2vw, 70px);
   font-weight: 300;
   line-height: 1.08;
   text-shadow: 0 6px 16px rgba(0, 0, 0, 0.38);
@@ -243,8 +254,8 @@ async function submit() {
 
 .system-name {
   margin: 0;
-  color: #19b8ae;
-  font-size: clamp(18px, 1.35vw, 26px);
+  color: var(--teal);
+  font-size: clamp(22px, 1.78vw, 29px);
   font-weight: 300;
 }
 
@@ -256,15 +267,15 @@ async function submit() {
 }
 
 .brand-logo {
-  color: #ffffff;
-  letter-spacing: 0.14em;
-  font-weight: 500;
+  display: block;
+  width: min(270px, 70vw);
+  filter: invert(1);
 }
 
 .brand-note {
   margin: 22px 0 0;
   color: rgba(229, 236, 236, 0.58);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 300;
 }
 
@@ -272,45 +283,51 @@ async function submit() {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 56px clamp(44px, 5.4vw, 96px);
-  border-radius: 20px;
+  padding: 56px clamp(44px, 6.2vw, 102px) 56px clamp(70px, 6.45vw, 104px);
+  border-radius: 18px;
   background: radial-gradient(circle at 68% 22%, rgba(225, 226, 226, 0.28), transparent 34%), linear-gradient(145deg, #ffffff 0%, #fbfbfa 100%);
   box-shadow: -28px 0 70px rgba(0, 0, 0, 0.14);
 }
 
 .login-form {
-  width: min(100%, 392px);
-  transform: translateY(2px);
+  width: min(100%, 464px);
+  transform: translateY(6px);
 }
 
 .login-company-logo {
-  display: flex;
-  justify-content: center;
-  margin: 0 auto 40px;
+  position: relative;
+  width: min(314px, 82%);
+  margin: 0 auto 56px;
+  transform: translateX(-10px);
+}
+
+.login-logo-base {
+  display: block;
+  width: 100%;
 }
 
 .login-logo-zh {
-  position: static;
+  position: absolute;
+  left: 44.5%;
+  top: 58.5%;
   color: #020506;
-  font-size: 30px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 500;
   line-height: 1.15;
-  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .field-group {
   display: block;
-  margin: 0 0 26px;
+  margin: 0 0 38px;
 }
 
 .field-label {
   display: block;
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   color: #0b1217;
   font-size: 18px;
   font-weight: 600;
-  line-height: 1.1;
 }
 
 .input-wrap {
@@ -329,7 +346,7 @@ async function submit() {
 
 .field-icon {
   position: absolute;
-  left: 16px;
+  left: 20px;
   top: 50%;
   color: #6e7780;
   transform: translateY(-50%);
@@ -338,13 +355,12 @@ async function submit() {
 
 .input-wrap input {
   width: 100%;
-  height: 50px;
-  padding: 0 46px;
+  height: 64px;
+  padding: 0 58px;
   color: #182129;
   background: rgba(255, 255, 255, 0.68);
-  border: 1px solid #d3d9de;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  font-size: 16px;
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
@@ -361,11 +377,11 @@ async function submit() {
 
 .password-toggle {
   position: absolute;
-  right: 10px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -388,23 +404,23 @@ async function submit() {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin: 0 0 20px;
-  font-size: 16px;
+  margin: -8px 0 31px;
+  font-size: 17px;
 }
 
 .remember {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: #101820;
   cursor: pointer;
 }
 
 .remember input {
   appearance: none;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   margin: 0;
   border: 1.5px solid #6d7780;
   border-radius: 5px;
@@ -416,8 +432,8 @@ async function submit() {
 
 .remember input::after {
   content: '';
-  width: 9px;
-  height: 5px;
+  width: 10px;
+  height: 6px;
   border-left: 2px solid #ffffff;
   border-bottom: 2px solid #ffffff;
   transform: rotate(-45deg) scale(0);
@@ -446,7 +462,7 @@ async function submit() {
 }
 
 .error-message {
-  margin: 0 0 16px;
+  margin: -6px 0 16px;
   color: #b91c1c;
   font-size: 14px;
   background: #fef2f2;
@@ -457,7 +473,7 @@ async function submit() {
 
 .login-button {
   width: 100%;
-  height: 58px;
+  height: 70px;
   color: #ffffff;
   background: linear-gradient(90deg, rgba(0, 86, 90, 0.22), transparent 42%), linear-gradient(180deg, #062c32 0%, #041d22 100%);
   border: 0;
@@ -481,11 +497,151 @@ async function submit() {
   cursor: not-allowed;
 }
 
+.login-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 1100px) {
+  .login-shell {
+    grid-template-columns: minmax(420px, 48fr) minmax(440px, 52fr);
+  }
+
+  .brand-panel {
+    padding-inline: 48px;
+  }
+
+  .login-panel {
+    padding-inline: 56px;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 900px) {
+  .brand-panel {
+    padding: clamp(34px, 5vw, 72px);
+  }
+
+  .brand-grid {
+    right: -92px;
+    bottom: 188px;
+    width: 398px;
+    height: 190px;
+  }
+
+  .brand-mark {
+    top: 10px;
+    left: 64px;
+    width: min(41vw, 363px);
+    max-width: 46%;
+  }
+
+  .dragon-mark {
+    right: -4px;
+    bottom: 38px;
+    width: min(30.5vw, 277px);
+    opacity: 0.65;
+  }
+
+  .brand-content {
+    top: 48.5%;
+    max-width: 410px;
+  }
+
+  .brand-content h1 {
+    margin-bottom: 14px;
+    font-size: clamp(42px, 3.5vw, 58px);
+  }
+
+  .title-rule {
+    width: 40px;
+    height: 4px;
+    margin-bottom: 18px;
+  }
+
+  .system-name {
+    font-size: clamp(20px, 1.45vw, 25px);
+  }
+
+  .brand-divider {
+    width: 248px;
+    margin: 28px 0 26px;
+  }
+
+  .brand-logo {
+    width: min(236px, 62vw);
+  }
+
+  .brand-note {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+
+  .login-panel {
+    padding: 34px clamp(44px, 6vw, 92px) 34px clamp(58px, 5.8vw, 92px);
+  }
+
+  .login-form {
+    width: min(100%, 420px);
+    transform: none;
+  }
+
+  .login-company-logo {
+    width: min(258px, 72%);
+    margin-bottom: 34px;
+    transform: translateX(-8px);
+  }
+
+  .login-logo-zh {
+    font-size: 20px;
+  }
+
+  .field-group {
+    margin-bottom: 24px;
+  }
+
+  .field-label {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  .field-icon {
+    left: 18px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .input-wrap input {
+    height: 54px;
+    padding: 0 54px;
+  }
+
+  .password-toggle {
+    right: 12px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .form-row {
+    margin: -2px 0 22px;
+    font-size: 16px;
+  }
+
+  .remember input {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+
+  .login-button {
+    height: 58px;
+    font-size: 21px;
+  }
+}
+
 @media (max-width: 900px) {
   .login-shell {
     display: block;
     min-height: 100vh;
-    background: #fbfbfa;
+    background: var(--panel);
   }
 
   .brand-panel {
@@ -500,7 +656,24 @@ async function submit() {
   }
 
   .brand-content h1 {
-    font-size: 40px;
+    font-size: 44px;
+  }
+
+  .brand-logo {
+    width: 230px;
+  }
+
+  .dragon-mark {
+    width: 260px;
+    right: -30px;
+    bottom: 20px;
+  }
+
+  .brand-mark {
+    left: 40px;
+    top: 28px;
+    width: 420px;
+    max-width: none;
   }
 
   .login-panel {
@@ -516,27 +689,33 @@ async function submit() {
     transform: none;
   }
 
+  .login-company-logo {
+    width: min(258px, 88%);
+    margin: 0 auto 42px;
+    transform: none;
+  }
+
   .login-logo-zh {
-    font-size: 26px;
+    font-size: 18px;
   }
 
   .input-wrap input {
-    height: 52px;
-    padding-inline: 46px;
-    font-size: 16px;
+    height: 58px;
+    padding-inline: 52px;
   }
 
   .login-button {
-    height: 54px;
-    font-size: 24px;
+    height: 64px;
+    font-size: 22px;
   }
 
   .field-label {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .form-row {
     font-size: 16px;
+    margin-bottom: 26px;
   }
 
   .error-message {
@@ -544,47 +723,18 @@ async function submit() {
   }
 }
 
-@media (min-width: 1200px) and (max-width: 1680px) {
-  .login-shell {
-    grid-template-columns: minmax(520px, 54fr) minmax(520px, 46fr);
+@media (max-width: 520px) {
+  .brand-panel {
+    min-height: 320px;
   }
 
-  .brand-content {
-    top: 54%;
+  .brand-divider {
+    width: 220px;
+    margin-block: 28px;
   }
 
-  .brand-content h1 {
-    font-size: clamp(44px, 3.8vw, 52px);
-  }
-
-  .login-panel {
-    padding: 44px clamp(34px, 4.8vw, 74px);
-  }
-
-  .login-form {
-    width: min(100%, 430px);
-  }
-
-  .login-logo-zh {
-    font-size: 26px;
-  }
-
-  .field-label {
-    font-size: 20px;
-  }
-
-  .input-wrap input {
-    height: 54px;
-    font-size: 17px;
-  }
-
-  .form-row {
-    font-size: 17px;
-  }
-
-  .login-button {
-    height: 56px;
-    font-size: 22px;
+  .brand-note {
+    font-size: 16px;
   }
 }
 </style>
