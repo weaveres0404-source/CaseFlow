@@ -29,7 +29,7 @@ public partial class CaseLog
     public string? HandlingResult { get; set; }
 
     [Column("hours_spent")]
-    [Precision(5, 2)]
+    [Precision(6, 2)]
     public decimal HoursSpent { get; set; }
 
     [Column("headcount")]

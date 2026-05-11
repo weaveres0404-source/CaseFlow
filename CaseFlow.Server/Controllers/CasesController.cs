@@ -1273,6 +1273,7 @@ namespace CaseFlow.Server.Controllers
         public DateOnly? LogDate { get; set; }
         public string HandlingMethod { get; set; } = "";
         public string? HandlingResult { get; set; }
+        [System.ComponentModel.DataAnnotations.Range(0, 9999.99, ErrorMessage = "工時不可超過 9999.99 小時")]
         public decimal HoursSpent { get; set; }
         public short Headcount { get; set; }
         /// <summary>true = 此筆 log 視為完工，觸發 → 40 狀態轉換（§4.1）</summary>
@@ -1284,6 +1285,7 @@ namespace CaseFlow.Server.Controllers
         public int EstimatorUserId { get; set; }
         public DateOnly? RequestDate { get; set; }
         public string Summary { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Range(0, 9999.99, ErrorMessage = "評估工時不可超過 9999.99 小時")]
         public decimal EstimatedHours { get; set; }
         public DateOnly? ReplyDate { get; set; }
         public short EstimationStatus { get; set; }

@@ -203,19 +203,48 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
               <div>
-                <label class="label">工時 (hr) *</label>
-                <input
-                  :value="hoursInput"
-                  @input="onHoursInput($event)"
-                  type="text"
-                  inputmode="decimal"
-                  maxlength="4"
-                  class="input-base"
-                />
+                <label class="label">工時 (HR) *</label>
+                <div class="flex items-center gap-0">
+                  <button type="button" @click="stepHours(-0.5)"
+                    class="flex items-center justify-center w-9 h-10 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
+                    −
+                  </button>
+                  <input
+                    :value="hoursInput"
+                    @input="onHoursInput($event)"
+                    type="text"
+                    inputmode="decimal"
+                    maxlength="4"
+                    class="input-base rounded-none text-center flex-1 min-w-0"
+                    placeholder="0"
+                  />
+                  <button type="button" @click="stepHours(0.5)"
+                    class="flex items-center justify-center w-9 h-10 rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
+                    +
+                  </button>
+                </div>
               </div>
               <div v-if="isEvaluationCase">
-                <label class="label">評估回覆工時 (h)</label>
-                <input v-model.number="logForm.estimated_hours" type="number" min="0" step="0.5" class="input-base" placeholder="例：40" />
+                <label class="label">評估回覆工時 (H)</label>
+                <div class="flex items-center gap-0">
+                  <button type="button" @click="stepEstHours(-0.5)"
+                    class="flex items-center justify-center w-9 h-10 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
+                    −
+                  </button>
+                  <input
+                    :value="estHoursInput"
+                    @input="onEstHoursInput($event)"
+                    type="text"
+                    inputmode="decimal"
+                    maxlength="4"
+                    class="input-base rounded-none text-center flex-1 min-w-0"
+                    placeholder="0"
+                  />
+                  <button type="button" @click="stepEstHours(0.5)"
+                    class="flex items-center justify-center w-9 h-10 rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
+                    +
+                  </button>
+                </div>
                 <p class="mt-1 text-xs text-slate-400">僅工時評估案件需要填寫；未填則只記錄處理工時。</p>
               </div>
             </div>
@@ -559,26 +588,68 @@ const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_re
 
 // separate input binding to allow user to type '.' without being clobbered by numeric coercion
 const hoursInput = ref(String(logForm.value.hours_spent || '0'))
+const estHoursInput = ref('')
+
+function _sanitizeHoursStr(s, maxValue = 9999.99) {
+  s = String(s ?? '').replace(/[^0-9.]/g, '')
+
+  const hasDot = s.includes('.')
+  const [rawInt = '', rawDec = ''] = s.split('.')
+
+  // 規則：總長度最多 4 碼（含小數點）
+  // 例如 1.23、12.3、1234
+  const intPart = rawInt.slice(0, 4)
+  const cleanDec = rawDec.replace(/\./g, '')
+
+  if (!hasDot) {
+    s = intPart
+  } else {
+    const allowedDecLen = Math.max(0, 3 - intPart.length)
+    const decPart = cleanDec.slice(0, allowedDecLen)
+    s = decPart.length > 0 ? `${intPart}.${decPart}` : intPart
+  }
+
+  // 若超過上限，直接夾到 9999.99
+  const num = Number(s)
+  if (Number.isFinite(num) && num > maxValue) {
+    s = String(maxValue)
+  }
+
+  return s
+}
 
 function onHoursInput(e) {
-  // get raw value from input or from hoursInput (v-model)
-  let s = e?.target?.value ?? hoursInput.value ?? ''
-  s = String(s)
-  // keep only digits and dot
-  s = s.replace(/[^0-9.]/g, '')
-  // keep only first dot
-  const firstDot = s.indexOf('.')
-  if (firstDot !== -1) {
-    s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '')
-  }
-  // limit total length to 4 characters (including dot)
-  if (s.length > 4) s = s.slice(0, 4)
-  // write back to visible input model
+  let s = _sanitizeHoursStr(e?.target?.value ?? hoursInput.value ?? '', 9999.99)
   hoursInput.value = s
   if (e && e.target) e.target.value = s
-  // update numeric model when parseable
   const num = Number(s)
   logForm.value.hours_spent = (s === '' || s === '.' || !Number.isFinite(num)) ? 0 : num
+}
+
+function stepHours(delta) {
+  const cur = Math.round((logForm.value.hours_spent || 0) * 10) / 10
+  const next = Math.max(0, Math.min(9999.99, Math.round((cur + delta) * 10) / 10))
+  const nextStr = _sanitizeHoursStr(String(next), 9999.99)
+  const nextNum = Number(nextStr)
+  logForm.value.hours_spent = Number.isFinite(nextNum) ? nextNum : 0
+  hoursInput.value = nextStr
+}
+
+function onEstHoursInput(e) {
+  let s = _sanitizeHoursStr(e?.target?.value ?? estHoursInput.value ?? '', 9999.99)
+  estHoursInput.value = s
+  if (e && e.target) e.target.value = s
+  const num = Number(s)
+  logForm.value.estimated_hours = (s === '' || s === '.' || !Number.isFinite(num)) ? null : num
+}
+
+function stepEstHours(delta) {
+  const cur = Math.round((logForm.value.estimated_hours || 0) * 10) / 10
+  const next = Math.max(0, Math.min(9999.99, Math.round((cur + delta) * 10) / 10))
+  const nextStr = _sanitizeHoursStr(String(next), 9999.99)
+  const nextNum = Number(nextStr)
+  logForm.value.estimated_hours = Number.isFinite(nextNum) ? nextNum : null
+  estHoursInput.value = nextStr
 }
 const logAttachments = ref([])
 
