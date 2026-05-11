@@ -244,39 +244,6 @@
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
               <div>
                 <label class="label">工時 (hr) *</label>
-
-            <div v-if="!caseData && isLoading" class="mx-auto flex w-full max-w-[900px] items-center justify-center py-20">
-              <div class="rounded-xl border border-slate-200 bg-white px-6 py-5 text-sm text-slate-600 shadow-sm">
-                正在載入案件資料...
-              </div>
-            </div>
-
-            <div v-if="!caseData && !isLoading && notFound" class="mx-auto flex w-full max-w-[900px] items-center justify-center py-14">
-              <div class="w-full rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900">找不到此案件</h1>
-                <p class="mt-3 text-sm text-slate-600">此案件可能不存在，或你目前的帳號無權存取。</p>
-                <div class="mt-6">
-                  <router-link to="/cases" class="inline-flex h-9 items-center rounded-lg bg-brand-700 px-4 text-sm font-medium text-white hover:bg-brand-800">
-                    返回案件列表
-                  </router-link>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="!caseData && !isLoading && hasLoadError" class="mx-auto flex w-full max-w-[900px] items-center justify-center py-14">
-              <div class="w-full rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
-                <h1 class="text-xl font-bold text-rose-800">載入案件失敗</h1>
-                <p class="mt-2 text-sm text-rose-700">請稍後再試，或返回列表重新開啟案件。</p>
-                <div class="mt-6 flex items-center justify-center gap-2">
-                  <button @click="fetchCase" class="inline-flex h-9 items-center rounded-lg border border-rose-300 bg-white px-4 text-sm font-medium text-rose-700 hover:bg-rose-100">
-                    重新載入
-                  </button>
-                  <router-link to="/cases" class="inline-flex h-9 items-center rounded-lg bg-brand-700 px-4 text-sm font-medium text-white hover:bg-brand-800">
-                    返回案件列表
-                  </router-link>
-                </div>
-              </div>
-            </div>
                 <input
                   :value="hoursInput"
                   @input="onHoursInput($event)"
@@ -432,6 +399,35 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Not found -->
+  <div v-else-if="notFound" class="mx-auto flex w-full max-w-[900px] items-center justify-center py-14">
+    <div class="w-full rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900">找不到此案件</h1>
+      <p class="mt-3 text-sm text-slate-600">此案件可能不存在，或你目前的帳號無權存取。</p>
+      <div class="mt-6">
+        <router-link to="/cases" class="inline-flex h-9 items-center rounded-lg bg-brand-700 px-4 text-sm font-medium text-white hover:bg-brand-800">
+          返回案件列表
+        </router-link>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load error -->
+  <div v-else-if="hasLoadError" class="mx-auto flex w-full max-w-[900px] items-center justify-center py-14">
+    <div class="w-full rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
+      <h1 class="text-xl font-bold text-rose-800">載入案件失敗</h1>
+      <p class="mt-2 text-sm text-rose-700">請稍後再試，或返回列表重新開啟案件。</p>
+      <div class="mt-6 flex items-center justify-center gap-2">
+        <button @click="fetchCase" class="inline-flex h-9 items-center rounded-lg border border-rose-300 bg-white px-4 text-sm font-medium text-rose-700 hover:bg-rose-100">
+          重新載入
+        </button>
+        <router-link to="/cases" class="inline-flex h-9 items-center rounded-lg bg-brand-700 px-4 text-sm font-medium text-white hover:bg-brand-800">
+          返回案件列表
+        </router-link>
       </div>
     </div>
   </div>
