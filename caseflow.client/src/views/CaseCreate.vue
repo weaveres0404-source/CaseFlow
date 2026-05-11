@@ -370,7 +370,7 @@ const form = ref({
   case_type: 'REPAIR',
   category_id: null,
   module_id: null,
-  due_at: '',
+  due_at: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }) + 'T09:00',
   description: ''
 })
 
