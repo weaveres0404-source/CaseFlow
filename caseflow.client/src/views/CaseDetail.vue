@@ -284,7 +284,7 @@
             </div>
           </div>
           <div class="divide-y divide-slate-100">
-            <div v-for="log in (caseData.logs || [])" :key="log.id" class="py-4 first:pt-0">
+            <div v-for="log in sortedLogs" :key="log.id" class="py-4 first:pt-0">
               <div class="flex items-center gap-2 flex-wrap mb-1.5">
                 <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 tabular-nums">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -658,6 +658,14 @@ const tabs = computed(() => [
   { key: 'replies', label: '回覆客戶', count: caseData.value?.replies?.length || 0 }
 ])
 
+const sortedLogs = computed(() =>
+  [...(caseData.value?.logs || [])].sort((a, b) => {
+    const d = new Date(b.log_date) - new Date(a.log_date)
+    if (d !== 0) return d
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  })
+)
+
 const activeAssignments = computed(() => (caseData.value?.assignments || []).filter(a => a.is_active))
 const inactiveAssignments = computed(() => (caseData.value?.assignments || []).filter(a => !a.is_active))
 const activeAssignmentIds = computed(() => activeAssignments.value.map(a => a.se?.id).filter(Boolean))
@@ -666,29 +674,34 @@ const repliedEstimations = computed(() => (caseData.value?.estimations || []).fi
 const repliedEstimationCount = computed(() => repliedEstimations.value.length)
 const repliedEstimationHours = computed(() => repliedEstimations.value.reduce((total, estimation) => total + Number(estimation.estimated_hours || 0), 0))
 const estimationByLogId = computed(() => {
-  const logs = caseData.value?.logs || []
-  const remaining = [...repliedEstimations.value]
   const mapping = new Map()
-
-  for (const log of logs) {
-    const exactIndex = remaining.findIndex(estimation =>
-      estimation.estimator?.id === log.handler?.id &&
-      (estimation.reply_date === log.log_date || estimation.request_date === log.log_date)
-    )
-
-    if (exactIndex >= 0) {
-      mapping.set(log.id, remaining[exactIndex])
-      remaining.splice(exactIndex, 1)
-      continue
-    }
-
-    const fallbackIndex = remaining.findIndex(estimation => estimation.estimator?.id === log.handler?.id)
-    if (fallbackIndex >= 0) {
-      mapping.set(log.id, remaining[fallbackIndex])
-      remaining.splice(fallbackIndex, 1)
+  // 第一輪：有 case_log_id 的精確配對
+  const unmatched = []
+  for (const estimation of repliedEstimations.value) {
+    if (estimation.case_log_id != null) {
+      mapping.set(estimation.case_log_id, estimation)
+    } else {
+      unmatched.push(estimation)
     }
   }
-
+  // 第二輪：舊資料（case_log_id 為 null）用 created_at 最接近時間貪婪配對
+  // log 與 estimation 幾乎同時建立，取時間差最小的組合
+  if (unmatched.length === 0) return mapping
+  const logs = (caseData.value?.logs || []).filter(l => !mapping.has(l.id))
+  const remaining = [...unmatched]
+  for (const estimation of remaining) {
+    const estTime = new Date(estimation.created_at || 0).getTime()
+    let bestIdx = -1
+    let bestDiff = Infinity
+    for (let i = 0; i < logs.length; i++) {
+      const log = logs[i]
+      if (mapping.has(log.id)) continue
+      if (estimation.estimator?.id !== log.handler?.id) continue
+      const diff = Math.abs(new Date(log.created_at || 0).getTime() - estTime)
+      if (diff < bestDiff) { bestDiff = diff; bestIdx = i }
+    }
+    if (bestIdx >= 0) mapping.set(logs[bestIdx].id, estimation)
+  }
   return mapping
 })
 
@@ -910,7 +923,8 @@ async function submitLog() {
         summary: logForm.value.handling_method.trim().slice(0, 120),
         estimated_hours: estimatedHours,
         estimation_status: 30,
-        remarks: logForm.value.handling_result || null
+        remarks: logForm.value.handling_result || null,
+        case_log_id: logId || null
       })
     } catch (err) {
       const msg = err?.response?.data?.error?.message || err?.response?.data?.title || err?.message || '儲存失敗'

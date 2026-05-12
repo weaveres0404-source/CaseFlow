@@ -47,6 +47,9 @@ public partial class CaseEstimation
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
 
+    [Column("case_log_id")]
+    public int? CaseLogId { get; set; }
+
     [ForeignKey("CaseId")]
     [InverseProperty("CaseEstimations")]
     public virtual Case Case { get; set; } = null!;

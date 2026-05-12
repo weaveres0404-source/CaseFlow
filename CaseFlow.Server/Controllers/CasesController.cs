@@ -297,7 +297,8 @@ namespace CaseFlow.Server.Controllers
                     estimation_status = e.EstimationStatus,
                     estimator = new { id = e.EstimatorUser.UserId, full_name = e.EstimatorUser.FullName },
                     remarks = e.Remarks,
-                    created_at = e.CreatedAt
+                    created_at = e.CreatedAt,
+                    case_log_id = e.CaseLogId
                 }),
                 replies = c.CaseReplies.OrderByDescending(r => r.ReplyDate).ThenByDescending(r => r.CreatedAt).Select(r => new
                 {
@@ -1101,6 +1102,7 @@ namespace CaseFlow.Server.Controllers
                 ReplyDate = dto.ReplyDate,
                 EstimationStatus = dto.EstimationStatus > 0 ? dto.EstimationStatus : (short)10,
                 Remarks = dto.Remarks,
+                CaseLogId = dto.CaseLogId,
                 CreatedAt = now,
                 UpdatedAt = now
             };
@@ -1314,6 +1316,7 @@ namespace CaseFlow.Server.Controllers
         public DateOnly? ReplyDate { get; set; }
         public short EstimationStatus { get; set; }
         public string? Remarks { get; set; }
+        public int? CaseLogId { get; set; }
     }
 
     public class ReplyDto
