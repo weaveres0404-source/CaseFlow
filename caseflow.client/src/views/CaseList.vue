@@ -36,11 +36,6 @@
         {{ tab.label }}
         <span v-if="activeTab === tab.key && totalCount > 0" class="ml-1 tabular-nums text-slate-500">{{ totalCount }}</span>
       </button>
-      <div class="flex-1 min-w-[8px]"></div>
-      <button type="button" class="h-8 px-2 rounded-lg text-xs text-slate-500 hover:bg-white inline-flex items-center gap-1 whitespace-nowrap" @click="saveCurrentView">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14l7-3 7 3V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/></svg>
-        儲存檢視
-      </button>
     </div>
 
     <!-- Filter Bar -->
@@ -403,8 +398,6 @@ const selectedIds = ref([])
 const assignModalOpen = ref(false)
 const assignSaving = ref(false)
 const assignError = ref('')
-const savedViewStorageKey = 'caseflow-case-list-saved-views'
-const savedViews = ref(loadSavedViews())
 const assignForm = ref(createAssignForm())
 
 function emptyFilters() {
@@ -430,10 +423,7 @@ const baseQuickTabs = [
   { key: 'open', label: '未結案' }
 ]
 
-const quickTabs = computed(() => [
-  ...baseQuickTabs,
-  ...savedViews.value.map(view => ({ key: view.key, label: view.label, saved: true }))
-])
+const quickTabs = computed(() => [...baseQuickTabs])
 
 const roleBadgeText = computed(() => {
   if (auth.role === 'SE') return `我的案件 ${totalCount.value} 件`
@@ -455,30 +445,13 @@ const userRoleMap = computed(() => {
   }
   return roleMap
 })
-const activeScopeKey = computed(() => {
-  const saved = savedViews.value.find(view => view.key === activeTab.value)
-  return saved?.sourceTab || activeTab.value
-})
+const activeScopeKey = computed(() => activeTab.value)
 
 function cloneFilters(source = {}) {
   return {
     ...emptyFilters(),
     ...source
   }
-}
-
-function loadSavedViews() {
-  try {
-    const raw = localStorage.getItem(savedViewStorageKey)
-    const parsed = JSON.parse(raw || '[]')
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-function persistSavedViews() {
-  localStorage.setItem(savedViewStorageKey, JSON.stringify(savedViews.value))
 }
 
 function createAssignForm() {
@@ -551,16 +524,6 @@ const pageNumbers = computed(() => {
 })
 
 function switchTab(key) {
-  const saved = savedViews.value.find(view => view.key === key)
-  if (saved) {
-    activeTab.value = key
-    filters.value = cloneFilters(saved.filters)
-    filterOpen.value = Object.values(filters.value).some(value => value !== null && value !== '')
-    clearSelection()
-    fetchCases(1)
-    return
-  }
-
   activeTab.value = key
   filters.value = emptyFilters()
   filterOpen.value = false
@@ -769,22 +732,6 @@ async function fetchCases(p = page.value) {
   }
 }
 
-function saveCurrentView() {
-  const label = window.prompt('請輸入檢視名稱', '自訂檢視')
-  if (!label?.trim()) return
-
-  const view = {
-    key: `saved-${Date.now()}`,
-    label: label.trim(),
-    sourceTab: activeScopeKey.value,
-    filters: cloneFilters(filters.value)
-  }
-
-  savedViews.value = [...savedViews.value, view]
-  persistSavedViews()
-  activeTab.value = view.key
-}
-
 async function submitBatchAssign() {
   assignError.value = ''
   if (assignForm.value.seUserIds.length === 0) {
@@ -924,7 +871,7 @@ async function exportCases() {
         }
       })
 
-      row.getCell(10).numFmt = '0.##'
+      row.getCell(10).numFmt = '0'
     })
 
     sheet.autoFilter = {

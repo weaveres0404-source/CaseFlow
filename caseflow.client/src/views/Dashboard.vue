@@ -6,8 +6,6 @@
         <div>
           <div class="mb-1 flex items-center gap-2 text-xs text-slate-500">
             <span>{{ todayDateStr }}</span>
-            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
-            <span>第 {{ weekNum }} 週</span>
           </div>
           <h1 class="text-[24px] font-bold tracking-tight text-slate-900 lg:text-[28px]">早安，{{ userName }} 👋</h1>
           <p class="mt-1 text-sm text-slate-500">
