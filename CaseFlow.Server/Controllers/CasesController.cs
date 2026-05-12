@@ -936,6 +936,9 @@ namespace CaseFlow.Server.Controllers
         [HttpPost("{caseKey}/logs")]
         public async Task<IActionResult> CreateLog(string caseKey, [FromBody] CaseLogDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "輸入資料不完整，工時不可超過 9999.99" } });
+
             if (!TryResolveCaseId(caseKey, out var id))
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
@@ -1032,6 +1035,9 @@ namespace CaseFlow.Server.Controllers
         [HttpPatch("{caseKey}/logs/{logId:int}")]
         public async Task<IActionResult> UpdateLog(string caseKey, int logId, [FromBody] CaseLogDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "輸入資料不完整，工時不可超過 9999.99" } });
+
             if (!TryResolveCaseId(caseKey, out var id))
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
 
