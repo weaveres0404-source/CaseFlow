@@ -204,46 +204,48 @@
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
               <div>
                 <label class="label">工時 (HR) *</label>
-                <div class="flex items-center gap-0">
-                  <button type="button" @click="stepHours(-0.5)"
-                    class="flex items-center justify-center w-9 h-10 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
-                    −
-                  </button>
+                <div class="flex items-center">
                   <input
                     :value="hoursInput"
                     @input="onHoursInput($event)"
                     type="text"
                     inputmode="decimal"
-                    maxlength="4"
-                    class="input-base rounded-none text-center flex-1 min-w-0"
+                    class="input-base rounded-r-none text-center flex-1 min-w-0"
                     placeholder="0"
                   />
-                  <button type="button" @click="stepHours(0.5)"
-                    class="flex items-center justify-center w-9 h-10 rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
-                    +
-                  </button>
+                  <div class="flex flex-col shrink-0 rounded-r-lg border border-l-0 border-slate-300 overflow-hidden">
+                    <button type="button" @click="stepHours(0.5)"
+                      class="flex items-center justify-center w-8 h-5 bg-slate-50 text-slate-500 hover:bg-slate-100 select-none border-b border-slate-300 text-[10px] leading-none">
+                      ▲
+                    </button>
+                    <button type="button" @click="stepHours(-0.5)"
+                      class="flex items-center justify-center w-8 h-5 bg-slate-50 text-slate-500 hover:bg-slate-100 select-none text-[10px] leading-none">
+                      ▼
+                    </button>
+                  </div>
                 </div>
               </div>
               <div v-if="isEvaluationCase">
                 <label class="label">評估回覆工時 (H)</label>
-                <div class="flex items-center gap-0">
-                  <button type="button" @click="stepEstHours(-0.5)"
-                    class="flex items-center justify-center w-9 h-10 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
-                    −
-                  </button>
+                <div class="flex items-center">
                   <input
                     :value="estHoursInput"
                     @input="onEstHoursInput($event)"
                     type="text"
                     inputmode="decimal"
-                    maxlength="4"
-                    class="input-base rounded-none text-center flex-1 min-w-0"
+                    class="input-base rounded-r-none text-center flex-1 min-w-0"
                     placeholder="0"
                   />
-                  <button type="button" @click="stepEstHours(0.5)"
-                    class="flex items-center justify-center w-9 h-10 rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 select-none text-lg leading-none shrink-0">
-                    +
-                  </button>
+                  <div class="flex flex-col shrink-0 rounded-r-lg border border-l-0 border-slate-300 overflow-hidden">
+                    <button type="button" @click="stepEstHours(0.5)"
+                      class="flex items-center justify-center w-8 h-5 bg-slate-50 text-slate-500 hover:bg-slate-100 select-none border-b border-slate-300 text-[10px] leading-none">
+                      ▲
+                    </button>
+                    <button type="button" @click="stepEstHours(-0.5)"
+                      class="flex items-center justify-center w-8 h-5 bg-slate-50 text-slate-500 hover:bg-slate-100 select-none text-[10px] leading-none">
+                      ▼
+                    </button>
+                  </div>
                 </div>
                 <p class="mt-1 text-xs text-slate-400">僅工時評估案件需要填寫；未填則只記錄處理工時。</p>
               </div>
@@ -590,36 +592,16 @@ const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_re
 const hoursInput = ref(String(logForm.value.hours_spent || '0'))
 const estHoursInput = ref('')
 
-function _sanitizeHoursStr(s, maxValue = 9999.99) {
+function _sanitizeHoursStr(s) {
+  // 只允許數字與小數點，移除多餘小數點
   s = String(s ?? '').replace(/[^0-9.]/g, '')
-
-  const hasDot = s.includes('.')
-  const [rawInt = '', rawDec = ''] = s.split('.')
-
-  // 規則：總長度最多 4 碼（含小數點）
-  // 例如 1.23、12.3、1234
-  const intPart = rawInt.slice(0, 4)
-  const cleanDec = rawDec.replace(/\./g, '')
-
-  if (!hasDot) {
-    s = intPart
-  } else {
-    const allowedDecLen = Math.max(0, 3 - intPart.length)
-    const decPart = cleanDec.slice(0, allowedDecLen)
-    s = decPart.length > 0 ? `${intPart}.${decPart}` : intPart
-  }
-
-  // 若超過上限，直接夾到 9999.99
-  const num = Number(s)
-  if (Number.isFinite(num) && num > maxValue) {
-    s = String(maxValue)
-  }
-
+  const dotIdx = s.indexOf('.')
+  if (dotIdx !== -1) s = s.slice(0, dotIdx + 1) + s.slice(dotIdx + 1).replace(/\./g, '')
   return s
 }
 
 function onHoursInput(e) {
-  let s = _sanitizeHoursStr(e?.target?.value ?? hoursInput.value ?? '', 9999.99)
+  let s = _sanitizeHoursStr(e?.target?.value ?? hoursInput.value ?? '')
   hoursInput.value = s
   if (e && e.target) e.target.value = s
   const num = Number(s)
@@ -629,14 +611,12 @@ function onHoursInput(e) {
 function stepHours(delta) {
   const cur = Math.round((logForm.value.hours_spent || 0) * 10) / 10
   const next = Math.max(0, Math.min(9999.99, Math.round((cur + delta) * 10) / 10))
-  const nextStr = _sanitizeHoursStr(String(next), 9999.99)
-  const nextNum = Number(nextStr)
-  logForm.value.hours_spent = Number.isFinite(nextNum) ? nextNum : 0
-  hoursInput.value = nextStr
+  logForm.value.hours_spent = next
+  hoursInput.value = String(next)
 }
 
 function onEstHoursInput(e) {
-  let s = _sanitizeHoursStr(e?.target?.value ?? estHoursInput.value ?? '', 9999.99)
+  let s = _sanitizeHoursStr(e?.target?.value ?? estHoursInput.value ?? '')
   estHoursInput.value = s
   if (e && e.target) e.target.value = s
   const num = Number(s)
@@ -646,10 +626,8 @@ function onEstHoursInput(e) {
 function stepEstHours(delta) {
   const cur = Math.round((logForm.value.estimated_hours || 0) * 10) / 10
   const next = Math.max(0, Math.min(9999.99, Math.round((cur + delta) * 10) / 10))
-  const nextStr = _sanitizeHoursStr(String(next), 9999.99)
-  const nextNum = Number(nextStr)
-  logForm.value.estimated_hours = Number.isFinite(nextNum) ? nextNum : null
-  estHoursInput.value = nextStr
+  logForm.value.estimated_hours = next
+  estHoursInput.value = String(next)
 }
 const logAttachments = ref([])
 
@@ -900,8 +878,24 @@ async function submitLog() {
     alert('處理方式為必填，請輸入處理方式')
     return
   }
-  const { data: res } = await api.post(`/cases/${caseId.value}/logs`, logForm.value)
-  const logId = res.data?.id
+  if ((logForm.value.hours_spent ?? 0) > 9999.99) {
+    alert('工時不可超過 9999.99 小時（整數最多 4 位數）')
+    return
+  }
+  if ((logForm.value.estimated_hours ?? 0) > 9999.99) {
+    alert('評估回覆工時不可超過 9999.99 小時（整數最多 4 位數）')
+    return
+  }
+  let res
+  try {
+    const { data } = await api.post(`/cases/${caseId.value}/logs`, logForm.value)
+    res = data
+  } catch (err) {
+    const msg = err?.response?.data?.error?.message || err?.response?.data?.title || err?.message || '儲存失敗，請稍後再試'
+    alert(`新增紀錄失敗：${msg}`)
+    return
+  }
+  const logId = res?.data?.id
   // 上傳附件
   if (logId && logAttachments.value.length) {
     for (const file of logAttachments.value) {
@@ -916,15 +910,20 @@ async function submitLog() {
   const estimatedHours = Number(logForm.value.estimated_hours || 0)
   const estimatorUserId = auth.user?.user_id ?? auth.user?.id
   if (isEvaluationCase.value && estimatedHours > 0 && estimatorUserId) {
-    await api.post(`/cases/${caseId.value}/estimations`, {
-      estimator_user_id: estimatorUserId,
-      request_date: logForm.value.log_date,
-      reply_date: logForm.value.log_date,
-      summary: logForm.value.handling_method.trim().slice(0, 120),
-      estimated_hours: estimatedHours,
-      estimation_status: 30,
-      remarks: logForm.value.handling_result || null
-    })
+    try {
+      await api.post(`/cases/${caseId.value}/estimations`, {
+        estimator_user_id: estimatorUserId,
+        request_date: logForm.value.log_date,
+        reply_date: logForm.value.log_date,
+        summary: logForm.value.handling_method.trim().slice(0, 120),
+        estimated_hours: estimatedHours,
+        estimation_status: 30,
+        remarks: logForm.value.handling_result || null
+      })
+    } catch (err) {
+      const msg = err?.response?.data?.error?.message || err?.response?.data?.title || err?.message || '儲存失敗'
+      alert(`評估工時儲存失敗：${msg}`)
+    }
   }
 
   showLogForm.value = false
