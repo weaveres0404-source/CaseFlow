@@ -300,18 +300,10 @@
               <div class="border-l-2 border-brand-200 pl-3 space-y-1">
                 <div class="text-sm whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理方式</span>{{ log.handling_method }}</div>
                 <div v-if="log.handling_result" class="text-sm text-slate-600 whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理結果</span>{{ log.handling_result }}</div>
-                <div v-if="logEstimation(log.id)" class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3">
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2 text-sm font-medium text-sky-900">
-                      <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
-                      工時評估回覆
-                    </div>
-                    <p v-if="logEstimation(log.id)?.summary" class="mt-1 text-sm text-sky-800 break-words [overflow-wrap:anywhere]">{{ logEstimation(log.id)?.summary }}</p>
-                  </div>
-                  <div class="shrink-0 text-right">
-                    <div class="text-3xl font-bold tracking-tight text-sky-900 tabular-nums">{{ formatHours(logEstimation(log.id)?.estimated_hours) }}</div>
-                    <div class="text-sm font-medium text-sky-700">h</div>
-                  </div>
+                <div v-if="logEstimation(log.id)" class="mt-3 flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3">
+                  <svg class="h-4 w-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                  <span class="text-sm font-medium text-sky-800">工時評估</span>
+                  <span class="ml-auto text-2xl font-bold tracking-tight text-sky-900 tabular-nums">{{ formatHours(logEstimation(log.id)?.estimated_hours) }} h</span>
                 </div>
                 <!-- 處理記錄附件 -->
                 <div v-if="logAttachmentsByLog(log.id).length" class="mt-1.5">
@@ -929,6 +921,7 @@ async function submitLog() {
   showLogForm.value = false
   logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null }
   hoursInput.value = '0'
+  estHoursInput.value = ''
   logAttachments.value = []
   await fetchCase()
 }
