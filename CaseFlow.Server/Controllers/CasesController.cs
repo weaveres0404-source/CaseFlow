@@ -65,11 +65,15 @@ namespace CaseFlow.Server.Controllers
             // 權限過濾
             if (role == "PM")
             {
-                // 顯示「自己是 PM 成員」所屬專案的所有案件
-                var myProjectIds = await _db.ProjectMembers.AsNoTracking()
+                // 顯示：(1) 自己是 PM 角色成員所屬專案的所有案件，或 (2) 跨專案被指派為 SE 的案件
+                // 情境：同一使用者可能在 A 專案是 PM、在 B 專案是 SE
+                var myPMProjectIds = await _db.ProjectMembers.AsNoTracking()
                     .Where(pm => pm.UserId == userId && pm.IsActive && pm.MemberRole == "PM")
                     .Select(pm => pm.ProjectId).ToListAsync();
-                query = query.Where(c => myProjectIds.Contains(c.ProjectId));
+                var myAssignedCaseIds = await _db.CaseAssignments.AsNoTracking()
+                    .Where(a => a.SeUserId == userId && a.IsActive)
+                    .Select(a => a.CaseId).Distinct().ToListAsync();
+                query = query.Where(c => myPMProjectIds.Contains(c.ProjectId) || myAssignedCaseIds.Contains(c.CaseId));
             }
             else if (role == "SE")
             {
