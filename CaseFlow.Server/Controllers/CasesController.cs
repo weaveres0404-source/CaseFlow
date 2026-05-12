@@ -206,10 +206,11 @@ namespace CaseFlow.Server.Controllers
             var viewerRole = User.GetRole();
             if (viewerRole == "PM")
             {
-                // PM：可查看所屬專案的案件，或被派工至此案件的案件
-                bool hasProjectAccess = await HasProjectAccessAsync(c.ProjectId, viewerUserId);
+                // PM：可查看「自己在該專案擔任 PM 角色」的案件，或「被跨專案派工為 SE」的案件
+                // 注意：HasProjectAccessAsync 只檢查是否為專案成員（不限角色），此處需限定 PM 角色才可看到整個專案的案件
+                bool hasPMAccess = await HasProjectPMAccessAsync(c.ProjectId, viewerUserId);
                 bool hasCaseAssignment = await HasCaseAssignmentAsync(id, viewerUserId);
-                if (!hasProjectAccess && !hasCaseAssignment)
+                if (!hasPMAccess && !hasCaseAssignment)
                     return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Case not found" } });
             }
             else if (viewerRole == "SE")
@@ -521,6 +522,19 @@ namespace CaseFlow.Server.Controllers
                         {
                             code = "NOT_PROJECT_MEMBER",
                             message = $"{seName} 不是此專案成員，無法派工",
+                            details = new { project_id = entity.ProjectId, se_user_id = seId }
+                        }
+                    });
+                }
+                if (membership.MemberRole == "PM")
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = new
+                        {
+                            code = "CANNOT_ASSIGN_PROJECT_PM",
+                            message = $"{seName} 是此專案的 PM，無需派工即可存取案件",
                             details = new { project_id = entity.ProjectId, se_user_id = seId }
                         }
                     });

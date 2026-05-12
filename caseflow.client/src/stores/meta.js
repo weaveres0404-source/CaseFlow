@@ -52,11 +52,12 @@ export const useMetaStore = defineStore('meta', () => {
 
   // 取得專案所有成員（不限角色），可排除指定 userId；排除管理員角色
   function getProjectAllMembers(projectId, excludeUserId = null) {
-    const memberUserIds = projectMembers.value
-      .filter(pm => pm.project_id === projectId)
+    // 只取 role = 'SE' 的成員（PM 成員本身已有整個專案的可見性，不納入派工名單）
+    const seUserIds = projectMembers.value
+      .filter(pm => pm.project_id === projectId && pm.role === 'SE')
       .map(pm => pm.user_id)
     let result = users.value.filter(u =>
-      memberUserIds.includes(u.id) &&
+      seUserIds.includes(u.id) &&
       u.role !== 'Admin' &&
       u.role !== 'SysAdmin'
     )
