@@ -644,12 +644,8 @@ function formatDateTimeForExport(dt) {
   if (!dt) return ''
   const d = new Date(dt)
   if (Number.isNaN(d.getTime())) return ''
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mi = String(d.getMinutes()).padStart(2, '0')
-  return `${yyyy}/${mm}/${dd} ${hh}:${mi}`
+  // 使用 Intl API 確保以 Asia/Taipei 時區格式化，避免受瀏覽器本地時區影響
+  return d.toLocaleString('sv-SE', { timeZone: 'Asia/Taipei' }).slice(0, 16).replace('T', ' ').replace(/-/g, '/')
 }
 
 function buildCaseQueryParams(pageNumber = page.value, size = pageSize.value) {
@@ -749,7 +745,7 @@ async function submitBatchAssign() {
     }
 
     const selectedCases = cases.value.filter(item => selectedIds.value.includes(item.id))
-    await Promise.all(selectedCases.map(item => api.post(`/cases/${item.short_id || item.id}/assign`, payload)))
+    await Promise.all(selectedCases.map(item => api.post(`/cases/${item.id}/assign`, payload)))
     closeAssignModal()
     clearSelection()
     await fetchCases(page.value)

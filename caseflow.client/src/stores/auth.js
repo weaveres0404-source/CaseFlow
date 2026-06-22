@@ -24,6 +24,18 @@ export const useAuthStore = defineStore('auth', () => {
     throw new Error(res.error?.message || '登入失敗')
   }
 
+  async function googleLogin(idToken) {
+    const { data: res } = await api.post('/auth/google-login', { id_token: idToken })
+    if (res.success) {
+      token.value = res.data.access_token
+      user.value = res.data.user
+      localStorage.setItem('access_token', res.data.access_token)
+      localStorage.setItem('user', JSON.stringify(res.data.user))
+      return res.data
+    }
+    throw new Error(res.error?.message || 'Google 登入失敗')
+  }
+
   async function setupPassword(setupToken, newPassword) {
     const { data: res } = await api.post('/auth/setup-password', {
       setup_token: setupToken,
@@ -55,5 +67,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
-  return { token, user, isLoggedIn, role, login, setupPassword, fetchMe, logout }
+  return { token, user, isLoggedIn, role, login, googleLogin, setupPassword, fetchMe, logout }
 })

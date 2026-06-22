@@ -15,7 +15,7 @@ public partial class User
 
     [Column("username")]
     [StringLength(50)]
-    public string Username { get; set; } = null!;
+    public string? Username { get; set; }
 
     [Column("password_hash")]
     [StringLength(255)]
@@ -23,7 +23,7 @@ public partial class User
 
     [Column("full_name")]
     [StringLength(100)]
-    public string FullName { get; set; } = null!;
+    public string? FullName { get; set; }
 
     [Column("email")]
     [StringLength(150)]
@@ -51,6 +51,18 @@ public partial class User
 
     [Column("must_change_password")]
     public bool MustChangePassword { get; set; } = false;
+
+    [Column("google_sub")]
+    [StringLength(100)]
+    public string? GoogleSub { get; set; }
+
+    [Column("google_email")]
+    [StringLength(150)]
+    public string? GoogleEmail { get; set; }
+
+    [Column("auth_provider")]
+    [StringLength(20)]
+    public string AuthProvider { get; set; } = "local";
 
     [InverseProperty("UploadedByNavigation")]
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();

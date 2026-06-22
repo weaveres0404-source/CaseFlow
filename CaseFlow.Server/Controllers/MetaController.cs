@@ -12,10 +12,12 @@ namespace CaseFlow.Server.Controllers
     public class MetaController : ControllerBase
     {
         private readonly CaseFlowDbContext _db;
+        private readonly ILogger<MetaController> _logger;
 
-        public MetaController(CaseFlowDbContext db)
+        public MetaController(CaseFlowDbContext db, ILogger<MetaController> logger)
         {
-            _db = db;
+            _db    = db;
+            _logger = logger;
         }
 
         /// <summary>
@@ -24,6 +26,8 @@ namespace CaseFlow.Server.Controllers
         [HttpGet("dropdowns")]
         public async Task<IActionResult> GetDropdowns()
         {
+            try
+            {
             var customers = await _db.Customers.AsNoTracking()
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.CustomerName)
@@ -33,13 +37,40 @@ namespace CaseFlow.Server.Controllers
             var projects = await _db.Projects.AsNoTracking()
                 .Where(p => p.IsActive)
                 .OrderBy(p => p.ProjectCode)
-                .Select(p => new { id = p.ProjectId, code = p.ProjectCode, name = p.ProjectName, customer_id = p.CustomerId })
+                .Select(p => new { id = p.ProjectId, code = p.ProjectCode, name = p.ProjectName, customer_id = p.CustomerId, allowed_case_types = p.AllowedCaseTypes })
                 .ToListAsync();
 
             var categories = await _db.ProblemCategories.AsNoTracking()
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.SortOrder)
-                .Select(c => new { id = c.CategoryId, name = c.CategoryName, case_type_filter = c.CaseTypeFilter })
+                .Select(c => new
+                {
+                    id = c.CategoryId,
+                    name = c.CategoryName,
+                    case_type_filter = c.CaseTypeFilter,
+                    project_ids = c.ProjectLinks.Select(l => l.ProjectId).ToList(),
+                    case_type_ids = c.CaseTypeLinks.Select(l => l.TypeId).ToList()
+                })
+                .ToListAsync();
+
+            var projectCodes = await _db.ProjectCodes.AsNoTracking()
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.SortOrder).ThenBy(p => p.Code)
+                .Select(p => new { id = p.CodeId, code = p.Code, label = p.Label })
+                .ToListAsync();
+
+            var caseTypes = await _db.CaseTypes.AsNoTracking()
+                .Where(t => t.IsActive)
+                .OrderBy(t => t.SortOrder).ThenBy(t => t.Code)
+                .Select(t => new
+                {
+                    id = t.TypeId,
+                    code = t.Code,
+                    label = t.Label,
+                    color = t.Color,
+                    project_ids = t.ProjectLinks.Select(l => l.ProjectId).ToList(),
+                    category_ids = t.CategoryLinks.Select(l => l.CategoryId).ToList()
+                })
                 .ToListAsync();
 
             var modules = await _db.SystemModules.AsNoTracking()
@@ -61,12 +92,8 @@ namespace CaseFlow.Server.Controllers
 
             var enums = new
             {
-                case_types = new[] {
-                    new { value = "REPAIR",      label = "障礙調查" },
-                    new { value = "EVALUATION",  label = "工時評估" },
-                    new { value = "MAINTENANCE", label = "日常維運" },
-                    new { value = "UHD",         label = "UHD協助" }
-                },
+                // 保留 enum 區段以維持兼容；新前端應改讀頂層 case_types
+                case_types = caseTypes.Select(t => new { value = t.code, label = t.label }).ToArray(),
                 priorities = new[] {
                     new { value = "HIGH", label = "高" },
                     new { value = "MEDIUM", label = "中" },
@@ -91,8 +118,17 @@ namespace CaseFlow.Server.Controllers
             return Ok(new
             {
                 success = true,
-                data = new { customers, projects, categories, modules, users, project_members = projectMembers, enums }
+                data = new { customers, projects, categories, modules, users, project_members = projectMembers, project_codes = projectCodes, case_types = caseTypes, enums }
             });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "GetDropdowns failed | {ExType}: {Message}",
+                    ex.GetType().FullName, ex.Message);
+                Console.Error.WriteLine($"[META/DROPDOWNS] {ex}");
+                throw; // ExceptionLoggingMiddleware + UseExceptionHandler will return HTTP 500
+            }
         }
     }
 }

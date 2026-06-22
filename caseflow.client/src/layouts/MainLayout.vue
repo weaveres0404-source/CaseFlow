@@ -91,6 +91,28 @@
             </router-link>
           </div>
 
+          <!-- 報表 group -->
+          <div v-if="!sidebarCollapsed" class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">報表</div>
+          <div :class="sidebarCollapsed ? 'flex flex-col items-center gap-1 w-full mt-2' : 'space-y-0.5'">
+            <router-link
+              v-for="item in reportItems"
+              :key="item.path"
+              :to="item.path"
+              class="relative flex items-center text-sm transition-all duration-150"
+              :class="[
+                sidebarCollapsed ? 'justify-center rounded-lg w-10 h-10' : 'gap-3 px-3 py-2 rounded-lg',
+                navItemClass(item)
+              ]"
+              :title="sidebarCollapsed ? item.label : undefined"
+            >
+              <span v-if="!sidebarCollapsed && isActive(item)" class="nav-active-bar"></span>
+              <svg class="shrink-0 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" />
+              </svg>
+              <span v-if="!sidebarCollapsed" class="flex-1">{{ item.label }}</span>
+            </router-link>
+          </div>
+
           <!-- 系統 group -->
           <div v-if="!sidebarCollapsed" class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">系統</div>
           <div :class="sidebarCollapsed ? 'flex flex-col items-center gap-1 w-full mt-2' : 'space-y-0.5'">
@@ -166,6 +188,15 @@
                   <span class="flex-1">{{ item.label }}</span>
                 </router-link>
               </div>
+              <div class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">報表</div>
+              <div class="space-y-0.5">
+                <router-link v-for="item in reportItems" :key="`mobile-report-${item.path}`" :to="item.path"
+                  class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all" :class="navItemClass(item)" @click="closeMobileMenu">
+                  <span v-if="isActive(item)" class="nav-active-bar"></span>
+                  <svg class="shrink-0 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="iconPath(item.icon)" /></svg>
+                  <span class="flex-1">{{ item.label }}</span>
+                </router-link>
+              </div>
               <div class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">系統</div>
               <div class="space-y-0.5">
                 <router-link v-for="item in systemItems" :key="`mobile-sys-${item.path}`" :to="item.path"
@@ -231,8 +262,7 @@ const primaryItems = computed(() => {
 })
 
 const reportItems = [
-  { path: '/reports/hours', label: '工時統計', icon: 'hours', exact: true },
-  { path: '/reports/cases', label: '案件數量統計', icon: 'casesReport', exact: true }
+  { path: '/reports/hours', label: '工時統計', icon: 'hours', exact: true }
 ]
 
 const systemItems = [

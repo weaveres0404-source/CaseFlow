@@ -36,6 +36,13 @@ public partial class Project
     [Column("is_active")]
     public bool IsActive { get; set; }
 
+    [Column("allowed_case_types")]
+    [StringLength(100)]
+    public string? AllowedCaseTypes { get; set; }
+
+    [Column("project_code_id")]
+    public int? ProjectCodeId { get; set; }
+
     [Column("created_at", TypeName = "timestamp without time zone")]
     public DateTime CreatedAt { get; set; }
 
@@ -54,4 +61,13 @@ public partial class Project
 
     [InverseProperty("Project")]
     public virtual ICollection<SystemModule> SystemModules { get; set; } = new List<SystemModule>();
+
+    [InverseProperty("Project")]
+    public virtual ICollection<ProblemCategoryProject> CategoryLinks { get; set; } = new List<ProblemCategoryProject>();
+
+    [InverseProperty("Project")]
+    public virtual ICollection<CaseTypeProject> CaseTypeLinks { get; set; } = new List<CaseTypeProject>();
+
+    [ForeignKey("ProjectCodeId")]
+    public virtual ProjectCode? ProjectCodeRef { get; set; }
 }

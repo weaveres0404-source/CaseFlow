@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
 using CaseFlow.Server.Helpers;
+using CaseFlow.Server.Services;
 
 namespace CaseFlow.Server.Controllers
 {
@@ -12,13 +13,16 @@ namespace CaseFlow.Server.Controllers
     public class AttachmentsController : ControllerBase
     {
         private readonly CaseFlowDbContext _db;
-        private readonly IWebHostEnvironment _env;
+
+        private readonly GcsStorageService _gcsStorageService;
         private const long MaxFileSize = 20 * 1024 * 1024; // 20MB
 
-        public AttachmentsController(CaseFlowDbContext db, IWebHostEnvironment env)
+        public AttachmentsController(
+         CaseFlowDbContext db,
+         GcsStorageService gcsStorageService)
         {
             _db = db;
-            _env = env;
+            _gcsStorageService = gcsStorageService;
         }
 
         // POST /api/v1/attachments
@@ -36,23 +40,18 @@ namespace CaseFlow.Server.Controllers
             if (!allowedTypes.Contains(entity_type))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Invalid entity_type" } });
 
-            var uploadsDir = Path.Combine(_env.ContentRootPath, "Uploads");
-            Directory.CreateDirectory(uploadsDir);
-
             var storedName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var filePath = Path.Combine(uploadsDir, storedName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            var fileUrl = await _gcsStorageService.UploadAsync(
+                file,
+                storedName);
 
             var now = TimeHelper.Now;
             var attachment = new Attachment
             {
                 FileName = file.FileName,
                 StoredName = storedName,
-                FilePath = filePath,
+                FilePath = fileUrl,
                 FileSize = (int)file.Length,
                 MimeType = file.ContentType ?? "application/octet-stream",
                 EntityType = entity_type,
@@ -87,11 +86,12 @@ namespace CaseFlow.Server.Controllers
             if (att == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Attachment not found" } });
 
-            if (!System.IO.File.Exists(att.FilePath))
-                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "File not found on disk" } });
+            var stream = await _gcsStorageService.DownloadAsync(att.StoredName);
 
-            var bytes = await System.IO.File.ReadAllBytesAsync(att.FilePath);
-            return File(bytes, att.MimeType, att.FileName);
+            return File(
+                stream,
+                att.MimeType,
+                att.FileName);
         }
 
         // DELETE /api/v1/attachments/:id
@@ -103,8 +103,8 @@ namespace CaseFlow.Server.Controllers
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Attachment not found" } });
 
             // 刪除檔案
-            if (System.IO.File.Exists(att.FilePath))
-                System.IO.File.Delete(att.FilePath);
+            await _gcsStorageService.DeleteAsync(
+                att.StoredName);
 
             _db.Attachments.Remove(att);
             await _db.SaveChangesAsync();

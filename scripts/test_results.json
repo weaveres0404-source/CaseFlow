@@ -1,0 +1,287 @@
+[
+  {
+    "id": "TC-A01",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"must_change_password\":false,\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbX"
+  },
+  {
+    "id": "TC-A02",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-A03",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":false,\"error\":{\"code\":\"UNAUTHORIZED\",\"message\":\"Invalid credentials\"}}"
+  },
+  {
+    "id": "TC-A04",
+    "status": "SKIP",
+    "note": "需 DBA 建 must_change_password=TRUE 帳號"
+  },
+  {
+    "id": "TC-A05",
+    "status": "SKIP",
+    "note": "UI-only"
+  },
+  {
+    "id": "TC-B01",
+    "status": "PASS",
+    "note": "201 case_id=245 number=SM-202606-159"
+  },
+  {
+    "id": "TC-B02",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-B03",
+    "status": "PASS",
+    "note": "HTTP 400 body={\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"project_id, category_id, reporter_name and description are required\"}}"
+  },
+  {
+    "id": "TC-B04",
+    "status": "SKIP",
+    "note": "需 >20MB 二進位檔測試"
+  },
+  {
+    "id": "TC-B05",
+    "status": "SKIP",
+    "note": "UI-only 草稿"
+  },
+  {
+    "id": "TC-B06",
+    "status": "SKIP",
+    "note": "通知為非同步、僅檢查 API 是否回 200"
+  },
+  {
+    "id": "TC-B07",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-C01",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"id\":245,\"status\":20}}"
+  },
+  {
+    "id": "TC-C02",
+    "status": "SKIP",
+    "note": "通知"
+  },
+  {
+    "id": "TC-C03",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"id\":246,\"status\":20}}"
+  },
+  {
+    "id": "TC-C04",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-C05",
+    "status": "PASS",
+    "note": "HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"只有該專案的 PM 可以轉派案件\"}}"
+  },
+  {
+    "id": "TC-C06",
+    "status": "PASS",
+    "note": "B=201 A=403 bodyA={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"只有該專案的 PM 或目前指派的 SE 可以新增處理紀錄\"}}"
+  },
+  {
+    "id": "TC-D01",
+    "status": "PASS",
+    "note": "HTTP 201 body={\"success\":true,\"data\":{\"id\":158,\"case_status\":30}}"
+  },
+  {
+    "id": "TC-D02",
+    "status": "PASS",
+    "note": "logs=2 total_hours=3.5"
+  },
+  {
+    "id": "TC-D03",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"id\":247,\"short_id\":\"UdEcO07r\",\"status\":40}}"
+  },
+  {
+    "id": "TC-D04",
+    "status": "PASS",
+    "note": "log=201 complete=200 body={\"success\":true,\"data\":{\"id\":248,\"short_id\":\"effwgBQI\",\"status\":40}}"
+  },
+  {
+    "id": "TC-D05",
+    "status": "SKIP",
+    "note": "API 文件規範無 DELETE"
+  },
+  {
+    "id": "TC-D06",
+    "status": "SKIP",
+    "note": "通知"
+  },
+  {
+    "id": "TC-D07",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-D09",
+    "status": "PASS",
+    "note": "PM add log HTTP 201 body={\"success\":true,\"data\":{\"id\":162,\"case_status\":30}}"
+  },
+  {
+    "id": "TC-D10",
+    "status": "PASS",
+    "note": "PM complete HTTP 200 body={\"success\":true,\"data\":{\"id\":249,\"short_id\":\"OQg6wa8f\",\"status\":40}}"
+  },
+  {
+    "id": "TC-D08",
+    "status": "PASS",
+    "note": "ok=201 over=400 body1={\"success\":true,\"data\":{\"id\":163,\"case_status\":30}} body2={\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"hours_spent must be between 0 and 9999.99\"}}"
+  },
+  {
+    "id": "TC-E01",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"id\":251,\"short_id\":\"K7ht7r2D\",\"status\":35}}"
+  },
+  {
+    "id": "TC-E02",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"id\":252,\"short_id\":\"cBl4Rbtq\",\"status\":50}}"
+  },
+  {
+    "id": "TC-E03",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"id\":253,\"short_id\":\"zVeSwli2\",\"status\":60}}"
+  },
+  {
+    "id": "TC-E04",
+    "status": "PASS",
+    "note": "HTTP 201 body={\"success\":true,\"data\":{\"id\":254,\"short_id\":\"XnZkwPnW\",\"case_number\":\"SM-202606-168\",\"related_case_id\":252}}"
+  },
+  {
+    "id": "TC-E05",
+    "status": "PASS",
+    "note": "HTTP 201 body={\"success\":true,\"data\":{\"id\":28}}"
+  },
+  {
+    "id": "TC-E06",
+    "status": "PASS",
+    "note": "HTTP 201 body={\"success\":true,\"data\":{\"id\":29}}"
+  },
+  {
+    "id": "TC-F01",
+    "status": "PASS",
+    "note": "HTTP 409 body={\"success\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"Cannot assign from current status\",\"details\":{\"current_status\":50}}}"
+  },
+  {
+    "id": "TC-F02",
+    "status": "PASS",
+    "note": "HTTP 409 body={\"success\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"Cannot complete from current status\",\"details\":{\"current_status\":50}}}"
+  },
+  {
+    "id": "TC-F03",
+    "status": "PASS",
+    "note": "HTTP 409 body={\"success\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"Cannot return from current status\",\"details\":{\"current_status\":50}}}"
+  },
+  {
+    "id": "TC-F04",
+    "status": "PASS",
+    "note": "HTTP 409 body={\"success\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"Cannot cancel from current status\",\"details\":{\"current_status\":50}}}"
+  },
+  {
+    "id": "TC-F05",
+    "status": "PASS",
+    "note": "HTTP 409 body={\"success\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"Cannot add log to closed or cancelled case\",\"details\":{\"current_status\":50}}}"
+  },
+  {
+    "id": "TC-F06",
+    "status": "PASS",
+    "note": "HTTP 401"
+  },
+  {
+    "id": "TC-F07",
+    "status": "PASS",
+    "note": "HTTP 404 body={\"success\":false,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"Case not found\"}}"
+  },
+  {
+    "id": "TC-F08",
+    "status": "PASS",
+    "note": "HTTP 400 body={\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Provide notification_ids or all:true\"}}"
+  },
+  {
+    "id": "TC-G01",
+    "status": "PASS",
+    "note": "HTTP 200 body={\"success\":true,\"data\":{\"status_summary\":{\"pending\":63,\"assigned\":27,\"in_progress\":33,\"returned\":11,\"completed\":45,\"closed\":20,\"cancelled\":28},\"this_month\":{\"completed_cases\":72,\"total_hours\":150.50}}"
+  },
+  {
+    "id": "TC-G02",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-G03",
+    "status": "PASS",
+    "note": "HTTP 200 items=20"
+  },
+  {
+    "id": "TC-G04",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-A06",
+    "status": "PASS",
+    "note": "HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"您沒有權限查看此案件\"}}"
+  },
+  {
+    "id": "TC-A07",
+    "status": "PASS",
+    "note": "HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"您沒有權限查看此案件\"}}"
+  },
+  {
+    "id": "TC-A08",
+    "status": "PASS",
+    "note": "HTTP 200"
+  },
+  {
+    "id": "TC-A09",
+    "status": "PASS",
+    "note": "HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"只有該專案的 PM 可以確認結案\"}}"
+  },
+  {
+    "id": "TC-A10",
+    "status": "SKIP",
+    "note": "前端 localStorage"
+  },
+  {
+    "id": "TC-H01",
+    "status": "PASS",
+    "note": "HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"只有該專案的 PM 可以轉派案件\"}}"
+  },
+  {
+    "id": "TC-H02",
+    "status": "PASS",
+    "note": "sasuke cancel HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"只有該專案的 PM 可以取消案件\"}}"
+  },
+  {
+    "id": "TC-H03",
+    "status": "PASS",
+    "note": "HTTP 403"
+  },
+  {
+    "id": "TC-H04",
+    "status": "PASS",
+    "note": "HTTP 403"
+  },
+  {
+    "id": "TC-H05",
+    "status": "PASS",
+    "note": "HTTP 403"
+  },
+  {
+    "id": "TC-H06",
+    "status": "PASS",
+    "note": "HTTP 403 body={\"success\":false,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"只有該專案的 PM 可以確認結案\"}}"
+  }
+]

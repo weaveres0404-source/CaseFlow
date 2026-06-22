@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "PYMI6TDztLY=",
+  "success": true,
+  "projectFilePath": "D:\\CaseFlow\\CaseFlow\\temp_list_types\\temp_list_types.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\User\\.nuget\\packages\\microsoft.aspnetcore.authentication.google\\10.0.1\\microsoft.aspnetcore.authentication.google.10.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

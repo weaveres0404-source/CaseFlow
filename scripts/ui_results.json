@@ -1,0 +1,292 @@
+[
+  {
+    "id": "TC-A01",
+    "status": "PASS",
+    "note": "name=True new_link=True"
+  },
+  {
+    "id": "TC-A02",
+    "status": "PASS",
+    "note": "name=True new_link=False"
+  },
+  {
+    "id": "TC-A03",
+    "status": "PASS",
+    "note": "on_login=True err_msg=True"
+  },
+  {
+    "id": "TC-A04",
+    "status": "SKIP",
+    "note": "需 DBA 建立 must_change_password=TRUE 帳號"
+  },
+  {
+    "id": "TC-A05",
+    "status": "PASS",
+    "note": "new_link_hidden=True menu_basic=True"
+  },
+  {
+    "id": "TC-A06",
+    "status": "PASS",
+    "note": "url=https://caseflow-test.sld-lwd.com/cases/ipkjo6YM denied=True title_present=False"
+  },
+  {
+    "id": "TC-A07",
+    "status": "PASS",
+    "note": "url=https://caseflow-test.sld-lwd.com/cases/ipkjo6YM denied=True"
+  },
+  {
+    "id": "TC-A08",
+    "status": "PASS",
+    "note": "url=https://caseflow-test.sld-lwd.com/cases/05ju637A content_ok=True"
+  },
+  {
+    "id": "TC-A09",
+    "status": "PASS",
+    "note": "ui_no_close_btn=True api_403=True"
+  },
+  {
+    "id": "TC-A10",
+    "status": "PASS",
+    "note": "url=https://caseflow-test.sld-lwd.com/login ui_btn_clicked=True"
+  },
+  {
+    "id": "TC-B01",
+    "status": "PASS",
+    "note": "case_number=SM-202606-116 num_shown=True pending_shown=True"
+  },
+  {
+    "id": "TC-B02",
+    "status": "PASS",
+    "note": "form_present=True meta_http=200"
+  },
+  {
+    "id": "TC-B03",
+    "status": "PASS",
+    "note": "http=400"
+  },
+  {
+    "id": "TC-B04",
+    "status": "SKIP",
+    "note": "需準備 >20MB 與 .exe 檔，跳過自動化"
+  },
+  {
+    "id": "TC-B05",
+    "status": "PASS",
+    "note": "draft_btn_present=True"
+  },
+  {
+    "id": "TC-B06",
+    "status": "PASS",
+    "note": "luffy_before=189 after=190 conan=10"
+  },
+  {
+    "id": "TC-B07",
+    "status": "PASS",
+    "note": "ui_btn=True api_reopen_ok=True"
+  },
+  {
+    "id": "TC-C01",
+    "status": "PASS",
+    "note": "api=200 status_shown=True"
+  },
+  {
+    "id": "TC-C02",
+    "status": "PASS",
+    "note": "nami_assign_notif=True count=20"
+  },
+  {
+    "id": "TC-C03",
+    "status": "PASS",
+    "note": "api=200 both_shown=True"
+  },
+  {
+    "id": "TC-C04",
+    "status": "PASS",
+    "note": "api=200 new_shown=True"
+  },
+  {
+    "id": "TC-C05",
+    "status": "PASS",
+    "note": "ui_no_btn=False api_403=True"
+  },
+  {
+    "id": "TC-C06",
+    "status": "PASS",
+    "note": "r1=201 r2=403 r3=201"
+  },
+  {
+    "id": "TC-D01",
+    "status": "PASS",
+    "note": "api=201 status_in_progress=True"
+  },
+  {
+    "id": "TC-D02",
+    "status": "PASS",
+    "note": "logs=2 total=3.5 ui_total_shown=True"
+  },
+  {
+    "id": "TC-D03",
+    "status": "PASS",
+    "note": "api=200 ui_completed=True"
+  },
+  {
+    "id": "TC-D04",
+    "status": "PASS",
+    "note": "log=201 complete=200 ui_completed=True"
+  },
+  {
+    "id": "TC-D05",
+    "status": "PASS",
+    "note": "delete_log_blocked=True"
+  },
+  {
+    "id": "TC-D06",
+    "status": "PASS",
+    "note": "cnt0=200 after_first_complete=201 after_second_log=201"
+  },
+  {
+    "id": "TC-D07",
+    "status": "PASS",
+    "note": "list_present=True"
+  },
+  {
+    "id": "TC-D08",
+    "status": "PASS",
+    "note": "create=201 log1=201 over=400"
+  },
+  {
+    "id": "TC-D09",
+    "status": "SKIP",
+    "note": "前端重點：需 UI 確認按鈕存在。API 後端已驗證 PM 可新增紀錄(API:PASS)"
+  },
+  {
+    "id": "TC-D10",
+    "status": "SKIP",
+    "note": "前端重點：需 UI 確認按鈕存在。API 後端已驗證 PM 可回報完工(API:PASS)"
+  },
+  {
+    "id": "TC-E01",
+    "status": "PASS",
+    "note": "api=200 ui_returned=True"
+  },
+  {
+    "id": "TC-E02",
+    "status": "PASS",
+    "note": "api=200 ui_closed=True"
+  },
+  {
+    "id": "TC-E03",
+    "status": "PASS",
+    "note": "api=200 ui_cancelled=True"
+  },
+  {
+    "id": "TC-E04",
+    "status": "PASS",
+    "note": "http=409"
+  },
+  {
+    "id": "TC-E05",
+    "status": "PASS",
+    "note": "http=409"
+  },
+  {
+    "id": "TC-E06",
+    "status": "PASS",
+    "note": "http=201"
+  },
+  {
+    "id": "TC-E07",
+    "status": "PASS",
+    "note": "http=403"
+  },
+  {
+    "id": "TC-F01",
+    "status": "PASS",
+    "note": "http=400"
+  },
+  {
+    "id": "TC-F02",
+    "status": "PASS",
+    "note": "http=400"
+  },
+  {
+    "id": "TC-F03",
+    "status": "PASS",
+    "note": "http=409"
+  },
+  {
+    "id": "TC-F04",
+    "status": "PASS",
+    "note": "http=409"
+  },
+  {
+    "id": "TC-F05",
+    "status": "PASS",
+    "note": "url=https://caseflow-test.sld-lwd.com/login?redirect=/cases/SV3XcJ4R"
+  },
+  {
+    "id": "TC-F06",
+    "status": "PASS",
+    "note": "http=401"
+  },
+  {
+    "id": "TC-F07",
+    "status": "PASS",
+    "note": "http=404"
+  },
+  {
+    "id": "TC-G01",
+    "status": "PASS",
+    "note": "http=200"
+  },
+  {
+    "id": "TC-G02",
+    "status": "PASS",
+    "note": "http=200"
+  },
+  {
+    "id": "TC-G03",
+    "status": "PASS",
+    "note": "http=200"
+  },
+  {
+    "id": "TC-G04",
+    "status": "PASS",
+    "note": "http=400"
+  },
+  {
+    "id": "TC-G05",
+    "status": "PASS",
+    "note": "http=200"
+  },
+  {
+    "id": "TC-H01",
+    "status": "PASS",
+    "note": "http=200"
+  },
+  {
+    "id": "TC-H02",
+    "status": "PASS",
+    "note": "http=403 (預期 403；若 200=已知缺陷未修)"
+  },
+  {
+    "id": "TC-H03",
+    "status": "PASS",
+    "note": "luffy=200 conan=403"
+  },
+  {
+    "id": "TC-H04",
+    "status": "PASS",
+    "note": "http=403"
+  },
+  {
+    "id": "TC-H05",
+    "status": "PASS",
+    "note": "http=403"
+  },
+  {
+    "id": "TC-H06",
+    "status": "PASS",
+    "note": "api=403 ui_no_close_btn=True"
+  }
+]

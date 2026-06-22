@@ -251,7 +251,14 @@
               </div>
             </div>
             <div>
-              <label class="label">處理方式 *</label>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="label !mb-0">處理方式 *</label>
+                <button type="button" @click="openRefCaseModal"
+                  class="inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:text-brand-800">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  引用歷史案件
+                </button>
+              </div>
               <textarea v-model="logForm.handling_method" rows="4" class="input-base resize-y" placeholder="本次做了什麼（例：檢查 Log、重現問題、調整設定…）" required></textarea>
             </div>
             <div><label class="label">處理結果 / 下一步</label><textarea v-model="logForm.handling_result" rows="3" class="input-base resize-y" placeholder="結果、觀察、尚待確認事項…"></textarea></div>
@@ -300,6 +307,11 @@
               <div class="border-l-2 border-brand-200 pl-3 space-y-1">
                 <div class="text-sm whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理方式</span>{{ log.handling_method }}</div>
                 <div v-if="log.handling_result" class="text-sm text-slate-600 whitespace-pre-wrap break-words"><span class="text-slate-400 text-xs block mb-0.5">處理結果</span>{{ log.handling_result }}</div>
+                <div v-if="log.ref_case" class="flex items-center gap-1.5 text-xs text-indigo-600 mt-0.5">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                  <span class="text-slate-400">引用：</span>
+                  <span class="font-medium">{{ log.ref_case.case_number }}</span>
+                </div>
                 <div v-if="logEstimation(log.id)" class="mt-3 flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3">
                   <svg class="h-4 w-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
                   <span class="text-sm font-medium text-sky-800">工時評估</span>
@@ -334,7 +346,7 @@
           <div class="flex items-center justify-between flex-wrap gap-2">
             <p class="text-sm text-slate-500">目前指派給此案件的專案成員</p>
             <button
-              v-if="['PM','ADMIN','SysAdmin'].includes(auth.role) && ![50,60].includes(caseData?.status)"
+              v-if="isCurrentProjectPm && ![50,60].includes(caseData?.status)"
               @click="openAssignModal"
               class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -407,11 +419,11 @@
     </div>
   </div>
 
-  <!-- Not found -->
+  <!-- Not found / access revoked -->
   <div v-else-if="notFound" class="mx-auto flex w-full max-w-[900px] items-center justify-center py-14">
     <div class="w-full rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-      <h1 class="text-2xl font-bold tracking-tight text-slate-900">找不到此案件</h1>
-      <p class="mt-3 text-sm text-slate-600">此案件可能不存在，或你目前的帳號無權存取。</p>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ notFoundTitle }}</h1>
+      <p class="mt-3 text-sm text-slate-600">{{ notFoundMessage }}</p>
       <div class="mt-6">
         <router-link to="/cases" class="inline-flex h-9 items-center rounded-lg bg-brand-700 px-4 text-sm font-medium text-white hover:bg-brand-800">
           返回案件列表
@@ -481,7 +493,7 @@
             class="flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50/40 cursor-pointer"
           >
             <input type="checkbox" :value="se.id" v-model="assignModal.selectedIds" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-            <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">{{ se.full_name.charAt(0) }}</div>
+            <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">{{ (se.full_name || '?').charAt(0) }}</div>
             <div class="flex-1 min-w-0 flex items-center gap-2">
               <span class="text-[13px] text-slate-900">{{ se.full_name }}</span>
               <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">專案成員</span>
@@ -535,25 +547,132 @@
     </div>
   </div>
 
+  <!-- 引用歷史案件 Modal -->
+  <div v-if="refCaseModal.show" class="fixed inset-0 z-50 bg-slate-950/50 flex items-center justify-center p-4" @click.self="closeRefCaseModal">
+    <div class="w-full max-w-5xl rounded-2xl bg-white shadow-xl flex flex-col" style="max-height:85vh">
+      <header class="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h2 class="text-base font-semibold text-slate-900">引用歷史案件</h2>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200">本專案 · {{ caseData?.project?.name }}</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">僅顯示同專案已結案的案件；點左側案件查看內容，再選擇要引用的紀錄帶入本次「處理方式」</p>
+        </div>
+        <button @click="closeRefCaseModal" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+
+      <div class="flex-1 grid grid-cols-1 md:grid-cols-[320px_1fr] overflow-hidden">
+        <!-- 左：案件清單 -->
+        <aside class="border-r border-slate-100 flex flex-col overflow-hidden">
+          <div class="p-3 border-b border-slate-100">
+            <div class="relative">
+              <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 17a6 6 0 100-12 6 6 0 000 12z"/></svg>
+              <input :value="refCaseModal.search" @input="onRefCaseModalSearchInput($event.target.value)" type="text"
+                placeholder="搜尋案號 / 摘要 / 立案人 / 處理人…"
+                class="w-full h-9 pl-8 pr-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500" />
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto">
+            <div v-if="refCaseModal.loading" class="p-6 text-center text-sm text-slate-400">載入中…</div>
+            <div v-else-if="!refCaseModal.list.length" class="p-6 text-center text-sm text-slate-400">本專案沒有已結案的歷史案件</div>
+            <button v-for="c in refCaseModal.list" :key="c.id" type="button"
+              @click="selectModalCase(c)"
+              :class="['w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50',
+                       refCaseModal.selected?.id === c.id ? 'bg-indigo-50/60 border-l-2 border-l-indigo-500' : 'border-l-2 border-l-transparent']">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-mono text-xs font-semibold text-slate-900">{{ c.case_number }}</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-violet-50 text-violet-700 ring-1 ring-violet-200">已結案</span>
+                <span class="ml-auto text-[11px] text-slate-400 tabular-nums">{{ formatDateShort(c.closed_at || c.updated_at) }}</span>
+              </div>
+              <div class="text-sm text-slate-700 line-clamp-2 break-words">{{ c.description }}</div>
+              <div class="mt-1 text-[11px] text-slate-500 flex items-center gap-3 flex-wrap">
+                <span>立案 {{ c.created_by_name || '-' }}</span>
+                <span>處理 {{ c.assignee_name || '-' }}</span>
+              </div>
+            </button>
+          </div>
+        </aside>
+
+        <!-- 右：案件詳情 + 處理紀錄 -->
+        <section class="flex flex-col overflow-hidden">
+          <div v-if="refCaseModal.selectedLoading" class="p-10 text-center text-sm text-slate-400">載入中…</div>
+          <template v-else-if="refCaseModal.selected">
+            <div class="px-5 py-4 border-b border-slate-100">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-mono text-sm font-semibold text-slate-900">{{ refCaseModal.selected.case_number }}</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-violet-50 text-violet-700 ring-1 ring-violet-200">已結案</span>
+                <span class="text-[11px] text-slate-400 tabular-nums">{{ formatDateShort(refCaseModal.selected.closed_at || refCaseModal.selected.updated_at) }}</span>
+              </div>
+              <h3 class="mt-1.5 text-sm font-semibold text-slate-900 break-words">{{ refCaseModal.selected.description }}</h3>
+            </div>
+            <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+              <div class="text-xs text-slate-500">處理紀錄 ({{ refCaseModal.selected.logs?.length || 0 }})</div>
+              <div v-for="log in refCaseModal.selected.logs || []" :key="log.id"
+                class="rounded-xl border border-slate-200 bg-slate-50/40 px-4 py-3">
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <div class="text-xs text-slate-600 flex items-center gap-2 flex-wrap">
+                    <span class="tabular-nums">{{ formatDateShort(log.log_date) }}</span>
+                    <span>·</span>
+                    <span>{{ log.handler_name || log.handler?.full_name || '-' }}</span>
+                    <span>·</span>
+                    <span class="tabular-nums">{{ log.hours_spent ?? 0 }}h</span>
+                  </div>
+                  <button type="button" @click="citeLog(log)"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-700 hover:bg-brand-800 text-xs text-white">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+                    引用此紀錄
+                  </button>
+                </div>
+                <div v-if="log.handling_method" class="text-sm text-slate-800 whitespace-pre-wrap break-words">
+                  <span class="text-slate-500">處理方式：</span>{{ log.handling_method }}
+                </div>
+                <div v-if="log.handling_result" class="mt-1.5 text-sm text-slate-700 whitespace-pre-wrap break-words">
+                  <span class="text-slate-500">處理結果：</span>{{ log.handling_result }}
+                </div>
+              </div>
+              <div v-if="!(refCaseModal.selected.logs && refCaseModal.selected.logs.length)" class="text-sm text-slate-400 text-center py-6">無處理紀錄</div>
+            </div>
+          </template>
+          <div v-else class="p-10 text-center text-sm text-slate-400">請從左側選擇案件</div>
+        </section>
+      </div>
+
+      <footer class="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+        <p class="text-xs text-slate-400">點處理紀錄右側「引用」可將該筆處理方式帶入本次紀錄</p>
+        <button @click="closeRefCaseModal" class="h-9 px-4 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-50">關閉</button>
+      </footer>
+    </div>
+  </div>
+
   <!-- Confirm Dialog -->
-  <div v-if="confirmDialog.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-      <h3 class="text-lg font-semibold mb-2">{{ confirmDialog.title }}</h3>
-      <p class="text-sm text-gray-600 mb-4">{{ confirmDialog.message }}</p>
-      <p v-if="confirmDialog.error" class="text-sm text-red-600 mt-2">{{ confirmDialog.error }}</p>
-      <div class="flex justify-end gap-3 mt-4">
-        <button @click="confirmDialog.show = false" :disabled="confirmDialog.loading" class="px-4 py-2 border rounded-lg text-sm disabled:opacity-50">取消</button>
-        <button @click="handleConfirm" :disabled="confirmDialog.loading" :class="confirmDialog.btnClass" class="px-4 py-2 rounded-lg text-sm text-white disabled:opacity-50">
-          <span v-if="confirmDialog.loading">處理中...</span>
-          <span v-else>確認</span>
+  <div v-if="confirmDialog.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="confirmDialog.show = false">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+      <h2 class="text-[15px] font-semibold text-slate-900">{{ confirmDialog.title }}</h2>
+      <p class="text-sm text-slate-600">{{ confirmDialog.message }}</p>
+      <p v-if="confirmDialog.error" class="text-sm text-rose-600">{{ confirmDialog.error }}</p>
+      <div class="flex justify-end gap-2 pt-2">
+        <button @click="confirmDialog.show = false" :disabled="confirmDialog.loading"
+          class="h-9 px-4 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-[13px]">
+          取消
+        </button>
+        <button @click="handleConfirm" :disabled="confirmDialog.loading"
+          class="h-9 px-4 rounded-lg text-white text-[13px] font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
+          :class="confirmDialog.btnClass">
+          {{ confirmDialog.loading ? '處理中…' : '確認' }}
         </button>
       </div>
     </div>
   </div>
+
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMetaStore } from '../stores/meta'
 import { useAuthStore } from '../stores/auth'
@@ -567,6 +686,11 @@ const auth = useAuthStore()
 const caseData = ref(null)
 const isLoading = ref(true)
 const notFound = ref(false)
+const accessRevoked = ref(false)
+const notFoundTitle = computed(() => accessRevoked.value ? '該案件已取消轉派給您' : '找不到此案件')
+const notFoundMessage = computed(() => accessRevoked.value
+  ? '您原本是該案件的處理人員，但目前已被取消指派，所以無法查看此案件詳情。'
+  : '此案件可能不存在，或你目前的帳號無權存取。')
 const hasLoadError = ref(false)
 const activeTab = ref('info')
 
@@ -578,7 +702,7 @@ function localDateStr(d = new Date()) {
 const showLogForm = ref(false)
 const showReplyForm = ref(false)
 
-const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null })
+const logForm = ref({ log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null, ref_case_id: null })
 
 // separate input binding to allow user to type '.' without being clobbered by numeric coercion
 const hoursInput = ref(String(logForm.value.hours_spent || '0'))
@@ -623,6 +747,99 @@ function stepEstHours(delta) {
 }
 const logAttachments = ref([])
 
+function formatDateShort(v) {
+  if (!v) return '-'
+  const d = new Date(v)
+  if (isNaN(d.getTime())) return '-'
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+// 引用歷史案件 modal
+const refCaseModal = ref({
+  show: false,
+  loading: false,
+  list: [],
+  search: '',
+  selected: null,         // 完整案件含 logs
+  selectedLoading: false,
+})
+let _refCaseSearchTimer = null
+
+async function openRefCaseModal() {
+  refCaseModal.value.show = true
+  refCaseModal.value.search = ''
+  refCaseModal.value.selected = null
+  await loadRefCaseList()
+}
+
+function closeRefCaseModal() {
+  refCaseModal.value.show = false
+}
+
+async function loadRefCaseList() {
+  if (!caseData.value?.project?.id) return
+  refCaseModal.value.loading = true
+  try {
+    const params = {
+      project_id: caseData.value.project.id,
+      status: 50, // 已結案
+      page_size: 50,
+      sort: 'closed_at,desc'
+    }
+    if (refCaseModal.value.search.trim()) params.q = refCaseModal.value.search.trim()
+    const { data: res } = await api.get('/cases', { params })
+    const currentId = Number(caseId.value)
+    refCaseModal.value.list = res.success ? res.data.filter(c => c.id !== currentId) : []
+    // 預設選第一筆
+    if (refCaseModal.value.list.length && !refCaseModal.value.selected) {
+      await selectModalCase(refCaseModal.value.list[0])
+    }
+  } catch {
+    refCaseModal.value.list = []
+  } finally {
+    refCaseModal.value.loading = false
+  }
+}
+
+function onRefCaseModalSearchInput(val) {
+  refCaseModal.value.search = val
+  clearTimeout(_refCaseSearchTimer)
+  _refCaseSearchTimer = setTimeout(() => {
+    refCaseModal.value.selected = null
+    loadRefCaseList()
+  }, 300)
+}
+
+async function selectModalCase(c) {
+  refCaseModal.value.selectedLoading = true
+  try {
+    const slug = c.short_id || c.id
+    const { data: res } = await api.get(`/cases/${slug}`)
+    if (res.success) refCaseModal.value.selected = res.data
+  } catch {
+    refCaseModal.value.selected = null
+  } finally {
+    refCaseModal.value.selectedLoading = false
+  }
+}
+
+function citeLog(log) {
+  const sel = refCaseModal.value.selected
+  if (!sel) return
+  // 將該筆處理紀錄文字帶入目前 log form，不建立案件連結。
+  logForm.value.handling_method = log.handling_method || ''
+  logForm.value.handling_result = log.handling_result || ''
+  logForm.value.ref_case_id = null
+  closeRefCaseModal()
+}
+
+function clearRefCase() {
+  logForm.value.ref_case_id = null
+}
+
 function onLogFileChange(e) {
   for (const file of e.target.files) {
     if (file.size > 20 * 1024 * 1024) continue
@@ -635,6 +852,7 @@ function onLogFileChange(e) {
 function cancelLogForm() {
   showLogForm.value = false
   logAttachments.value = []
+  clearRefCase()
 }
 
 const assignModal = ref({
@@ -649,7 +867,7 @@ const assignModal = ref({
 const replyForm = ref({ reply_date: localDateStr(), reply_content: '' })
 const confirmDialog = ref({ show: false, title: '', message: '', onConfirm: () => {}, btnClass: 'bg-brand-700 hover:bg-brand-800', loading: false, error: '' })
 
-const caseId = computed(() => route.params.id)
+const caseId = computed(() => route.params.slug)
 
 const tabs = computed(() => [
   { key: 'info', label: '基本資訊' },
@@ -669,6 +887,11 @@ const sortedLogs = computed(() =>
 const activeAssignments = computed(() => (caseData.value?.assignments || []).filter(a => a.is_active))
 const inactiveAssignments = computed(() => (caseData.value?.assignments || []).filter(a => !a.is_active))
 const activeAssignmentIds = computed(() => activeAssignments.value.map(a => a.se?.id).filter(Boolean))
+const hasReplyHistory = computed(() => (caseData.value?.logs || []).some(log => Number(log.status_after) === 30))
+const canReportComplete = computed(() => {
+  const status = Number(caseData.value?.status)
+  return status === 30 || status === 35 || (status === 20 && hasReplyHistory.value)
+})
 const isEvaluationCase = computed(() => caseData.value?.case_type === 'EVALUATION')
 const repliedEstimations = computed(() => (caseData.value?.estimations || []).filter(e => e.estimation_status === 30 || e.reply_date))
 const repliedEstimationCount = computed(() => repliedEstimations.value.length)
@@ -724,6 +947,30 @@ const availableSEs = computed(() => {
   return meta.getProjectAllMembers(caseData.value.project?.id, auth.user?.user_id)
 })
 
+const isCurrentProjectPm = computed(() => {
+  if (auth.role === 'SysAdmin') return true
+  const projectId = caseData.value?.project?.id
+  const userId = auth.user?.user_id ?? auth.user?.id
+  if (!projectId || !userId) return false
+  return meta.projectMembers.some(pm =>
+    Number(pm.project_id) === Number(projectId) &&
+    Number(pm.user_id) === Number(userId) &&
+    pm.role === 'PM'
+  )
+})
+
+const isCurrentProjectSe = computed(() => {
+  if (auth.role === 'SysAdmin') return true
+  const projectId = caseData.value?.project?.id
+  const userId = auth.user?.user_id ?? auth.user?.id
+  if (!projectId || !userId) return false
+  return meta.projectMembers.some(pm =>
+    Number(pm.project_id) === Number(projectId) &&
+    Number(pm.user_id) === Number(userId) &&
+    pm.role === 'SE'
+  )
+})
+
 const filteredAssignSEs = computed(() => {
   const q = assignModal.value.search.trim().toLowerCase()
   return availableSEs.value.filter(se => !q || se.full_name.toLowerCase().includes(q))
@@ -764,7 +1011,6 @@ const slaUrgent = computed(() => {
 const availableActions = computed(() => {
   if (!caseData.value) return []
   const s = caseData.value.status
-  const r = auth.role
   const actions = []
 
   const I = {
@@ -780,8 +1026,8 @@ const availableActions = computed(() => {
 
   const primaryActionClass = 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800 hover:border-brand-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300'
 
-  // 新增處理紀錄: [10,20,30,35], PM/SE/SysAdmin
-  if ([10, 20, 30, 35].includes(s) && ['PM', 'SE', 'SysAdmin'].includes(r))
+  // 新增處理紀錄: [10,20,30,35], 該專案 SE 或 PM
+  if ([10, 20, 30, 35].includes(s) && (isCurrentProjectSe.value || isCurrentProjectPm.value))
     actions.push({
       label: '新增處理紀錄',
       icon: I.wrench,
@@ -792,29 +1038,29 @@ const availableActions = computed(() => {
     })
 
   // 轉派 SE: [10,20,30,35], PM/SysAdmin
-  if ([10, 20, 30, 35].includes(s) && ['PM', 'SysAdmin'].includes(r))
+  if ([10, 20, 30, 35].includes(s) && isCurrentProjectPm.value)
     actions.push({ label: '轉派專案成員', icon: I.userPlus, handler: () => { activeTab.value = 'assign'; openAssignModal() }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
-  // 回報完工: [30] only — 必須先進入處理中才可完工
-  if (s === 30 && ['SE', 'PM', 'SysAdmin'].includes(r))
+  // 回報完工: [20,30,35]，該專案 PM 或 SysAdmin
+  if (canReportComplete.value && isCurrentProjectPm.value)
     actions.push({ label: '回報完工', icon: I.check, handler: () => doAction('complete', '確認此案件已完工？'), class: primaryActionClass })
 
-  // 回覆客戶: [10,30], PM/SysAdmin
-  if ([10, 30].includes(s) && ['PM', 'SysAdmin'].includes(r))
+  // 回覆客戶: [10,30], 該專案 PM
+  if ([10, 30].includes(s) && isCurrentProjectPm.value)
     actions.push({ label: '回覆客戶', icon: I.msg, handler: () => { activeTab.value = 'replies'; showReplyForm.value = true }, class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   // 確認結案 + 退回: [40], PM/SysAdmin
-  if (s === 40 && ['PM', 'SysAdmin'].includes(r)) {
+  if (s === 40 && isCurrentProjectPm.value) {
     actions.push({ label: '確認結案', icon: I.flag, handler: () => doAction('close', '確認結案？'), class: primaryActionClass })
     actions.push({ label: '退回', icon: I.undo, handler: () => doAction('return', '確認退回此案件？'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
   }
 
-  // 取消: [10,20,30,35,40], PM/SysAdmin
-  if ([10, 20, 30, 35, 40].includes(s) && ['PM', 'SysAdmin'].includes(r))
+  // 取消: [10,20,30,35,40], 該專案 PM
+  if ([10, 20, 30, 35, 40].includes(s) && isCurrentProjectPm.value)
     actions.push({ label: '取消', icon: I.ban, handler: () => doAction('cancel', '確認取消此案件？此操作不可逆'), class: 'border-rose-200 bg-white text-rose-700 hover:bg-rose-50' })
 
-  // 重開: [50,60], PM/SysAdmin
-  if ([50, 60].includes(s) && ['PM', 'SysAdmin'].includes(r))
+  // 重開: [50,60], 只有該案件的 PM (assigned_pm) 或 SysAdmin
+  if ([50, 60].includes(s) && isCurrentProjectPm.value)
     actions.push({ label: '重開', icon: I.rotate, handler: () => doAction('reopen', '將以舊案為範本建立新案件'), class: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' })
 
   return actions
@@ -823,6 +1069,7 @@ const availableActions = computed(() => {
 async function fetchCase() {
   isLoading.value = true
   notFound.value = false
+  accessRevoked.value = false
   hasLoadError.value = false
   try {
     const { data: res } = await api.get(`/cases/${caseId.value}`)
@@ -835,7 +1082,11 @@ async function fetchCase() {
   } catch (err) {
     caseData.value = null
     const status = err?.response?.status
-    if (status === 404 || status === 403) {
+    const code = err?.response?.data?.error?.code
+    if (status === 403 && code === 'ACCESS_REVOKED') {
+      accessRevoked.value = true
+      notFound.value = true
+    } else if (status === 404 || status === 403) {
       notFound.value = true
     } else {
       hasLoadError.value = true
@@ -855,10 +1106,10 @@ function doAction(action, message) {
     error: '',
     onConfirm: async () => {
       if (action === 'reopen') {
-        const { data: res } = await api.post(`/cases/${caseId.value}/${action}`)
+        const { data: res } = await api.post(`/cases/${caseData.value?.id}/${action}`)
         if (res.success) router.push(`/cases/${res.data.short_id || res.data.id}`)
       } else {
-        await api.post(`/cases/${caseId.value}/${action}`)
+        await api.post(`/cases/${caseData.value?.id}/${action}`)
         await fetchCase()
       }
     }
@@ -893,7 +1144,7 @@ async function submitLog() {
   }
   let res
   try {
-    const { data } = await api.post(`/cases/${caseId.value}/logs`, logForm.value)
+    const { data } = await api.post(`/cases/${caseData.value?.id}/logs`, logForm.value)
     res = data
   } catch (err) {
     const msg = err?.response?.data?.error?.message || err?.response?.data?.title || err?.message || '儲存失敗，請稍後再試'
@@ -916,7 +1167,7 @@ async function submitLog() {
   const estimatorUserId = auth.user?.user_id ?? auth.user?.id
   if (isEvaluationCase.value && estimatedHours > 0 && estimatorUserId) {
     try {
-      await api.post(`/cases/${caseId.value}/estimations`, {
+      await api.post(`/cases/${caseData.value?.id}/estimations`, {
         estimator_user_id: estimatorUserId,
         request_date: logForm.value.log_date,
         reply_date: logForm.value.log_date,
@@ -933,10 +1184,11 @@ async function submitLog() {
   }
 
   showLogForm.value = false
-  logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null }
+  logForm.value = { log_date: localDateStr(), handling_method: '', handling_result: '', hours_spent: 0, estimated_hours: null, ref_case_id: null }
   hoursInput.value = '0'
   estHoursInput.value = ''
   logAttachments.value = []
+  clearRefCase()
   await fetchCase()
 }
 
@@ -954,19 +1206,20 @@ async function submitAssign() {
       instructions: assignModal.value.instructions || null,
       expected_completion_date: assignModal.value.expectedDate || null
     }
-    const { data: res } = await api.post(`/cases/${caseId.value}/assign`, payload)
+    const { data: res } = await api.post(`/cases/${caseData.value?.id}/assign`, payload)
     if (!res.success) throw new Error(res.error?.message || '派工失敗')
-    assignModal.value.show = false
-    await fetchCase()
   } catch (err) {
     assignModal.value.error = err?.response?.data?.error?.message || err?.message || '派工失敗，請稍後再試'
-  } finally {
     assignModal.value.submitting = false
+    return
   }
+  assignModal.value.submitting = false
+  assignModal.value.show = false
+  await fetchCase()
 }
 
 async function submitReply() {
-  await api.post(`/cases/${caseId.value}/replies`, replyForm.value)
+  await api.post(`/cases/${caseData.value?.id}/replies`, replyForm.value)
   showReplyForm.value = false
   replyForm.value = { reply_date: localDateStr(), reply_content: '' }
   await fetchCase()
@@ -1010,6 +1263,7 @@ function closeImagePreview() {
 }
 
 onMounted(fetchCase)
+watch(caseId, (n, o) => { if (n && n !== o) fetchCase() })
 </script>
 
 <style scoped>

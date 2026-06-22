@@ -1,0 +1,8 @@
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\bin\Release\net10.0\.msCoverageSourceRootsMapping_CaseFlow.Tests
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\bin\Release\net10.0\CoverletSourceRootsMapping_CaseFlow.Tests
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\obj\Release\net10.0\CaseFlow.Tests.csproj.AssemblyReference.cache
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\obj\Release\net10.0\CaseFlow.Tests.GeneratedMSBuildEditorConfig.editorconfig
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\obj\Release\net10.0\CaseFlow.Tests.AssemblyInfoInputs.cache
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\obj\Release\net10.0\CaseFlow.Tests.AssemblyInfo.cs
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\obj\Release\net10.0\CaseFlow.Tests.csproj.CoreCompileInputs.cache
+D:\CaseFlow\CaseFlow\CaseFlow.Tests\obj\Release\net10.0\CaseFlow.Tests.sourcelink.json

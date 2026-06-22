@@ -32,6 +32,9 @@ public partial class ProblemCategory
     [Column("is_active")]
     public bool IsActive { get; set; }
 
+    [Column("project_id")]
+    public int? ProjectId { get; set; }
+
     [Column("created_at", TypeName = "timestamp without time zone")]
     public DateTime CreatedAt { get; set; }
 
@@ -40,4 +43,13 @@ public partial class ProblemCategory
 
     [InverseProperty("Category")]
     public virtual ICollection<Case> Cases { get; set; } = new List<Case>();
+
+    [ForeignKey("ProjectId")]
+    public virtual Project? Project { get; set; }
+
+    [InverseProperty("Category")]
+    public virtual ICollection<ProblemCategoryProject> ProjectLinks { get; set; } = new List<ProblemCategoryProject>();
+
+    [InverseProperty("Category")]
+    public virtual ICollection<ProblemCategoryCaseType> CaseTypeLinks { get; set; } = new List<ProblemCategoryCaseType>();
 }

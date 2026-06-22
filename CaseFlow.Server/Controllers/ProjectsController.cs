@@ -49,11 +49,15 @@ namespace CaseFlow.Server.Controllers
                 {
                     id = p.ProjectId,
                     project_code = p.ProjectCode,
+                    project_code_id = p.ProjectCodeId,
+                    project_code_short = p.ProjectCodeRef != null ? p.ProjectCodeRef.Code : null,
                     project_name = p.ProjectName,
                     customer = new { id = p.Customer.CustomerId, name = p.Customer.CustomerName },
                     description = p.Description,
                     start_date = p.StartDate,
                     end_date = p.EndDate,
+                    allowed_case_types = p.AllowedCaseTypes,
+                    case_type_ids = p.CaseTypeLinks.Select(l => l.TypeId).ToList(),
                     is_active = p.IsActive,
                     created_at = p.CreatedAt,
                     updated_at = p.UpdatedAt
@@ -69,8 +73,10 @@ namespace CaseFlow.Server.Controllers
         {
             var p = await _db.Projects.AsNoTracking()
                 .Include(x => x.Customer)
+                .Include(x => x.ProjectCodeRef)
                 .Include(x => x.ProjectMembers).ThenInclude(m => m.User)
                 .Include(x => x.SystemModules)
+                .Include(x => x.CaseTypeLinks)
                 .FirstOrDefaultAsync(x => x.ProjectId == id);
 
             if (p == null)
@@ -83,11 +89,15 @@ namespace CaseFlow.Server.Controllers
                 {
                     id = p.ProjectId,
                     project_code = p.ProjectCode,
+                    project_code_id = p.ProjectCodeId,
+                    project_code_short = p.ProjectCodeRef != null ? p.ProjectCodeRef.Code : null,
                     project_name = p.ProjectName,
                     customer = new { id = p.Customer.CustomerId, name = p.Customer.CustomerName },
                     description = p.Description,
                     start_date = p.StartDate,
                     end_date = p.EndDate,
+                    allowed_case_types = p.AllowedCaseTypes,
+                    case_type_ids = p.CaseTypeLinks.Select(l => l.TypeId).ToList(),
                     is_active = p.IsActive,
                     members = p.ProjectMembers.Where(m => m.IsActive).Select(m => new
                     {
@@ -120,6 +130,7 @@ namespace CaseFlow.Server.Controllers
             var entity = new Project
             {
                 ProjectCode = dto.ProjectCode.Trim(),
+                ProjectCodeId = dto.ProjectCodeId,
                 ProjectName = dto.ProjectName.Trim(),
                 CustomerId = dto.CustomerId,
                 Description = dto.Description,
@@ -140,16 +151,33 @@ namespace CaseFlow.Server.Controllers
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ProjectCreateDto dto)
         {
-            var entity = await _db.Projects.FirstOrDefaultAsync(x => x.ProjectId == id);
+            var entity = await _db.Projects
+                .Include(x => x.CaseTypeLinks)
+                .FirstOrDefaultAsync(x => x.ProjectId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Project not found" } });
 
             if (!string.IsNullOrWhiteSpace(dto.ProjectCode)) entity.ProjectCode = dto.ProjectCode.Trim();
+            if (dto.ProjectCodeId.HasValue) entity.ProjectCodeId = dto.ProjectCodeId == 0 ? null : dto.ProjectCodeId;
             if (!string.IsNullOrWhiteSpace(dto.ProjectName)) entity.ProjectName = dto.ProjectName.Trim();
             if (dto.CustomerId > 0) entity.CustomerId = dto.CustomerId;
             if (dto.Description != null) entity.Description = dto.Description;
             if (dto.StartDate.HasValue) entity.StartDate = dto.StartDate;
             if (dto.EndDate.HasValue) entity.EndDate = dto.EndDate;
+            if (dto.AllowedCaseTypes != null) entity.AllowedCaseTypes = string.IsNullOrWhiteSpace(dto.AllowedCaseTypes) ? null : dto.AllowedCaseTypes.Trim();
+
+            // Sync case type links (null = 不變更；空陣列 = 清空所有限制 → 所有類型可用)
+            if (dto.CaseTypeIds != null)
+            {
+                var newSet = dto.CaseTypeIds.Distinct().ToHashSet();
+                foreach (var l in entity.CaseTypeLinks.ToList())
+                    if (!newSet.Contains(l.TypeId)) _db.CaseTypeProjects.Remove(l);
+                var existing = entity.CaseTypeLinks.Select(l => l.TypeId).ToHashSet();
+                foreach (var tid in newSet)
+                    if (!existing.Contains(tid))
+                        _db.CaseTypeProjects.Add(new CaseTypeProject { ProjectId = entity.ProjectId, TypeId = tid });
+            }
+
             entity.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
@@ -176,10 +204,13 @@ namespace CaseFlow.Server.Controllers
     public class ProjectCreateDto
     {
         public string ProjectCode { get; set; } = "";
+        public int? ProjectCodeId { get; set; }
         public string ProjectName { get; set; } = "";
         public int CustomerId { get; set; }
         public string? Description { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
+        public string? AllowedCaseTypes { get; set; }
+        public List<int>? CaseTypeIds { get; set; }
     }
 }

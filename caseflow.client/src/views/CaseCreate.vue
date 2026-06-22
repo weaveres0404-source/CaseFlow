@@ -324,14 +324,16 @@ const citeFilters = ref({
   date_to: ''
 })
 
-const VALID_CASE_TYPES = ['REPAIR', 'EVALUATION', 'MAINTENANCE', 'UHD', 'INQUIRY']
+// 案件類型：由後端 meta.caseTypes 動態提供（含 project_ids/category_ids）
+// 模板使用 type.value/type.label 介面 → 用 computed 對應 code/label
+const caseTypes = computed(() => {
+  const list = form.value.project_id
+    ? meta.getCaseTypesForProject(form.value.project_id)
+    : meta.caseTypes
+  return (list || []).map(t => ({ value: t.code, label: t.label, id: t.id }))
+})
 
-const caseTypes = [
-  { value: 'REPAIR',      label: '障礙調查' },
-  { value: 'EVALUATION',  label: '工時評估' },
-  { value: 'MAINTENANCE', label: '日常維運' },
-  { value: 'UHD',         label: 'UHD協助' }
-]
+const validCaseTypeCodes = computed(() => new Set(meta.caseTypes.map(t => t.code)))
 
 
 
@@ -367,7 +369,7 @@ const form = ref({
   reporter_name: '',
   reporter_phone: '',
   reporter_email: '',
-  case_type: 'REPAIR',
+  case_type: 'REQUEST',
   category_id: null,
   module_id: null,
   due_at: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }) + 'T09:00',
@@ -385,9 +387,19 @@ const availableProjects = computed(() => {
 
 const filteredModules = computed(() => form.value.project_id ? meta.getModulesByProject(form.value.project_id) : [])
 const filteredCategories = computed(() => {
-  const type = form.value.case_type
-  if (!type) return meta.categories
-  return meta.categories.filter(c => !c.case_type_filter || c.case_type_filter === type)
+  const typeCode = form.value.case_type
+  const projectId = form.value.project_id
+  // 由 code 找出對應的 type_id
+  const typeId = meta.caseTypes.find(t => t.code === typeCode)?.id
+  // 依專案過濾
+  let cats = projectId
+    ? meta.categories.filter(c => !c.project_ids?.length || c.project_ids.includes(projectId))
+    : meta.categories
+  // 依案件類型 (case_type_ids) 過濾：空陣列視為通用
+  if (typeId) {
+    cats = cats.filter(c => !c.case_type_ids?.length || c.case_type_ids.includes(typeId))
+  }
+  return cats
 })
 const selectedCustomerName = computed(() => {
   if (!form.value.project_id) return ''
@@ -498,9 +510,15 @@ function onCaseTypeChange(type) {
 
 function onProjectChange() {
   form.value.module_id = null
+  form.value.category_id = null
   const project = meta.projects.find(item => item.id === form.value.project_id)
   if (project?.customer_id) {
     form.value.customer_id = project.customer_id
+  }
+  // 若目前案件類型不在新專案允許的清單內，自動切到第一個可用類型
+  const available = caseTypes.value
+  if (available.length && !available.some(t => t.value === form.value.case_type)) {
+    form.value.case_type = available[0].value
   }
 }
 
@@ -587,8 +605,8 @@ function loadDraft() {
     if (draft?.form) {
       const merged = { ...form.value, ...draft.form }
       // 若草稿 case_type 已不在允許清單，重設為預設值
-      if (!VALID_CASE_TYPES.includes(merged.case_type)) {
-        merged.case_type = 'REPAIR'
+      if (!validCaseTypeCodes.value.has(merged.case_type)) {
+        merged.case_type = meta.caseTypes[0]?.code || 'REQUEST'
       }
       form.value = merged
     }

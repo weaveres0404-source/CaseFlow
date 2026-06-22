@@ -59,7 +59,8 @@
           <thead class="bg-slate-50 text-slate-500 text-left">
             <tr class="[&_th]:px-5 [&_th]:py-3 [&_th]:font-medium [&_th]:whitespace-nowrap">
               <th>名稱</th>
-              <th>描述</th>
+              <th>所屬專案</th>
+              <th>案件類型</th>
               <th>排序</th>
               <th>狀態</th>
               <th>更新時間</th>
@@ -72,7 +73,22 @@
                 <div class="font-medium text-slate-900 break-words [overflow-wrap:anywhere]">{{ cat.name }}</div>
                 <div class="text-xs text-slate-400 tabular-nums mt-1">ID {{ cat.id }}</div>
               </td>
-              <td class="px-5 py-4 text-slate-600 max-w-md break-words [overflow-wrap:anywhere] whitespace-pre-wrap">{{ cat.description || '—' }}</td>
+              <td class="px-5 py-4 text-slate-600 text-sm">
+                <template v-if="cat.project_ids && cat.project_ids.length">
+                  <span v-for="pid in cat.project_ids" :key="pid" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700 ring-1 ring-blue-200 mr-1 mb-1">
+                    {{ projectName(pid) }}
+                  </span>
+                </template>
+                <span v-else class="text-slate-400 text-xs">共用（所有專案）</span>
+              </td>
+              <td class="px-5 py-4 text-slate-600 text-sm">
+                <template v-if="cat.case_type_ids && cat.case_type_ids.length">
+                  <span v-for="tid in cat.case_type_ids" :key="tid" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600 ring-1 ring-slate-200 mr-1 mb-1">
+                    {{ caseTypeLabel(tid) }}
+                  </span>
+                </template>
+                <span v-else class="text-slate-400 text-xs">不限</span>
+              </td>
               <td class="px-5 py-4 tabular-nums text-slate-700">{{ cat.sort_order }}</td>
               <td class="px-5 py-4">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" :class="cat.is_active ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'">
@@ -142,9 +158,33 @@
             <label class="block text-sm font-medium text-slate-700 mb-1.5">名稱</label>
             <input v-model.trim="form.categoryName" type="text" class="w-full h-10 px-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500" placeholder="例如：帳號權限 / 系統 Bug" />
           </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">所屬專案 <span class="text-slate-400 font-normal">（可複選；不選 = 所有專案共用）</span></label>
+              <div class="max-h-40 overflow-auto rounded-lg border border-slate-300 px-3 py-2 bg-white space-y-1">
+                <label v-for="p in meta.projects" :key="p.id" class="flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" :value="p.id" v-model="form.projectIds" class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                  <span class="tabular-nums text-xs text-slate-500">{{ p.code }}</span>
+                  <span>{{ p.name }}</span>
+                </label>
+                <div v-if="!meta.projects.length" class="text-xs text-slate-400">尚無專案資料</div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">案件類型 <span class="text-slate-400 font-normal">（可複選；不選 = 不限）</span></label>
+              <div class="max-h-40 overflow-auto rounded-lg border border-slate-300 px-3 py-2 bg-white space-y-1">
+                <label v-for="t in meta.caseTypes" :key="t.id" class="flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" :value="t.id" v-model="form.caseTypeIds" class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                  <span class="tabular-nums text-xs text-slate-500">{{ t.code }}</span>
+                  <span>{{ t.label }}</span>
+                </label>
+                <div v-if="!meta.caseTypes.length" class="text-xs text-slate-400">尚無案件類型</div>
+              </div>
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1.5">描述</label>
-            <textarea v-model.trim="form.description" rows="4" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500" placeholder="補充這個分類的使用情境"></textarea>
+            <textarea v-model.trim="form.description" rows="3" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500" placeholder="補充這個分類的使用情境"></textarea>
           </div>
           <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
@@ -174,10 +214,28 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import api from '../utils/api'
+import { useMetaStore } from '../stores/meta'
 
 defineOptions({
   name: 'ProblemCategoriesAdminView'
 })
+
+const meta = useMetaStore()
+
+const CASE_TYPE_LABELS = {
+  REPAIR:      '障礙調查',
+  EVALUATION:  '工時評估',
+  MAINTENANCE: '日常維運',
+  UHD:         'UHD協助'
+}
+
+function caseTypeLabel(id) {
+  return meta.caseTypes.find(t => t.id === id)?.label ?? `#${id}`
+}
+
+function projectName(id) {
+  return meta.projects.find(p => p.id === id)?.name ?? `專案 ${id}`
+}
 
 const categories = ref([])
 const page = ref(1)
@@ -200,6 +258,8 @@ function createEmptyForm() {
     categoryName: '',
     description: '',
     sortOrder: 10,
+    caseTypeIds: [],
+    projectIds: [],
     isActive: true
   }
 }
@@ -250,6 +310,8 @@ function openEdit(category) {
     categoryName: category.name,
     description: category.description || '',
     sortOrder: category.sort_order ?? 10,
+    caseTypeIds: Array.isArray(category.case_type_ids) ? [...category.case_type_ids] : [],
+    projectIds: Array.isArray(category.project_ids) ? [...category.project_ids] : [],
     isActive: Boolean(category.is_active)
   }
   formError.value = ''
@@ -271,10 +333,12 @@ async function submitForm() {
   saving.value = true
   try {
     const payload = {
-      CategoryName: form.value.categoryName,
-      Description: form.value.description || null,
-      SortOrder: Number(form.value.sortOrder) || 0,
-      IsActive: Boolean(form.value.isActive)
+      category_name: form.value.categoryName,
+      description: form.value.description || null,
+      sort_order: Number(form.value.sortOrder) || 0,
+      case_type_ids: Array.isArray(form.value.caseTypeIds) ? form.value.caseTypeIds.map(Number) : [],
+      project_ids: Array.isArray(form.value.projectIds) ? form.value.projectIds.map(Number) : [],
+      is_active: Boolean(form.value.isActive)
     }
 
     if (isEdit.value && form.value.id) {

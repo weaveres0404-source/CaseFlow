@@ -1,0 +1,280 @@
+﻿R2: id=���սs�� cat=���� name=���ҦW�� role=����/�b��
+   input=���ո��/��J
+   expectedUI=�w�����G(UI)  stateTrans=�w�����A�ഫ
+   METHOD=API��k ENDPOINT=API���I EXPECT=�w��HTTP/���~�X
+
+R4: id=TC-A01 cat=�{�� name=PM �n�J���\ role=luffy(PM)
+   input=�b��:luffy / �K�X:@sld123456
+   expectedUI=�ɦV����O�A�k�W��ܡu�X��PD�P�|�ҡv�A�������t�u�s�W�ץ�v  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/auth/login EXPECT=200+access_token
+
+R5: id=TC-A02 cat=�{�� name=SE �n�J���\ role=nami(SE)
+   input=�b��:nami
+   expectedUI=�ɦV����O�A��ܡu�R���v�A���L�u�s�W�ץ�v  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/auth/login EXPECT=200
+
+R6: id=TC-A03 cat=�{�� name=���~�K�X�n�J���� role=��N
+   input=�b��:luffy / �K�X:wrongpwd
+   expectedUI=��ܵn�J���ѰT���A�d�b�n�J��  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/auth/login EXPECT=success=false(���oJWT)
+
+R7: id=TC-A04 cat=�{�� name=�����n�J�j���K�X role=�s�رb��
+   input=��DBA�HSQL�إ� must_change_password=TRUE �b��
+   expectedUI=�n�J��ɦV�]�w�s�K�X���A�]�w��~���o����JWT  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/auth/login��/auth/setup-password EXPECT=200+setup_token(10��)
+
+R8: id=TC-A05 cat=�v�� name=SE �L�u�s�W�ץ�v�J�f role=nami(SE)
+   input=�X
+   expectedUI=SE ���u�� ����O/�ץ�C��/�q������/�ӤH�]�w�A�L�u�s�W�ץ�v  stateTrans=�X
+   METHOD=�X ENDPOINT=�X EXPECT=�X
+
+R9: id=TC-A06 cat=�v���j�� name=SE �ݤ��쥼�����ץ� role=conan(�M��1����,���Q����)
+   input=�ץ�s�� /cases/{��������}
+   expectedUI=�ɦV�u�䤣�즹�ץ� / ���ץ�i�ण�s�b�A�ΧA�ثe���b���L�v�s���v���A����ܥ�󤺮e  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=403 FORBIDDEN
+
+R10: id=TC-A07 cat=�v���j�� name=�L�M�� SE �ݤ���ץ� role=goku(SE,�ȱM��5)
+   input=�ץ�s�� /cases/{�M��1��}
+   expectedUI=�ɦV�u�䤣�즹�ץ�v��  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=403 FORBIDDEN
+
+R11: id=TC-A08 cat=�v���j�� name=�Q���� SE �i�˵��ץ� role=sasuke(�Q����)
+   input=�X
+   expectedUI=�i���`�}�Ҩ��˵��ץ�Ա�  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=200
+
+R12: id=TC-A09 cat=�v�� name=SE ���i���� role=sasuke(SE)
+   input=�X
+   expectedUI=SE �ץ󭶵L���׶s�F�Y������API���Q��  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/close EXPECT=403 FORBIDDEN
+
+R13: id=TC-A10 cat=�{�� name=�n�X�M���n�J���A role=��N
+   input=�X
+   expectedUI=�^��n�J���A�ݭ��s�n�J  stateTrans=�X
+   METHOD=�X ENDPOINT=(�e�ݲMlocalStorage) EXPECT=�X
+
+R15: id=TC-B01 cat=�خ� name=PM �إ߮ץ�(������) role=luffy(PM)
+   input=�M��:SM-MAINT / ���פH:���g�z / ����:��ê�լd / ����:��`�ާ@���` / �Ҳ�:�ܰȳq�ܼҲ�
+   expectedUI=�إߦ��\�þɦV�Ա����A���A=�ݳB�z�A�׸��۰ʲ���(SM-202605-0XX)  stateTrans=(�s��)��10 �ݳB�z
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=201+case_number
+
+R16: id=TC-B02 cat=�خ� name=��M�צ۰ʱa�Ȥ�+���J�Ҳ� role=luffy(PM)
+   input=�M��:SM-MAINT
+   expectedUI=�u�Ȥ�v�۰ʱa�J�uOO�W���ѥ��������q�v�F�u�t��/�Ҳաv���J�ӱM�ײM��  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/meta/dropdowns EXPECT=200
+
+R17: id=TC-B03 cat=�خ� name=����������� role=luffy(PM)
+   input=�d�ť�����
+   expectedUI=���װe�X�ô��ܥ���(����*)  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=400 VALIDATION_ERROR
+
+R18: id=TC-B04 cat=�خ� name=���������P�j�p���� role=luffy(PM)
+   input=>20MB�� / .exe
+   expectedUI=�W�L20MB�Τ��䴩�����Q�סF�䴩 PNG/JPG/PDF/DOCX/XLSX/ZIP  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/attachments EXPECT=413 / 415
+
+R19: id=TC-B05 cat=�خ� name=�x�s��Z/�M����Z role=luffy(PM)
+   input=�������
+   expectedUI=��Z�O�s/�M�����`  stateTrans=�X
+   METHOD=�X ENDPOINT=(�e�ݯ�Z) EXPECT=�X
+
+R20: id=TC-B06 cat=�خ� name=CASE_CREATED �q�� PM role=luffy(PM)
+   input=�X
+   expectedUI=�M�שҦ�PM���� CASE_CREATED(�q����+1)  stateTrans=�X
+   METHOD=�X ENDPOINT=(�q��) EXPECT=�X
+
+R21: id=TC-B07 cat=�خ� name=�q���v�ץ�ޥ�(�s��) role=luffy(PM)
+   input=�� SM-202605-023�F�Ҧ�:������ޥ�
+   expectedUI=�������ƻs����,�X�{�u�w�ޥ� XXX �����K(���|�إ߮ץ����p)�v��T+�M��;�i�ק��A�e�X  stateTrans=�e�X��s�ס�10;�P�ӷ��׵L���p
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=200(�M��);�ƻs���e�ݦ欰,�e�X�� POST /cases
+
+R23: id=TC-C01 cat=���u name=PM ��@���u role=luffy(PM)
+   input=�Ŀ�:�R�� / ����:���u����M
+   expectedUI=���A���w���u�A�B�z�H����ܸ�SE�A���u�����X�{�Ӧ���  stateTrans=10��20 �w���u
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/assign EXPECT=200
+
+R24: id=TC-C02 cat=���u name=CASE_ASSIGNED �q�� SE role=�X
+   input=�X
+   expectedUI=�Q����SE���� CASE_ASSIGNED�F�ץ�X�{�b��ݿ�  stateTrans=�X
+   METHOD=�X ENDPOINT=(�q��) EXPECT=�X
+
+R25: id=TC-C03 cat=�ଣ name=�h�H���u(�P�ɨ��) role=luffy(PM)
+   input=�Ŀ�:�R��+���U
+   expectedUI=�B�z�H����ܨ�H�A���u������ܡu2�v�B��H�ҦC�X  stateTrans=��20 �w���u
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/assign EXPECT=200(assignee_user_ids:[..])
+
+R26: id=TC-C04 cat=�ଣ name=�ﬣ(���ӿ�H) role=luffy(PM)
+   input=��:�R�� �� ��:���U
+   expectedUI=�B�z�H���אּB�F��A���J�u���v���u����(�w�Ѱ�)�v�F�ץ󪬺A����  stateTrans=���A����(��35)
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/assign EXPECT=200
+
+R27: id=TC-C05 cat=�v�� name=SE ���i���u role=sasuke(SE)
+   input=�X
+   expectedUI=SE �ץ󭶵L�ଣ�s  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/assign EXPECT=�L�J�f/�ڵ�
+
+R28: id=TC-C06 cat=�ଣ name=�ﬣ���v���ಾ role=nami(��)/sasuke(�s)
+   input=�X
+   expectedUI=�s�ӿ�B�i�ާ@�F��ӿ�A���h�s��  stateTrans=�X
+   METHOD=GET/POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/logs EXPECT=B:201 / A:403
+
+R30: id=TC-D01 cat=�B�z name=SE �s�W�B�z����(�����u) role=nami(SE)
+   input=�u��:2 / �B�z�覡:�ˬdCTI log�K / ���G:���[��
+   expectedUI=�����s�W���\�A���A���B�z���A�u�ɲ֭p  stateTrans=20��30 �B�z��
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/logs EXPECT=201
+
+R31: id=TC-D02 cat=�B�z name=�u�ɻP���Ʋ֭p role=SE
+   input=�h���u��
+   expectedUI=�u�`�u�ɡv�P�u�@N���v���T�֥[  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=200
+
+R32: id=TC-D03 cat=���u name=SE �^�����u role=SE
+   input=�X
+   expectedUI=���A���w���u�F�ଣPM�� WORK_COMPLETED  stateTrans=30��40 �w���u
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/complete EXPECT=200
+
+R33: id=TC-D04 cat=���u name=�w�h�^�ץ�ɬ�����~�i���u role=SE
+   input=�u��:1 / �B�z�覡:�w�״_
+   expectedUI=�w�h�^�L���u�s�F�ɬ�������B�z���åX�{���u�s  stateTrans=35��30��40
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/logs �� /complete EXPECT=201 �� 200
+
+R34: id=TC-D05 cat=�B�z name=�B�z�������i�R�� role=SE
+   input=�X
+   expectedUI=�����ѧR��(��PATCH�ק�)  stateTrans=�X
+   METHOD=�X ENDPOINT=(�LDELETE���I) EXPECT=�X
+
+R35: id=TC-D06 cat=���u name=�h�H���u�ȭ��짹�u�q��PM role=���SE
+   input=�X
+   expectedUI=���짹�uĲ�o�q���F����SE�A��log���A����40�B�����o  stateTrans=40����
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/complete / logs EXPECT=200
+
+R36: id=TC-D07 cat=�B�z name=�B�z����-�ޥξ��v�ץ� role=SE
+   input=��P�M�פw���׮פ��@���B�z����
+   expectedUI=�ӵ��u�B�z�覡+�B�z���G�v�a�J�ثe���,�i�ק��e�X;�M�����ܦP�M�פw���׮ץ�  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=200(�P�M�פw���ײM��);�a�J���e�ݦ欰
+
+R37: id=TC-D08 cat=�B�z(�u�ɵ���) name=�u�ɵ����-���u����� role=SE
+   input=�u��:2.5;����^�Фu��:1.25;�W������:123456
+   expectedUI=��u����ҥi�I��+��J�B�i��p��(��2��);��Ƴ̦h4��B�W��9999.99,�W�L�ɰe�X�Q��;�B�z���{�t�p�u����^�Фu�ɡv  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/logs EXPECT=201(�X�k)/�W���פU
+
+R39: id=TC-E01 cat=�h�^ name=PM �h�^���� role=luffy(PM)
+   input=�X
+   expectedUI=���A���w�h�^�F��eSE�� CASE_RETURNED  stateTrans=40��35 �w�h�^
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/return EXPECT=200
+
+R40: id=TC-E02 cat=���� name=PM �T�{���� role=luffy(PM)
+   input=�X
+   expectedUI=���A���w���סA��ܵ��׮ɶ��F��T�u���ץ�w���סv�F�ȳѡu���}�v�s  stateTrans=40��50 �w����
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/close EXPECT=200
+
+R41: id=TC-E03 cat=���� name=�����ץ�(�\��) role=�߮�/�M��PM
+   input=������](���)
+   expectedUI=���A���w�����F��eSE+�߮�PM�� CASE_CANCELLED�F�ȳѡu���}�v�s  stateTrans={10~40}��60 �w����
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/cancel EXPECT=200(PM)
+
+R42: id=TC-E04 cat=���} name=�ޥ��®׫إ߷s�� role=luffy(PM)
+   input=�X
+   expectedUI=���ͷs��(�ݳB�z)�A�a���p�аO���V��סA�~������/����/�ҲաF��פ���  stateTrans=��פ��ܡ��s��=10
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/reopen EXPECT=200/201 �s��
+
+R43: id=TC-E05 cat=�^�� name=�s�W�^�ЫȤ� role=luffy(PM)
+   input=�^�Ф��e:�w���s�}�׸�i
+   expectedUI=�^�зs�W���\�A�^�ЫȤ������ܵ��ƻP���e  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/replies EXPECT=201
+
+R44: id=TC-E06 cat=�^�� name=PM �߮׫᥼�ଣ�Y�ۦ�^�ЫȤ�i�^�k�j role=luffy(PM)
+   input=�^�Ф��e:����PM�߮׫᪽���^��
+   expectedUI=�^�зs�W���\�A�^�ЫȤ������ܸӵ��^�С]PM���߮פH�A���ଣ��i�^�С^  stateTrans=�X�]�^�Ф����ܮץ󪬺A�^
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/replies EXPECT=201
+
+R46: id=TC-F01 cat=�t�V name=�׺A�ץ�A���u role=luffy(PM)
+   input=�X�]�׺A�ץ�Abody ���v�T���G�^
+   expectedUI=�����\�A�^�Ĭ�  stateTrans=�w���� 50
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/assign EXPECT=409 CONFLICT
+
+R47: id=TC-F02 cat=�t�V name=�׺A�ץ�A���u role=SE
+   input=�X
+   expectedUI=�^�Ĭ�  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/complete EXPECT=409 CONFLICT
+
+R48: id=TC-F03 cat=�t�V name=�׺A�ץ�A�h�^ role=PM
+   input=�X
+   expectedUI=�^�Ĭ�  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/return EXPECT=409 CONFLICT
+
+R49: id=TC-F04 cat=�t�V name=�׺A�ץ�A���� role=PM
+   input=�X
+   expectedUI=�^�Ĭ�  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/cancel EXPECT=409 CONFLICT
+
+R50: id=TC-F05 cat=�t�V name=�׺A�ץ�s�W�B�z���� role=SE
+   input=�X
+   expectedUI=�^�Ĭ�  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/logs EXPECT=409 CONFLICT
+
+R51: id=TC-F06 cat=�t�V name=���n�J/Token�L�� role=�X
+   input=Authorization ��/����
+   expectedUI=�^�����v/�ɦ^�n�J  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=401 UNAUTHORIZED
+
+R52: id=TC-F07 cat=�t�V name=�s�����s�b�ץ� role=PM
+   input=���s�b���ץ�s����ID
+   expectedUI=�^�䤣��/�u�䤣�즹�ץ�v��  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=404 NOT_FOUND
+
+R53: id=TC-F08 cat=�t�V name=�q���妸�wŪ�Ѽ����� role=��N
+   input={} (�L notification_ids �]�L all)
+   expectedUI=�^���ҿ��~  stateTrans=�X
+   METHOD=PATCH ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/notifications/read EXPECT=400 VALIDATION_ERROR
+
+R55: id=TC-G01 cat=����O name=�έp�d�P�ݿ� role=luffy(PM)/nami(SE)
+   input=�X
+   expectedUI=��ܫݳB�z/�w���u/�B�z��/�w���u�ݽT�{�Ʀr�F�ݿ�C�X�ݳB�z�ץ�  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/reports/dashboard EXPECT=200
+
+R56: id=TC-G02 cat=�C�� name=�ץ�C�����/�z��/�j�M role=PM
+   input=?status= / ?project_id= / ?q=
+   expectedUI=�̱��󥿽T�L�o�P�����FPM�u�ݨ���ݱM�׮ץ�  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=200
+
+R57: id=TC-G03 cat=�v�� name=SE �C��u���ۨ��ץ� role=nami(SE)
+   input=�X
+   expectedUI=SE �Ȭݨ�Q�������ץ�  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=200(�d�����)
+
+R58: id=TC-G04 cat=�C�� name=���u��PM�C����ܫݽT�{�Х� role=luffy(PM)
+   input=�X
+   expectedUI=�ӦC�׸�����ܺ��u�ݽT�{�v����(����PM�ݽT�{����/�h�^);��L���A�C�L������  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases EXPECT=200
+
+R60: id=TC-H01 cat=�v��(�M�ר���) name=�M��SE(�b��PM)���i�ଣ role=conan
+   input={ assignee_user_ids:[SE �� user_id] }
+   expectedUI=���Q��:�v���H�u�M�ר���v����,�ȸӱM��PM�i�ଣ  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/assign EXPECT=403 FORBIDDEN
+
+R61: id=TC-H02 cat=�v��(BUG) name=�����v�������M��PM�i�w���ʳ��j role=conan / sasuke
+   input={ reason:"..." }�]�ίd�š^
+   expectedUI=�i�w��(�ץ���)�j�D�M��PM�������Q��(403),�ȸӱM��PM�i����  stateTrans=�D�׺A��(�����ܧ�)
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/cancel EXPECT=�w��403 FORBIDDEN
+
+R62: id=TC-H03 cat=�V�v�s�� name=�P�M�ץ���������URL�������J role=conan
+   input=�ץ�s�� /cases/{id}
+   expectedUI=�ɦV�u�䤣�즹�ץ� / ���ץ�i�ण�s�b�A�ΧA�ثe���b���L�v�s���v���A�L���e�~��  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=403 FORBIDDEN
+
+R63: id=TC-H04 cat=�V�v�s�� name=�L�M��PM URL�������J role=zoro(�L�M��PM)
+   input=�ץ�s�� /cases/{id}
+   expectedUI=�ɦV�u�䤣�즹�ץ�v��,�L���e�~��  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=403 FORBIDDEN
+
+R64: id=TC-H05 cat=�V�v�s�� name=�L�M��SE URL�������J role=goku(�L�M��SE)
+   input=�ץ�s�� /cases/{id}
+   expectedUI=�ɦV�u�䤣�즹�ץ�v��,�L���e�~��  stateTrans=�X
+   METHOD=GET ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id} EXPECT=403 FORBIDDEN
+
+R65: id=TC-H06 cat=�v��(�M�ר���) name=�M��SE���i���� role=sasuke / conan
+   input=�X
+   expectedUI=���Q��:�u���ӱM��PM�i����  stateTrans=�X
+   METHOD=POST ENDPOINT=https://caseflow-test.sld-lwd.com/api/v1/cases/{id}/close EXPECT=403 FORBIDDEN
+

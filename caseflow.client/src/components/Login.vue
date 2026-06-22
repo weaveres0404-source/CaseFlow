@@ -24,6 +24,7 @@
           <span class="login-logo-zh">矩明數位有限公司</span>
         </div>
 
+        <template v-if="authMode === 'password' || authMode === 'both'">
         <label class="field-group">
           <span class="field-label">帳號</span>
           <span class="input-wrap">
@@ -87,15 +88,27 @@
           <span v-if="loading">登入中...</span>
           <span v-else>登入</span>
         </button>
+        </template>
+
+        <p v-if="authMode === 'google' && error" class="error-message">
+          {{ error }}
+        </p>
+
+        <div v-if="authMode === 'both'" class="oauth-divider"><span>或</span></div>
+
+        <div v-show="authMode === 'google' || authMode === 'both'" ref="gsiButtonRef" class="gsi-button-wrap"></div>
       </form>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import api from '../utils/api'
+
+const DEFAULT_GOOGLE_CLIENT_ID = '487551023074-u415vv4ehn2gqr5teeo3afpi1d7muvtb.apps.googleusercontent.com'
 import brandMarkUrl from '../assets/square-light-mark.svg'
 import brandLogoUrl from '../assets/square-light-logo.svg'
 import companyMarkUrl from '../assets/square-light-mark-en.svg'
@@ -113,10 +126,76 @@ const rememberMe = ref(false)
 const showPassword = ref(false)
 const error = ref('')
 const loading = ref(false)
+const gsiButtonRef = ref(null)
+const authMode = ref('both')
+const googleClientId = ref(DEFAULT_GOOGLE_CLIENT_ID)
+let gsiInitTimer = null
 
 function showForgotHint() {
   window.alert('請聯絡系統管理員重設密碼')
 }
+
+async function handleGoogleCredential(response) {
+  error.value = ''
+  loading.value = true
+  try {
+    await auth.googleLogin(response.credential)
+    const redirect = route.query.redirect || '/dashboard'
+    router.push(redirect)
+  } catch (e) {
+    const msg = e?.response?.data?.error?.message || e?.message || ''
+    error.value = msg ? `Google 登入失敗：${msg}` : 'Google 登入失敗，請稍後再試'
+  } finally {
+    loading.value = false
+  }
+}
+
+function initGsi() {
+  if (authMode.value === 'password') return true
+  if (!window.google?.accounts?.id || !gsiButtonRef.value) return false
+  window.google.accounts.id.initialize({
+    client_id: googleClientId.value,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    ux_mode: 'popup',
+  })
+  window.google.accounts.id.renderButton(gsiButtonRef.value, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'signin_with',
+    shape: 'rectangular',
+    logo_alignment: 'left',
+    width: 320,
+  })
+  return true
+}
+
+onMounted(async () => {
+  // 先抓 auth config 決定顯示哪種登入
+  try {
+    const { data: res } = await api.get('/auth/config')
+    if (res?.success && res.data) {
+      if (res.data.mode) authMode.value = res.data.mode
+      if (res.data.google_client_id) googleClientId.value = res.data.google_client_id
+    }
+  } catch (e) {
+    // 取不到 config 就維持預設 both
+  }
+
+  if (authMode.value === 'password') return
+  if (initGsi()) return
+  gsiInitTimer = setInterval(() => {
+    if (initGsi()) {
+      clearInterval(gsiInitTimer)
+      gsiInitTimer = null
+    }
+  }, 200)
+})
+
+onBeforeUnmount(() => {
+  if (gsiInitTimer) clearInterval(gsiInitTimer)
+})
 
 async function submit() {
   error.value = ''
@@ -499,6 +578,29 @@ async function submit() {
 
 .login-button:not(:disabled):active {
   transform: translateY(1px);
+}
+
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #6c7e84;
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line, #d3d9de);
+}
+
+.gsi-button-wrap {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
 }
 
 @media (max-width: 1100px) {

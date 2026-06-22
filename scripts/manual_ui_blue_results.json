@@ -1,0 +1,202 @@
+[
+  {
+    "id": "TC-A01",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/dashboard"
+  },
+  {
+    "id": "TC-A02",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/dashboard"
+  },
+  {
+    "id": "TC-A03",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/login"
+  },
+  {
+    "id": "TC-A04",
+    "status": "SKIP",
+    "note": "需 DBA 建立 must_change_password=TRUE 帳號"
+  },
+  {
+    "id": "TC-A05",
+    "status": "PASS",
+    "note": "SE menu"
+  },
+  {
+    "id": "TC-A06",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/cases/ImFaL6Ml"
+  },
+  {
+    "id": "TC-A07",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/cases/ImFaL6Ml"
+  },
+  {
+    "id": "TC-A08",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/cases/AvbeJU6i"
+  },
+  {
+    "id": "TC-A09",
+    "status": "PASS",
+    "note": "SE close button hidden"
+  },
+  {
+    "id": "TC-A10",
+    "status": "PASS",
+    "note": "https://caseflow-test.sld-lwd.com/login"
+  },
+  {
+    "id": "TC-B01",
+    "status": "FAIL",
+    "note": "建立案件卡在表單頁: https://caseflow-test.sld-lwd.com/cases/new"
+  },
+  {
+    "id": "TC-B02",
+    "status": "PASS",
+    "note": "project autofill"
+  },
+  {
+    "id": "TC-B03",
+    "status": "PASS",
+    "note": "create_disabled=True"
+  },
+  {
+    "id": "TC-B04",
+    "status": "PASS",
+    "note": "upload validation"
+  },
+  {
+    "id": "TC-B05",
+    "status": "FAIL",
+    "note": "preserved=True cleared=False"
+  },
+  {
+    "id": "TC-B06",
+    "status": "PASS",
+    "note": "SM-202606-215"
+  },
+  {
+    "id": "TC-B07",
+    "status": "PASS",
+    "note": "SM-202606-216"
+  },
+  {
+    "id": "TC-C01",
+    "status": "FAIL",
+    "note": "SM-202606-217"
+  },
+  {
+    "id": "TC-C02",
+    "status": "PASS",
+    "note": "SM-202606-217"
+  },
+  {
+    "id": "TC-C03",
+    "status": "PASS",
+    "note": "SM-202606-218"
+  },
+  {
+    "id": "TC-C04",
+    "status": "FAIL",
+    "note": "SM-202606-219"
+  },
+  {
+    "id": "TC-C05",
+    "status": "PASS",
+    "note": "SM-202606-219"
+  },
+  {
+    "id": "TC-C06",
+    "status": "FAIL",
+    "note": "SM-202606-219"
+  },
+  {
+    "id": "TC-D01",
+    "status": "FAIL",
+    "note": "SM-202606-220"
+  },
+  {
+    "id": "RUNNER",
+    "status": "FAIL",
+    "note": "timeout: Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"button\").nth(15)\n"
+  },
+  {
+    "id": "TC-D03",
+    "status": "PASS",
+    "note": "SM-202606-234"
+  },
+  {
+    "id": "TC-D04",
+    "status": "PASS",
+    "note": "SM-202606-235"
+  },
+  {
+    "id": "TC-D05",
+    "status": "PASS",
+    "note": "SM-202606-235"
+  },
+  {
+    "id": "TC-D06",
+    "status": "PASS",
+    "note": "SM-202606-236"
+  },
+  {
+    "id": "TC-D07",
+    "status": "FAIL",
+    "note": "SM-202606-237"
+  },
+  {
+    "id": "TC-D08",
+    "status": "FAIL",
+    "note": "SM-202606-238"
+  },
+  {
+    "id": "TC-D09",
+    "status": "FAIL",
+    "note": "SM-202606-239"
+  },
+  {
+    "id": "TC-D10",
+    "status": "PASS",
+    "note": "SM-202606-240"
+  },
+  {
+    "id": "TC-E01",
+    "status": "PASS",
+    "note": "SM-202606-241"
+  },
+  {
+    "id": "TC-E02",
+    "status": "PASS",
+    "note": "SM-202606-242"
+  },
+  {
+    "id": "TC-E03",
+    "status": "PASS",
+    "note": "SM-202606-243"
+  },
+  {
+    "id": "TC-E04",
+    "status": "PASS",
+    "note": "SM-202606-244"
+  },
+  {
+    "id": "TC-E05",
+    "status": "PASS",
+    "note": "SM-202606-245"
+  },
+  {
+    "id": "TC-E06",
+    "status": "PASS",
+    "note": "SM-202606-246"
+  },
+  {
+    "id": "TC-F01",
+    "status": "PASS",
+    "note": "SM-202606-247"
+  }
+]

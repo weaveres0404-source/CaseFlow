@@ -22,23 +22,48 @@ namespace CaseFlow.Server.Controllers
             _db = db;
         }
 
-        // GET: api/v1/problem-categories?page=1&page_size=20&q=keyword
+        public class CategoryDto
+        {
+            public string CategoryName { get; set; } = "";
+            public string? Description { get; set; }
+            public int SortOrder { get; set; }
+            public string? CaseTypeFilter { get; set; }
+            public bool IsActive { get; set; } = true;
+            // 空陣列 / null = 共用所有專案；有值 = 多對多綁定指定專案集合
+            public List<int>? ProjectIds { get; set; }
+            // 空陣列 / null = 不限案件類型；有值 = 多對多綁定指定案件類型集合
+            public List<int>? CaseTypeIds { get; set; }
+        }
+
+        // GET: api/v1/problem-categories
         [HttpGet]
-        public async Task<IActionResult> GetList([FromQuery] int page = 1, [FromQuery] int page_size = 20, [FromQuery] string? q = null)
+        public async Task<IActionResult> GetList(
+            [FromQuery] int page = 1,
+            [FromQuery] int page_size = 20,
+            [FromQuery] string? q = null,
+            [FromQuery] int? project_id = null)
         {
             if (page <= 0) page = 1;
             if (page_size <= 0 || page_size > 100) page_size = 20;
 
-            var query = _db.ProblemCategories.AsNoTracking().AsQueryable();
+            var query = _db.ProblemCategories.AsNoTracking()
+                .Include(x => x.ProjectLinks)
+                .Include(x => x.CaseTypeLinks)
+                .Where(x => x.IsActive)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var qLow = q.Trim();
-                query = query.Where(x => EF.Functions.ILike(x.CategoryName, $"%{qLow}%") || EF.Functions.ILike(x.Description ?? string.Empty, $"%{qLow}%"));
+                query = query.Where(x => EF.Functions.ILike(x.CategoryName, $"%{qLow}%")
+                                     || EF.Functions.ILike(x.Description ?? string.Empty, $"%{qLow}%"));
             }
 
-            // Only active by default
-            query = query.Where(x => x.IsActive);
+            if (project_id.HasValue)
+            {
+                var pid = project_id.Value;
+                query = query.Where(x => !x.ProjectLinks.Any() || x.ProjectLinks.Any(l => l.ProjectId == pid));
+            }
 
             var total = await query.CountAsync();
 
@@ -53,6 +78,9 @@ namespace CaseFlow.Server.Controllers
                     name = x.CategoryName,
                     description = x.Description,
                     sort_order = x.SortOrder,
+                    case_type_filter = x.CaseTypeFilter,
+                    project_ids = x.ProjectLinks.Select(l => l.ProjectId).ToList(),
+                    case_type_ids = x.CaseTypeLinks.Select(l => l.TypeId).ToList(),
                     is_active = x.IsActive,
                     created_at = x.CreatedAt,
                     updated_at = x.UpdatedAt
@@ -62,31 +90,37 @@ namespace CaseFlow.Server.Controllers
             return Ok(new { success = true, data = items, meta = new { page, page_size, total } });
         }
 
-        // GET api/v1/problem-categories/5
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var cat = await _db.ProblemCategories.AsNoTracking().FirstOrDefaultAsync(x => x.CategoryId == id && x.IsActive);
+            var cat = await _db.ProblemCategories.AsNoTracking()
+                .Include(x => x.ProjectLinks)
+                .Include(x => x.CaseTypeLinks)
+                .FirstOrDefaultAsync(x => x.CategoryId == id && x.IsActive);
             if (cat == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Problem category not found" } });
 
-            var result = new
+            return Ok(new
             {
-                id = cat.CategoryId,
-                name = cat.CategoryName,
-                description = cat.Description,
-                sort_order = cat.SortOrder,
-                is_active = cat.IsActive,
-                created_at = cat.CreatedAt,
-                updated_at = cat.UpdatedAt
-            };
-
-            return Ok(new { success = true, data = result });
+                success = true,
+                data = new
+                {
+                    id = cat.CategoryId,
+                    name = cat.CategoryName,
+                    description = cat.Description,
+                    sort_order = cat.SortOrder,
+                    case_type_filter = cat.CaseTypeFilter,
+                    project_ids = cat.ProjectLinks.Select(l => l.ProjectId).ToList(),
+                    case_type_ids = cat.CaseTypeLinks.Select(l => l.TypeId).ToList(),
+                    is_active = cat.IsActive,
+                    created_at = cat.CreatedAt,
+                    updated_at = cat.UpdatedAt
+                }
+            });
         }
 
-        // POST api/v1/problem-categories
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProblemCategory dto)
+        public async Task<IActionResult> Create([FromBody] CategoryDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.CategoryName))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "CategoryName is required" } });
@@ -97,76 +131,78 @@ namespace CaseFlow.Server.Controllers
                 CategoryName = dto.CategoryName.Trim(),
                 Description = dto.Description,
                 SortOrder = dto.SortOrder,
+                CaseTypeFilter = string.IsNullOrWhiteSpace(dto.CaseTypeFilter) ? null : dto.CaseTypeFilter.Trim(),
                 IsActive = dto.IsActive,
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
             _db.ProblemCategories.Add(entity);
-            try
-            {
-                await _db.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Could not create problem category", details = ex.Message } });
-            }
+            try { await _db.SaveChangesAsync(); }
+            catch (DbUpdateException ex) { return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Could not create problem category", details = ex.Message } }); }
 
-            var result = new
-            {
-                id = entity.CategoryId,
-                name = entity.CategoryName,
-                description = entity.Description,
-                sort_order = entity.SortOrder,
-                is_active = entity.IsActive,
-                created_at = entity.CreatedAt,
-                updated_at = entity.UpdatedAt
-            };
+            if (dto.ProjectIds != null && dto.ProjectIds.Count > 0)
+                foreach (var pid in dto.ProjectIds.Distinct())
+                    _db.ProblemCategoryProjects.Add(new ProblemCategoryProject { CategoryId = entity.CategoryId, ProjectId = pid });
+            if (dto.CaseTypeIds != null && dto.CaseTypeIds.Count > 0)
+                foreach (var tid in dto.CaseTypeIds.Distinct())
+                    _db.ProblemCategoryCaseTypes.Add(new ProblemCategoryCaseType { CategoryId = entity.CategoryId, TypeId = tid });
+            await _db.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.CategoryId }, new { success = true, data = result });
+            return CreatedAtAction(nameof(GetById), new { id = entity.CategoryId }, new
+            {
+                success = true,
+                data = new
+                {
+                    id = entity.CategoryId,
+                    project_ids = dto.ProjectIds ?? new List<int>(),
+                    case_type_ids = dto.CaseTypeIds ?? new List<int>()
+                }
+            });
         }
 
-        // PUT api/v1/problem-categories/5
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ProblemCategory dto)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.CategoryName))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "CategoryName is required" } });
 
-            var entity = await _db.ProblemCategories.FirstOrDefaultAsync(x => x.CategoryId == id);
+            var entity = await _db.ProblemCategories
+                .Include(x => x.ProjectLinks)
+                .Include(x => x.CaseTypeLinks)
+                .FirstOrDefaultAsync(x => x.CategoryId == id);
             if (entity == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Problem category not found" } });
 
             entity.CategoryName = dto.CategoryName.Trim();
             entity.Description = dto.Description;
             entity.SortOrder = dto.SortOrder;
+            entity.CaseTypeFilter = string.IsNullOrWhiteSpace(dto.CaseTypeFilter) ? null : dto.CaseTypeFilter.Trim();
             entity.IsActive = dto.IsActive;
             entity.UpdatedAt = TimeHelper.Now;
 
-            try
-            {
-                await _db.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Could not update problem category", details = ex.Message } });
-            }
+            var newProjSet = (dto.ProjectIds ?? new List<int>()).Distinct().ToHashSet();
+            foreach (var l in entity.ProjectLinks.ToList())
+                if (!newProjSet.Contains(l.ProjectId)) _db.ProblemCategoryProjects.Remove(l);
+            var existingProj = entity.ProjectLinks.Select(l => l.ProjectId).ToHashSet();
+            foreach (var pid in newProjSet)
+                if (!existingProj.Contains(pid))
+                    _db.ProblemCategoryProjects.Add(new ProblemCategoryProject { CategoryId = entity.CategoryId, ProjectId = pid });
 
-            var result = new
-            {
-                id = entity.CategoryId,
-                name = entity.CategoryName,
-                description = entity.Description,
-                sort_order = entity.SortOrder,
-                is_active = entity.IsActive,
-                created_at = entity.CreatedAt,
-                updated_at = entity.UpdatedAt
-            };
+            var newTypeSet = (dto.CaseTypeIds ?? new List<int>()).Distinct().ToHashSet();
+            foreach (var l in entity.CaseTypeLinks.ToList())
+                if (!newTypeSet.Contains(l.TypeId)) _db.ProblemCategoryCaseTypes.Remove(l);
+            var existingType = entity.CaseTypeLinks.Select(l => l.TypeId).ToHashSet();
+            foreach (var tid in newTypeSet)
+                if (!existingType.Contains(tid))
+                    _db.ProblemCategoryCaseTypes.Add(new ProblemCategoryCaseType { CategoryId = entity.CategoryId, TypeId = tid });
 
-            return Ok(new { success = true, data = result });
+            try { await _db.SaveChangesAsync(); }
+            catch (DbUpdateException ex) { return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Could not update problem category", details = ex.Message } }); }
+
+            return Ok(new { success = true, data = new { id = entity.CategoryId, project_ids = newProjSet.ToList(), case_type_ids = newTypeSet.ToList() } });
         }
 
-        // DELETE api/v1/problem-categories/5  (soft delete)
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
@@ -179,9 +215,7 @@ namespace CaseFlow.Server.Controllers
 
             entity.IsActive = false;
             entity.UpdatedAt = TimeHelper.Now;
-
             await _db.SaveChangesAsync();
-
             return Ok(new { success = true });
         }
     }

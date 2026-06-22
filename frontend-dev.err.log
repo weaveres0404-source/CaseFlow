@@ -1,0 +1,48 @@
+[2m下午5:53:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cases/QdgsbC0W[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m下午5:53:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/meta/dropdowns[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m下午5:53:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/notifications?is_read=false&page_size=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m下午5:53:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cases/Oo6wa8fW[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m下午5:53:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/meta/dropdowns[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m下午5:53:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/notifications?is_read=false&page_size=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m下午5:53:35[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Extraneous non-props attributes (slug) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <CaseDetail slug="QdgsbC0W" onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouterView> 
+  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouterView> 
+  at <App>
+[2m下午5:53:35[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Extraneous non-props attributes (slug) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <CaseDetail slug="QdgsbC0W" onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m下午5:53:38[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Extraneous non-props attributes (slug) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <CaseDetail slug="Oo6wa8fW" onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouterView> 
+  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouterView> 
+  at <App>
+[2m下午5:53:38[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Extraneous non-props attributes (slug) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <CaseDetail slug="Oo6wa8fW" onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>

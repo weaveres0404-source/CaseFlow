@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CaseFlow.Server.Models;
 
-public partial class CaseFlowDbContext : DbContext
+public partial class CaseFlowDbContext : DbContext, IDataProtectionKeyContext
 {
     public CaseFlowDbContext()
     {
@@ -35,13 +36,25 @@ public partial class CaseFlowDbContext : DbContext
 
     public virtual DbSet<ProblemCategory> ProblemCategories { get; set; }
 
+    public virtual DbSet<ProblemCategoryProject> ProblemCategoryProjects { get; set; }
+
     public virtual DbSet<Project> Projects { get; set; }
+
+    public virtual DbSet<ProjectCode> ProjectCodes { get; set; }
+
+    public virtual DbSet<CaseType> CaseTypes { get; set; }
+
+    public virtual DbSet<CaseTypeProject> CaseTypeProjects { get; set; }
+
+    public virtual DbSet<ProblemCategoryCaseType> ProblemCategoryCaseTypes { get; set; }
 
     public virtual DbSet<ProjectMember> ProjectMembers { get; set; }
 
     public virtual DbSet<SystemModule> SystemModules { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -57,6 +70,10 @@ public partial class CaseFlowDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("uuid-ossp");
+
+        modelBuilder.UseIdentityByDefaultColumns();
+
         modelBuilder.Entity<Attachment>(entity =>
         {
             entity.HasKey(e => e.AttachmentId).HasName("attachments_pkey");
@@ -255,7 +272,7 @@ public partial class CaseFlowDbContext : DbContext
 
             entity.HasIndex(e => e.IsActive, "idx_customers_active").HasAnnotation("Npgsql:StorageParameter:deduplicate_items", "true");
 
-            entity.Property(e => e.CustomerId).HasDefaultValueSql("nextval('\"Customers_customer_id_seq\"'::regclass)");
+            entity.Property(e => e.CustomerId).UseIdentityByDefaultColumn();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
@@ -298,7 +315,7 @@ public partial class CaseFlowDbContext : DbContext
 
             entity.HasIndex(e => e.CustomerId, "idx_projects_customer").HasAnnotation("Npgsql:StorageParameter:deduplicate_items", "true");
 
-            entity.Property(e => e.ProjectId).HasDefaultValueSql("nextval('project_project_id_seq'::regclass)");
+            entity.Property(e => e.ProjectId).UseIdentityByDefaultColumn();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
@@ -306,6 +323,11 @@ public partial class CaseFlowDbContext : DbContext
             entity.HasOne(d => d.Customer).WithMany(p => p.Projects)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_projects_customer");
+
+            entity.HasOne(d => d.ProjectCodeRef).WithMany()
+                .HasForeignKey(d => d.ProjectCodeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_projects_project_code");
         });
 
         modelBuilder.Entity<ProjectMember>(entity =>
@@ -318,7 +340,7 @@ public partial class CaseFlowDbContext : DbContext
                 .IsUnique()
                 .HasAnnotation("Npgsql:StorageParameter:deduplicate_items", "true");
 
-            entity.Property(e => e.MemberId).HasDefaultValueSql("nextval('member_member_id_seq'::regclass)");
+            entity.Property(e => e.MemberId).UseIdentityByDefaultColumn();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.JoinedAt).HasDefaultValueSql("CURRENT_DATE");
@@ -358,11 +380,83 @@ public partial class CaseFlowDbContext : DbContext
 
             entity.HasIndex(e => e.Role, "idx_users_role").HasAnnotation("Npgsql:StorageParameter:deduplicate_items", "true");
 
-            entity.Property(e => e.UserId).HasDefaultValueSql("nextval('\"Users_userid_seq\"'::regclass)");
+            entity.Property(e => e.UserId).UseIdentityByDefaultColumn();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Role).HasDefaultValueSql("'SE'::character varying");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.AuthProvider).HasDefaultValueSql("'local'::character varying");
+            entity.HasIndex(e => e.GoogleSub)
+                .IsUnique()
+                .HasFilter("google_sub IS NOT NULL")
+                .HasDatabaseName("idx_users_google_sub");
+        });
+
+        modelBuilder.Entity<ProjectCode>(entity =>
+        {
+            entity.HasKey(e => e.CodeId).HasName("project_codes_pkey");
+            entity.HasIndex(e => e.Code, "uk_project_codes_code").IsUnique();
+            entity.Property(e => e.CodeId).UseIdentityByDefaultColumn();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<ProblemCategoryProject>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("problem_category_projects_pkey");
+            entity.HasIndex(e => new { e.CategoryId, e.ProjectId }, "uk_cat_project").IsUnique();
+            entity.HasIndex(e => e.CategoryId, "idx_cat_proj_category");
+            entity.HasIndex(e => e.ProjectId, "idx_cat_proj_project");
+            entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+            entity.HasOne(d => d.Category).WithMany(p => p.ProjectLinks)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.Project).WithMany(p => p.CategoryLinks)
+                .HasForeignKey(d => d.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CaseType>(entity =>
+        {
+            entity.HasKey(e => e.TypeId).HasName("case_types_pkey");
+            entity.HasIndex(e => e.Code, "uk_case_types_code").IsUnique();
+            entity.Property(e => e.TypeId).UseIdentityByDefaultColumn();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<CaseTypeProject>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("case_type_projects_pkey");
+            entity.HasIndex(e => new { e.TypeId, e.ProjectId }, "uk_ctype_project").IsUnique();
+            entity.HasIndex(e => e.TypeId, "idx_ctype_proj_type");
+            entity.HasIndex(e => e.ProjectId, "idx_ctype_proj_project");
+            entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+            entity.HasOne(d => d.CaseType).WithMany(p => p.ProjectLinks)
+                .HasForeignKey(d => d.TypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.Project).WithMany(p => p.CaseTypeLinks)
+                .HasForeignKey(d => d.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ProblemCategoryCaseType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("problem_category_case_types_pkey");
+            entity.HasIndex(e => new { e.CategoryId, e.TypeId }, "uk_cat_ctype").IsUnique();
+            entity.HasIndex(e => e.CategoryId, "idx_cat_ctype_category");
+            entity.HasIndex(e => e.TypeId, "idx_cat_ctype_type");
+            entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+            entity.HasOne(d => d.Category).WithMany(p => p.CaseTypeLinks)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.CaseType).WithMany(p => p.CategoryLinks)
+                .HasForeignKey(d => d.TypeId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

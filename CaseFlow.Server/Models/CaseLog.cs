@@ -44,6 +44,9 @@ public partial class CaseLog
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
 
+    [Column("ref_case_id")]
+    public int? RefCaseId { get; set; }
+
     [ForeignKey("CaseId")]
     [InverseProperty("CaseLogs")]
     public virtual Case Case { get; set; } = null!;
@@ -51,4 +54,7 @@ public partial class CaseLog
     [ForeignKey("HandlerUserId")]
     [InverseProperty("CaseLogs")]
     public virtual User HandlerUser { get; set; } = null!;
+
+    [ForeignKey("RefCaseId")]
+    public virtual Case? RefCase { get; set; }
 }

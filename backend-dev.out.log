@@ -1,0 +1,18 @@
+info: CaseFlow.Server.Program[0]
+      DataProtection: table ready, 1 key(s) in DB
+info: CaseFlow.Server.Program[0]
+      [SCHEMA] Database connection OK.
+warn: CaseFlow.Server.Program[0]
+      [SCHEMA] InitialCreate migration is NOT in __EFMigrationsHistory. Run scripts/baseline-migrations.sql before using 'dotnet ef database update'.
+info: CaseFlow.Server.Program[0]
+      [SCHEMA] All 14 expected tables found.
+info: CaseFlow.Server.Program[0]
+      [SCHEMA] All expected columns are present. Schema looks good.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:56002
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: D:\CaseFlow\CaseFlow\CaseFlow.Server\bin\Debug\net10.0

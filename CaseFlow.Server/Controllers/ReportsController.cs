@@ -50,7 +50,7 @@ namespace CaseFlow.Server.Controllers
             int Get(short s) => statusCounts.FirstOrDefault(x => x.status == s)?.count ?? 0;
 
             var now = TimeHelper.Now;
-            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Unspecified);
 
             IQueryable<CaseLog> logsQuery = _db.CaseLogs.AsNoTracking();
             if (role == "PM")
@@ -225,8 +225,16 @@ namespace CaseFlow.Server.Controllers
             if (created_by.HasValue) logsQuery = logsQuery.Where(l => l.Case.CreatedBy == created_by.Value);
             if (assigned_pm_id.HasValue) logsQuery = logsQuery.Where(l => l.Case.AssignedPmId == assigned_pm_id.Value);
             if (handler_user_id.HasValue) logsQuery = logsQuery.Where(l => l.HandlerUserId == handler_user_id.Value);
-            if (date_from.HasValue) logsQuery = logsQuery.Where(l => l.Case.CreatedAt >= date_from.Value);
-            if (date_to.HasValue) logsQuery = logsQuery.Where(l => l.Case.CreatedAt <= date_to.Value);
+            if (date_from.HasValue)
+            {
+                var from = DateOnly.FromDateTime(date_from.Value);
+                logsQuery = logsQuery.Where(l => l.LogDate >= from);
+            }
+            if (date_to.HasValue)
+            {
+                var to = DateOnly.FromDateTime(date_to.Value);
+                logsQuery = logsQuery.Where(l => l.LogDate <= to);
+            }
 
             var logs = await logsQuery.ToListAsync();
 
@@ -237,132 +245,157 @@ namespace CaseFlow.Server.Controllers
                 var cases = logs.Select(l => l.Case).DistinctBy(c => c.CaseId).ToList();
                 result = group_by switch
                 {
-                    "status" => cases.GroupBy(c => c.Status).Select(g => new { dimension = g.Key.ToString(), count = g.Count() }).OrderBy(x => x.dimension),
-                    "project" => cases.GroupBy(c => c.Project.ProjectName).Select(g => new { dimension = g.Key, count = g.Count() }).OrderBy(x => x.dimension),
-                    "customer" => cases.GroupBy(c => c.Customer.CustomerName).Select(g => new { dimension = g.Key, count = g.Count() }).OrderBy(x => x.dimension),
-                    "category" => cases.GroupBy(c => c.Category.CategoryName).Select(g => new { dimension = g.Key, count = g.Count() }).OrderBy(x => x.dimension),
-                    "created_by" => cases.GroupBy(c => c.CreatedByNavigation.FullName).Select(g => new { dimension = g.Key, count = g.Count() }).OrderBy(x => x.dimension),
-                    "assigned_pm" => cases.Where(c => c.AssignedPm != null).GroupBy(c => c.AssignedPm!.FullName).Select(g => new { dimension = g.Key, count = g.Count() }).OrderBy(x => x.dimension),
-                    _ => (object)new[] { new { dimension = "total", count = cases.Count } }
+                    "status" => cases.GroupBy(c => c.Status).Select(g => new { dimension = g.Key.ToString(), label = g.Key.ToString(), value = (decimal)g.Count(), count = g.Count() }).OrderBy(x => x.dimension),
+                    "project" => cases.GroupBy(c => c.Project.ProjectName).Select(g => new { dimension = g.Key, label = g.Key, value = (decimal)g.Count(), count = g.Count() }).OrderBy(x => x.dimension),
+                    "customer" => cases.GroupBy(c => c.Customer.CustomerName).Select(g => new { dimension = g.Key, label = g.Key, value = (decimal)g.Count(), count = g.Count() }).OrderBy(x => x.dimension),
+                    "category" => cases.GroupBy(c => c.Category.CategoryName).Select(g => new { dimension = g.Key, label = g.Key, value = (decimal)g.Count(), count = g.Count() }).OrderBy(x => x.dimension),
+                    "created_by" => cases.GroupBy(c => c.CreatedByNavigation.FullName).Select(g => new { dimension = g.Key, label = g.Key, value = (decimal)g.Count(), count = g.Count() }).OrderBy(x => x.dimension),
+                    "assigned_pm" => cases.Where(c => c.AssignedPm != null).GroupBy(c => c.AssignedPm!.FullName).Select(g => new { dimension = g.Key, label = g.Key, value = (decimal)g.Count(), count = g.Count() }).OrderBy(x => x.dimension),
+                    _ => (object)new[] { new { dimension = "total", label = "total", value = (decimal)cases.Count, count = cases.Count } }
                 };
             }
             else
             {
                 result = group_by switch
                 {
-                    "se" => logs.GroupBy(l => l.HandlerUser.FullName).Select(g => new { dimension = g.Key, total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
-                    "project" => logs.GroupBy(l => l.Case.Project.ProjectName).Select(g => new { dimension = g.Key, total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
-                    "customer" => logs.GroupBy(l => l.Case.Customer.CustomerName).Select(g => new { dimension = g.Key, total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
-                    "category" => logs.GroupBy(l => l.Case.Category.CategoryName).Select(g => new { dimension = g.Key, total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
-                    "created_by" => logs.GroupBy(l => l.Case.CreatedByNavigation.FullName).Select(g => new { dimension = g.Key, total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
-                    "assigned_pm" => logs.Where(l => l.Case.AssignedPm != null).GroupBy(l => l.Case.AssignedPm!.FullName).Select(g => new { dimension = g.Key, total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
-                    _ => (object)new[] { new { dimension = "total", total_hours = logs.Sum(l => l.HoursSpent), case_count = logs.Select(l => l.CaseId).Distinct().Count() } }
+                    "se" => logs.GroupBy(l => l.HandlerUser.FullName).Select(g => new { dimension = g.Key, label = g.Key, value = g.Sum(l => l.HoursSpent), total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
+                    "project" => logs.GroupBy(l => l.Case.Project.ProjectName).Select(g => new { dimension = g.Key, label = g.Key, value = g.Sum(l => l.HoursSpent), total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
+                    "customer" => logs.GroupBy(l => l.Case.Customer.CustomerName).Select(g => new { dimension = g.Key, label = g.Key, value = g.Sum(l => l.HoursSpent), total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
+                    "category" => logs.GroupBy(l => l.Case.Category.CategoryName).Select(g => new { dimension = g.Key, label = g.Key, value = g.Sum(l => l.HoursSpent), total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
+                    "created_by" => logs.GroupBy(l => l.Case.CreatedByNavigation.FullName).Select(g => new { dimension = g.Key, label = g.Key, value = g.Sum(l => l.HoursSpent), total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
+                    "assigned_pm" => logs.Where(l => l.Case.AssignedPm != null).GroupBy(l => l.Case.AssignedPm!.FullName).Select(g => new { dimension = g.Key, label = g.Key, value = g.Sum(l => l.HoursSpent), total_hours = g.Sum(l => l.HoursSpent), case_count = g.Select(l => l.CaseId).Distinct().Count() }).OrderBy(x => x.dimension),
+                    _ => (object)new[] { new { dimension = "total", label = "total", value = logs.Sum(l => l.HoursSpent), total_hours = logs.Sum(l => l.HoursSpent), case_count = logs.Select(l => l.CaseId).Distinct().Count() } }
                 };
             }
 
             return Ok(new { success = true, data = result, meta = new { group_by, metric } });
         }
 
-        // GET /api/v1/reports/cases — 案件數量統計（直接查 Cases 表，涵蓋所有案件）
-        [HttpGet("cases")]
-        public async Task<IActionResult> GetCases(
-            [FromQuery] string group_by = "project",
-            [FromQuery] int? project_id = null,
-            [FromQuery] int? customer_id = null,
-            [FromQuery] int? category_id = null,
-            [FromQuery] short? status = null,
-            [FromQuery] string? case_type = null,
+        // GET /api/v1/reports/custom/suda-hours
+        [HttpGet("custom/suda-hours")]
+        public async Task<IActionResult> GetSudaHoursExport(
+            [FromQuery] int project_id,
             [FromQuery] DateTime? date_from = null,
             [FromQuery] DateTime? date_to = null)
         {
-            if (date_from.HasValue && date_to.HasValue &&
-                (date_to.Value - date_from.Value).TotalDays > 731)
-                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Date range must not exceed 2 years" } });
+            if (project_id <= 0)
+                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "project_id is required" } });
 
             var userId = User.GetUserId();
             var role = User.GetRole();
+            var now = TimeHelper.Now;
+            var from = date_from.HasValue
+                ? DateOnly.FromDateTime(date_from.Value)
+                : DateOnly.FromDateTime(new DateTime(now.Year, now.Month, 1));
+            var toExclusive = date_to.HasValue
+                ? DateOnly.FromDateTime(date_to.Value).AddDays(1)
+                : from.AddMonths(1);
 
-            var query = _db.Cases.AsNoTracking()
-                .Include(c => c.Project)
-                .Include(c => c.Customer)
-                .Include(c => c.Category)
-                .Include(c => c.AssignedPm)
-                .Include(c => c.CreatedByNavigation)
+            var project = await _db.Projects.AsNoTracking()
+                .Where(p => p.ProjectId == project_id)
+                .Select(p => new { id = p.ProjectId, code = p.ProjectCode, name = p.ProjectName })
+                .FirstOrDefaultAsync();
+
+            if (project == null)
+                return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Project not found" } });
+
+            var logsQuery = _db.CaseLogs.AsNoTracking()
+                .Include(l => l.Case)
+                .Include(l => l.HandlerUser)
+                .Where(l => l.Case.ProjectId == project_id)
+                .Where(l => l.Case.Status != 60)
+                .Where(l => l.LogDate >= from && l.LogDate < toExclusive)
                 .AsQueryable();
 
-            // RBAC
             if (role == "PM")
             {
                 var myProjectIds = await _db.ProjectMembers.AsNoTracking()
                     .Where(pm => pm.UserId == userId && pm.IsActive && pm.MemberRole == "PM")
-                    .Select(pm => pm.ProjectId).ToListAsync();
-                query = query.Where(c => myProjectIds.Contains(c.ProjectId));
+                    .Select(pm => pm.ProjectId)
+                    .ToListAsync();
+                logsQuery = logsQuery.Where(l => myProjectIds.Contains(l.Case.ProjectId));
             }
             else if (role == "SE")
             {
-                var myCaseIds = await _db.CaseAssignments.AsNoTracking()
-                    .Where(a => a.SeUserId == userId && a.IsActive)
-                    .Select(a => a.CaseId).Distinct().ToListAsync();
-                query = query.Where(c => myCaseIds.Contains(c.CaseId));
+                logsQuery = logsQuery.Where(l => l.HandlerUserId == userId);
             }
 
-            if (project_id.HasValue) query = query.Where(c => c.ProjectId == project_id.Value);
-            if (customer_id.HasValue) query = query.Where(c => c.CustomerId == customer_id.Value);
-            if (category_id.HasValue) query = query.Where(c => c.CategoryId == category_id.Value);
-            if (status.HasValue) query = query.Where(c => c.Status == status.Value);
-            if (!string.IsNullOrWhiteSpace(case_type)) query = query.Where(c => c.CaseType == case_type);
-            if (date_from.HasValue) query = query.Where(c => c.CreatedAt >= date_from.Value);
-            if (date_to.HasValue) query = query.Where(c => c.CreatedAt <= date_to.Value);
+            var logs = await logsQuery
+                .OrderBy(l => l.Case.CaseNumber)
+                .ThenBy(l => l.LogDate)
+                .ThenBy(l => l.CreatedAt)
+                .ThenBy(l => l.LogId)
+                .ToListAsync();
 
-            var cases = await query.ToListAsync();
-            int totalCount = cases.Count;
+            var caseTypeCodes = logs.Select(l => l.Case.CaseType).Distinct().ToList();
+            var caseTypeLabels = await _db.CaseTypes.AsNoTracking()
+                .Where(t => caseTypeCodes.Contains(t.Code))
+                .ToDictionaryAsync(t => t.Code, t => t.Label);
 
-            object rows = group_by switch
+            string StatusLabel(short status) => status switch
             {
-                "status" => (object)cases.GroupBy(c => c.Status)
-                                      .Select(g => new { dimension = g.Key.ToString(), label = StatusLabel(g.Key), count = g.Count() })
-                                      .OrderBy(x => x.dimension).ToList(),
-                "project" => (object)cases.GroupBy(c => c.Project?.ProjectName ?? "未分類")
-                                      .Select(g => new { dimension = g.Key, label = g.Key, count = g.Count() })
-                                      .OrderByDescending(x => x.count).ToList(),
-                "customer" => (object)cases.GroupBy(c => c.Customer?.CustomerName ?? "未分類")
-                                      .Select(g => new { dimension = g.Key, label = g.Key, count = g.Count() })
-                                      .OrderByDescending(x => x.count).ToList(),
-                "category" => (object)cases.GroupBy(c => c.Category?.CategoryName ?? "未分類")
-                                      .Select(g => new { dimension = g.Key, label = g.Key, count = g.Count() })
-                                      .OrderByDescending(x => x.count).ToList(),
-                "case_type" => (object)cases.GroupBy(c => c.CaseType ?? "未分類")
-                                      .Select(g => new { dimension = g.Key, label = g.Key, count = g.Count() })
-                                      .OrderByDescending(x => x.count).ToList(),
-                "created_by" => (object)cases.GroupBy(c => c.CreatedByNavigation?.FullName ?? "未知")
-                                      .Select(g => new { dimension = g.Key, label = g.Key, count = g.Count() })
-                                      .OrderByDescending(x => x.count).ToList(),
-                "assigned_pm" => (object)cases.Where(c => c.AssignedPm != null)
-                                      .GroupBy(c => c.AssignedPm!.FullName)
-                                      .Select(g => new { dimension = g.Key, label = g.Key, count = g.Count() })
-                                      .OrderByDescending(x => x.count).ToList(),
-                _ => (object)new[] { new { dimension = "total", label = "全部", count = totalCount } }
+                10 => "立案",
+                20 => "已派工",
+                30 => "處理中",
+                35 => "已退回",
+                40 => "已完工",
+                50 => "已完成",
+                60 => "取消",
+                _ => status.ToString()
             };
+
+            var rows = logs
+                .GroupBy(l => l.CaseId)
+                .Select(g =>
+                {
+                    var orderedLogs = g.OrderBy(l => l.LogDate).ThenBy(l => l.CreatedAt).ThenBy(l => l.LogId).ToList();
+                    var caseEntity = orderedLogs[0].Case;
+                    var handlers = orderedLogs
+                        .Select(l => l.HandlerUser.FullName)
+                        .Where(name => !string.IsNullOrWhiteSpace(name))
+                        .Distinct()
+                        .ToList();
+                    var handlingMethods = orderedLogs
+                        .Where(l => !string.IsNullOrWhiteSpace(l.HandlingMethod))
+                        .Select(l => $"{l.HandlerUser.FullName}：{l.HandlingMethod.Trim()}")
+                        .ToList();
+                    var handlingResults = orderedLogs
+                        .Where(l => !string.IsNullOrWhiteSpace(l.HandlingResult))
+                        .Select(l => $"{l.HandlerUser.FullName}：{l.HandlingResult!.Trim()}")
+                        .ToList();
+
+                    return new
+                    {
+                        submitted_date = caseEntity.CreatedAt,
+                        system = "客服",
+                        response_content = caseEntity.Description,
+                        owner_unit = "矩明",
+                        status = StatusLabel(caseEntity.Status),
+                        investigation_result = string.Join("\n", handlingMethods),
+                        improvement_action = string.Join("\n", handlingResults),
+                        hours_spent = orderedLogs.Sum(l => l.HoursSpent),
+                        closed_date = caseEntity.ClosedAt,
+                        case_number = caseEntity.CaseNumber,
+                        request_no = "",
+                        category = caseTypeLabels.GetValueOrDefault(caseEntity.CaseType, caseEntity.CaseType),
+                        handlers = string.Join("\n", handlers)
+                    };
+                })
+                .OrderBy(r => r.submitted_date)
+                .ThenBy(r => r.case_number)
+                .ToList();
 
             return Ok(new
             {
                 success = true,
-                data = rows,
-                meta = new { group_by, total_count = totalCount, date_from, date_to }
+                data = new
+                {
+                    project,
+                    period = new { date_from = from.ToString("yyyy-MM-dd"), date_to = toExclusive.AddDays(-1).ToString("yyyy-MM-dd") },
+                    rows
+                }
             });
         }
-
-        private static string StatusLabel(short s) => s switch
-        {
-            10 => "待處理",
-            20 => "已指派",
-            30 => "處理中",
-            35 => "退回",
-            40 => "已完成",
-            50 => "已結案",
-            60 => "已取消",
-            _ => s.ToString()
-        };
     }
 
     public class ExportReportDto

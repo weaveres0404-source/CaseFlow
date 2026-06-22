@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "temp_list_types/1.0.0": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Authentication.Google": "10.0.1"
+        },
+        "runtime": {
+          "temp_list_types.dll": {}
+        }
+      },
+      "Microsoft.AspNetCore.Authentication.Google/10.0.1": {
+        "runtime": {
+          "lib/net10.0/Microsoft.AspNetCore.Authentication.Google.dll": {
+            "assemblyVersion": "10.0.1.0",
+            "fileVersion": "10.0.125.57005"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "temp_list_types/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.AspNetCore.Authentication.Google/10.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-49T+gn1LyNDxme5HBnoEUFTFnpG8R9h2JFuaQp8+/EQFSZybIv4WMXdrQ1rbCU65NKG/jxVBsUU8/G8jKImJ2Q==",
+      "path": "microsoft.aspnetcore.authentication.google/10.0.1",
+      "hashPath": "microsoft.aspnetcore.authentication.google.10.0.1.nupkg.sha512"
+    }
+  }
+}

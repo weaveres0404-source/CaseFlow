@@ -7,6 +7,8 @@ using System.Security.Claims;
 using System.Text;
 using CaseFlow.Server.Models;
 using CaseFlow.Server.Helpers;
+using Microsoft.AspNetCore.Identity;
+using Google.Apis.Auth;
 
 namespace CaseFlow.Server.Controllers
 {
@@ -23,10 +25,36 @@ namespace CaseFlow.Server.Controllers
             _db = db;
         }
 
+        // GET /api/v1/auth/config  —  前端用來判斷顯示哪種登入方式
+        [AllowAnonymous]
+        [HttpGet("config")]
+        public IActionResult GetAuthConfig()
+        {
+            var mode = (_config["Auth:Mode"] ?? "both").Trim().ToLowerInvariant();
+            if (mode != "password" && mode != "google" && mode != "both")
+                mode = "both";
+
+            var googleClientId = _config["Google:ClientId"] ?? "";
+
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    mode,
+                    google_client_id = googleClientId
+                }
+            });
+        }
+
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
+            var mode = (_config["Auth:Mode"] ?? "both").Trim().ToLowerInvariant();
+            if (mode == "google")
+                return StatusCode(403, new { success = false, error = new { code = "AUTH_MODE_DISABLED", message = "Password login is disabled on this environment" } });
+
             var username = req?.Username?.Trim();
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(req?.Password))
@@ -36,11 +64,40 @@ namespace CaseFlow.Server.Controllers
             if (user == null)
                 return Ok(new { success = false, error = new { code = "UNAUTHORIZED", message = "Invalid credentials" } });
 
-            if (user.PasswordHash != req.Password)
-                return Ok(new { success = false, error = new { code = "UNAUTHORIZED", message = "Invalid credentials" } });
+            // 驗證密碼（支援舊 plaintext 自動升級為 hash）
+            var hasher = new PasswordHasher<User>();
+            PasswordVerificationResult verifyResult;
+            bool wasPlaintext = false;
 
-            // Update last login
-            user.LastLoginAt = TimeHelper.Now;
+            try
+            {
+                verifyResult = hasher.VerifyHashedPassword(user, user.PasswordHash, req.Password!);
+            }
+            catch
+            {
+                verifyResult = PasswordVerificationResult.Failed;
+            }
+
+            if (verifyResult == PasswordVerificationResult.Failed)
+            {
+                // Legacy plaintext fallback
+                if (user.PasswordHash == req.Password!)
+                {
+                    wasPlaintext = true;
+                }
+                else
+                {
+                    return Ok(new { success = false, error = new { code = "UNAUTHORIZED", message = "Invalid credentials" } });
+                }
+            }
+
+            var now = TimeHelper.Now;
+
+            // 自動升級 plaintext 密碼或 rehash（在 SaveChanges 前統一處理）
+            if (wasPlaintext || verifyResult == PasswordVerificationResult.SuccessRehashNeeded)
+                user.PasswordHash = hasher.HashPassword(user, req.Password!);
+
+            user.LastLoginAt = now;
             await _db.SaveChangesAsync();
 
             // 首次登入強制改密碼：回 setup_token（scope=setup, 10 分鐘有效）
@@ -71,6 +128,74 @@ namespace CaseFlow.Server.Controllers
                     token_type = "Bearer",
                     expires_in = 60 * 60 * 8,
                     user = new { user_id = user.UserId, username = user.Username, full_name = user.FullName, role = user.Role }
+                }
+            });
+        }
+
+        // POST /api/v1/auth/google-login
+        [AllowAnonymous]
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest req)
+        {
+            var mode = (_config["Auth:Mode"] ?? "both").Trim().ToLowerInvariant();
+            if (mode == "password")
+                return StatusCode(403, new { success = false, error = new { code = "AUTH_MODE_DISABLED", message = "Google login is disabled on this environment" } });
+
+            if (string.IsNullOrWhiteSpace(req?.IdToken))
+                return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "id_token is required" } });
+
+            var clientId = _config["Google:ClientId"];
+            if (string.IsNullOrWhiteSpace(clientId))
+                return StatusCode(503, new { success = false, error = new { code = "CONFIG_ERROR", message = "Google login is not configured on this server" } });
+
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { clientId }
+                };
+                payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken, settings);
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new { success = false, error = new { code = "INVALID_TOKEN", message = "Invalid or expired Google token" } });
+            }
+
+            if (!payload.EmailVerified)
+                return Unauthorized(new { success = false, error = new { code = "EMAIL_NOT_VERIFIED", message = "Google account email is not verified" } });
+
+            var googleSub = payload.Subject;
+            var googleEmail = payload.Email;
+            var googleName = payload.Name;
+
+            // 依序找：google_sub → google_email → email
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.GoogleSub == googleSub)
+                       ?? await _db.Users.FirstOrDefaultAsync(u => u.IsActive && u.GoogleEmail == googleEmail)
+                       ?? await _db.Users.FirstOrDefaultAsync(u => u.IsActive && u.Email == googleEmail);
+
+            var now = TimeHelper.Now;
+
+            if (user == null)
+            {
+                return Unauthorized(new { success = false, error = new { code = "ACCOUNT_NOT_REGISTERED", message = "This Google account is not registered in CaseFlow" } });
+            }
+
+            if (!user.IsActive)
+                return Unauthorized(new { success = false, error = new { code = "ACCOUNT_INACTIVE", message = "Account is inactive" } });
+
+            await GoogleUserProfileSync.SyncAsync(_db, user, googleSub, googleEmail, googleName, now);
+
+            var tokenString = GenerateJwt(user);
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    access_token = tokenString,
+                    token_type = "Bearer",
+                    expires_in = 60 * 60 * 8,
+                    user = new { user_id = user.UserId, username = user.Username, full_name = user.FullName, role = user.Role, auth_provider = user.AuthProvider }
                 }
             });
         }
@@ -118,7 +243,8 @@ namespace CaseFlow.Server.Controllers
             if (user == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "User not found" } });
 
-            user.PasswordHash = req.NewPassword;
+            var hasher = new PasswordHasher<User>();
+            user.PasswordHash = hasher.HashPassword(user, req.NewPassword);
             user.MustChangePassword = false;
             user.UpdatedAt = TimeHelper.Now;
             await _db.SaveChangesAsync();
@@ -218,6 +344,12 @@ namespace CaseFlow.Server.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+    }
+
+    public class GoogleLoginRequest
+    {
+        public string IdToken { get; set; } = "";
     }
 
     public class SetupPasswordRequest

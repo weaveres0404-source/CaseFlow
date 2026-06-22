@@ -12,12 +12,10 @@ namespace CaseFlow.Server.Controllers
     public class NotificationsController : ControllerBase
     {
         private readonly CaseFlowDbContext _db;
-        private readonly string _casePublicIdSalt;
 
-        public NotificationsController(CaseFlowDbContext db, IConfiguration configuration)
+        public NotificationsController(CaseFlowDbContext db)
         {
             _db = db;
-            _casePublicIdSalt = configuration["Security:CasePublicIdSalt"] ?? "CaseFlow-Default-CasePublicId-Salt-2026";
         }
 
         // GET /api/v1/notifications?is_read=false&page=1&page_size=20
@@ -65,7 +63,7 @@ namespace CaseFlow.Server.Controllers
                     n.title,
                     n.message,
                     n.case_id,
-                    case_short_id = n.case_id.HasValue ? CasePublicIdCodec.Encode(n.case_id.Value, _casePublicIdSalt) : null,
+                    case_short_id = n.case_id.HasValue ? SlugHelper.Encode(n.case_id.Value) : null,
                     n.is_read,
                     n.created_at
                 })
