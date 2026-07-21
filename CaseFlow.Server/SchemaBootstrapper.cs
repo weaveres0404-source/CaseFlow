@@ -110,6 +110,7 @@ public static class SchemaBootstrapper
         ("cases",               "cancelled_at",             "nullable"),
         ("cases",               "created_at",               ""),
         ("cases",               "updated_at",               ""),
+        ("cases",               "occurred_at",              "nullable"),
         ("cases",               "total_hours",              "numeric(7,2)"),
 
         ("audit_logs",          "audit_id",                 "PK IDENTITY bigint"),

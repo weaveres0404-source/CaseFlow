@@ -236,6 +236,10 @@ namespace CaseFlow.Server.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("module_id");
 
+                    b.Property<DateTime?>("OccurredAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("occurred_at");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .ValueGeneratedOnAdd()

@@ -426,7 +426,7 @@ namespace CaseFlow.Server.Controllers
                         return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Invalid module_id for this project" } });
                 }
 
-                var yearMonth = TimeHelper.Now.ToString("yyyyMM");
+                var yearMonth = TimeHelper.TaipeiNow.ToString("yyyyMM");
                 var codePrefix = project.ProjectCodeRef?.Code ?? project.ProjectCode;
                 var prefix = $"{codePrefix}-{yearMonth}-";
                 var lastCase = await _db.Cases.AsNoTracking()
@@ -814,7 +814,7 @@ namespace CaseFlow.Server.Controllers
             var project = await _db.Projects.AsNoTracking()
                 .Include(p => p.ProjectCodeRef)
                 .FirstOrDefaultAsync(p => p.ProjectId == original.ProjectId);
-            var yearMonth = TimeHelper.Now.ToString("yyyyMM");
+            var yearMonth = TimeHelper.TaipeiNow.ToString("yyyyMM");
             var codePrefix = project!.ProjectCodeRef?.Code ?? project.ProjectCode;
             var prefix = $"{codePrefix}-{yearMonth}-";
             var lastCase = await _db.Cases.AsNoTracking()
@@ -907,7 +907,7 @@ namespace CaseFlow.Server.Controllers
             {
                 CaseId = id,
                 HandlerUserId = handlerUserId,
-                LogDate = dto.LogDate ?? DateOnly.FromDateTime(TimeHelper.Now),
+                LogDate = dto.LogDate ?? DateOnly.FromDateTime(TimeHelper.TaipeiNow),
                 HandlingMethod = dto.HandlingMethod,
                 HandlingResult = dto.HandlingResult,
                 HoursSpent = dto.HoursSpent,
@@ -992,7 +992,7 @@ namespace CaseFlow.Server.Controllers
                 CaseId = id,
                 EstimatorUserId = dto.EstimatorUserId,
                 SeqNo = seqNo,
-                RequestDate = dto.RequestDate ?? DateOnly.FromDateTime(TimeHelper.Now),
+                RequestDate = dto.RequestDate ?? DateOnly.FromDateTime(TimeHelper.TaipeiNow),
                 Summary = dto.Summary,
                 EstimatedHours = dto.EstimatedHours,
                 ReplyDate = dto.ReplyDate,
@@ -1064,7 +1064,7 @@ namespace CaseFlow.Server.Controllers
             {
                 CaseId = id,
                 ReplierUserId = User.GetUserId(),
-                ReplyDate = dto.ReplyDate ?? DateOnly.FromDateTime(TimeHelper.Now),
+                ReplyDate = dto.ReplyDate ?? DateOnly.FromDateTime(TimeHelper.TaipeiNow),
                 ReplyContent = dto.ReplyContent,
                 CreatedAt = now,
                 UpdatedAt = now

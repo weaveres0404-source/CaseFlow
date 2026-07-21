@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniExcelLibs;
@@ -112,6 +112,7 @@ namespace CaseFlow.Server.Controllers
                 .Include(l => l.Case).ThenInclude(c => c.Project)
                 .Include(l => l.Case).ThenInclude(c => c.Customer)
                 .Include(l => l.Case).ThenInclude(c => c.Category)
+                .Include(l => l.Case).ThenInclude(c => c.CreatedByNavigation)
                 .Include(l => l.Case).ThenInclude(c => c.AssignedPm)
                 .Include(l => l.HandlerUser)
                 .AsQueryable();
@@ -128,15 +129,83 @@ namespace CaseFlow.Server.Controllers
                 logsQuery = logsQuery.Where(l => l.HandlerUserId == userId);
             }
 
+            // 以下條件用於篩選「案件範圍」：找出符合條件（含日期區間內有任一筆處理紀錄）的案件，
+            // 再將該案件的「所有處理紀錄」一併匯出，避免同案件的其它紀錄被截掉，
+            // 使匯出總工時等於案件詳情頁的總工時（達成「畫面 = 匯出」一致）。
             if (dto.ProjectId.HasValue) logsQuery = logsQuery.Where(l => l.Case.ProjectId == dto.ProjectId.Value);
             if (dto.CustomerId.HasValue) logsQuery = logsQuery.Where(l => l.Case.CustomerId == dto.CustomerId.Value);
-            if (dto.DateFrom.HasValue) logsQuery = logsQuery.Where(l => l.CreatedAt >= dto.DateFrom.Value);
-            if (dto.DateTo.HasValue) logsQuery = logsQuery.Where(l => l.CreatedAt <= dto.DateTo.Value);
+            if (dto.CategoryId.HasValue) logsQuery = logsQuery.Where(l => l.Case.CategoryId == dto.CategoryId.Value);
+            if (dto.Status.HasValue) logsQuery = logsQuery.Where(l => l.Case.Status == dto.Status.Value);
+            if (!string.IsNullOrWhiteSpace(dto.CaseType)) logsQuery = logsQuery.Where(l => l.Case.CaseType == dto.CaseType);
+            if (dto.CreatedBy.HasValue) logsQuery = logsQuery.Where(l => l.Case.CreatedBy == dto.CreatedBy.Value);
+            if (dto.AssignedPmId.HasValue) logsQuery = logsQuery.Where(l => l.Case.AssignedPmId == dto.AssignedPmId.Value);
+            if (dto.HandlerUserId.HasValue) logsQuery = logsQuery.Where(l => l.HandlerUserId == dto.HandlerUserId.Value);
 
-            var logs = await logsQuery.OrderBy(l => l.Case.CaseNumber).ThenBy(l => l.LogDate).ToListAsync();
+            // 日期區間先找出「命中的 CaseId 清單」
+            var dateFilteredQuery = logsQuery;
+            if (dto.DateFrom.HasValue)
+            {
+                var from = DateOnly.FromDateTime(dto.DateFrom.Value);
+                dateFilteredQuery = dateFilteredQuery.Where(l => l.LogDate >= from);
+            }
+            if (dto.DateTo.HasValue)
+            {
+                var to = DateOnly.FromDateTime(dto.DateTo.Value);
+                dateFilteredQuery = dateFilteredQuery.Where(l => l.LogDate <= to);
+            }
+            var matchedCaseIds = await dateFilteredQuery.Select(l => l.CaseId).Distinct().ToListAsync();
+
+            // 再回頭將「命中案件」的所有處理紀錄拉出
+            var logs = await logsQuery
+                .Where(l => matchedCaseIds.Contains(l.CaseId))
+                .OrderBy(l => l.Case.CaseNumber).ThenBy(l => l.LogDate)
+                .ToListAsync();
 
             IEnumerable<object> rows;
-            if (dto.ReportType == "hours_gsheets")
+            if (dto.ReportType == "overview")
+            {
+                // 總覽樣式：依所選維度彙總工時與案件數，最後附上「全部合計」列（客製化 Excel 樣式）
+                var groupBy = string.IsNullOrWhiteSpace(dto.GroupBy) ? "category" : dto.GroupBy;
+                var dimLabel = DimensionLabel(groupBy);
+                Func<CaseLog, string> keySelector = groupBy switch
+                {
+                    "se" => l => l.HandlerUser?.FullName ?? "(未指定)",
+                    "project" => l => l.Case.Project?.ProjectName ?? "(未指定)",
+                    "customer" => l => l.Case.Customer?.CustomerName ?? "(未指定)",
+                    "created_by" => l => l.Case.CreatedByNavigation?.FullName ?? "(未指定)",
+                    "assigned_pm" => l => l.Case.AssignedPm?.FullName ?? "(未轉派)",
+                    _ => l => l.Case.Category?.CategoryName ?? "(未分類)"
+                };
+
+                var grouped = logs.GroupBy(keySelector)
+                    .Select(g => new
+                    {
+                        Key = g.Key,
+                        Hours = g.Sum(x => x.HoursSpent),
+                        Cases = g.Select(x => x.CaseId).Distinct().Count()
+                    })
+                    .OrderBy(x => x.Key)
+                    .ToList();
+
+                var overviewRows = new List<Dictionary<string, object>>();
+                foreach (var g in grouped)
+                {
+                    overviewRows.Add(new Dictionary<string, object>
+                    {
+                        [dimLabel] = g.Key,
+                        ["工時合計(hr)"] = g.Hours,
+                        ["案件數"] = g.Cases
+                    });
+                }
+                overviewRows.Add(new Dictionary<string, object>
+                {
+                    [dimLabel] = "全部合計",
+                    ["工時合計(hr)"] = grouped.Sum(x => x.Hours),
+                    ["案件數"] = logs.Select(l => l.CaseId).Distinct().Count()
+                });
+                rows = overviewRows;
+            }
+            else if (dto.ReportType == "hours_gsheets")
             {
                 rows = logs.Select(l => (object)new
                 {
@@ -145,6 +214,9 @@ namespace CaseFlow.Server.Controllers
                     Project = l.Case.Project != null ? l.Case.Project.ProjectName : "",
                     Handler = l.HandlerUser != null ? l.HandlerUser.FullName : "",
                     LogDate = l.LogDate.ToString("yyyy-MM-dd"),
+                    OccurredDate = (l.Case.OccurredAt ?? l.Case.CreatedAt).ToString("yyyy-MM-dd"),
+                    SubmittedDate = l.Case.CreatedAt.ToString("yyyy-MM-dd"),
+                    ClosedDate = l.Case.ClosedAt.HasValue ? l.Case.ClosedAt.Value.ToString("yyyy-MM-dd") : "",
                     HoursSpent = l.HoursSpent,
                     Completed = l.StatusAfter >= 40 ? "Y" : ""
                 });
@@ -160,12 +232,14 @@ namespace CaseFlow.Server.Controllers
                     PM = l.Case.AssignedPm != null ? l.Case.AssignedPm.FullName : "",
                     Handler = l.HandlerUser != null ? l.HandlerUser.FullName : "",
                     LogDate = l.LogDate.ToString("yyyy-MM-dd"),
+                    OccurredDate = (l.Case.OccurredAt ?? l.Case.CreatedAt).ToString("yyyy-MM-dd"),
+                    SubmittedDate = l.Case.CreatedAt.ToString("yyyy-MM-dd"),
+                    ClosedDate = l.Case.ClosedAt.HasValue ? l.Case.ClosedAt.Value.ToString("yyyy-MM-dd") : "",
                     Method = l.HandlingMethod ?? "",
                     Result = l.HandlingResult ?? "",
                     HoursSpent = l.HoursSpent,
                     Headcount = l.Headcount,
-                    StatusAfter = l.StatusAfter,
-                    CreatedAt = l.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    StatusAfter = l.StatusAfter
                 });
             }
 
@@ -299,12 +373,12 @@ namespace CaseFlow.Server.Controllers
             if (project == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Project not found" } });
 
-            var logsQuery = _db.CaseLogs.AsNoTracking()
+            // 案件範圍 (含權限篩選)
+            var baseQuery = _db.CaseLogs.AsNoTracking()
                 .Include(l => l.Case)
                 .Include(l => l.HandlerUser)
                 .Where(l => l.Case.ProjectId == project_id)
                 .Where(l => l.Case.Status != 60)
-                .Where(l => l.LogDate >= from && l.LogDate < toExclusive)
                 .AsQueryable();
 
             if (role == "PM")
@@ -313,14 +387,22 @@ namespace CaseFlow.Server.Controllers
                     .Where(pm => pm.UserId == userId && pm.IsActive && pm.MemberRole == "PM")
                     .Select(pm => pm.ProjectId)
                     .ToListAsync();
-                logsQuery = logsQuery.Where(l => myProjectIds.Contains(l.Case.ProjectId));
+                baseQuery = baseQuery.Where(l => myProjectIds.Contains(l.Case.ProjectId));
             }
             else if (role == "SE")
             {
-                logsQuery = logsQuery.Where(l => l.HandlerUserId == userId);
+                baseQuery = baseQuery.Where(l => l.HandlerUserId == userId);
             }
 
-            var logs = await logsQuery
+            // 日期區間先找出「命中的 CaseId」，再撈出該案件所有 log（使工時 = 詳情頁工時）
+            var matchedCaseIds = await baseQuery
+                .Where(l => l.LogDate >= from && l.LogDate < toExclusive)
+                .Select(l => l.CaseId)
+                .Distinct()
+                .ToListAsync();
+
+            var logs = await baseQuery
+                .Where(l => matchedCaseIds.Contains(l.CaseId))
                 .OrderBy(l => l.Case.CaseNumber)
                 .ThenBy(l => l.LogDate)
                 .ThenBy(l => l.CreatedAt)
@@ -366,7 +448,7 @@ namespace CaseFlow.Server.Controllers
 
                     return new
                     {
-                        submitted_date = caseEntity.CreatedAt,
+                        submitted_date = caseEntity.CreatedAt.ToString("yyyy-MM-dd"),
                         system = "客服",
                         response_content = caseEntity.Description,
                         owner_unit = "矩明",
@@ -374,7 +456,7 @@ namespace CaseFlow.Server.Controllers
                         investigation_result = string.Join("\n", handlingMethods),
                         improvement_action = string.Join("\n", handlingResults),
                         hours_spent = orderedLogs.Sum(l => l.HoursSpent),
-                        closed_date = caseEntity.ClosedAt,
+                        closed_date = caseEntity.ClosedAt.HasValue ? caseEntity.ClosedAt.Value.ToString("yyyy-MM-dd") : "",
                         case_number = caseEntity.CaseNumber,
                         request_no = "",
                         category = caseTypeLabels.GetValueOrDefault(caseEntity.CaseType, caseEntity.CaseType),
@@ -396,13 +478,32 @@ namespace CaseFlow.Server.Controllers
                 }
             });
         }
+
+        private static string DimensionLabel(string? groupBy) => groupBy switch
+        {
+            "se" => "工程師",
+            "project" => "專案",
+            "customer" => "客戶",
+            "category" => "問題分類",
+            "created_by" => "立案者",
+            "assigned_pm" => "轉派 PM",
+            _ => "問題分類"
+        };
     }
 
     public class ExportReportDto
     {
         public string ReportType { get; set; } = "hours";
+        public string? GroupBy { get; set; }
+        public string? Metric { get; set; }
         public int? ProjectId { get; set; }
         public int? CustomerId { get; set; }
+        public int? CategoryId { get; set; }
+        public short? Status { get; set; }
+        public string? CaseType { get; set; }
+        public int? CreatedBy { get; set; }
+        public int? AssignedPmId { get; set; }
+        public int? HandlerUserId { get; set; }
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
     }

@@ -125,7 +125,7 @@ namespace CaseFlow.Server.Controllers
             if (dto == null || string.IsNullOrWhiteSpace(dto.Code) || string.IsNullOrWhiteSpace(dto.Label))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "Code and Label are required" } });
 
-            var now = TimeHelper.Now;
+            var now = TimeHelper.TaipeiNow;
             var entity = new CaseType
             {
                 Code = dto.Code.Trim().ToUpperInvariant(),
@@ -171,7 +171,7 @@ namespace CaseFlow.Server.Controllers
             entity.Color = dto.Color;
             entity.SortOrder = dto.SortOrder;
             entity.IsActive = dto.IsActive;
-            entity.UpdatedAt = TimeHelper.Now;
+            entity.UpdatedAt = TimeHelper.TaipeiNow;
 
             SyncLinks(entity.ProjectLinks, dto.ProjectIds, _db.CaseTypeProjects,
                       pid => new CaseTypeProject { TypeId = entity.TypeId, ProjectId = pid },
@@ -195,7 +195,7 @@ namespace CaseFlow.Server.Controllers
             if (!entity.IsActive)
                 return BadRequest(new { success = false, error = new { code = "CONFLICT", message = "Already deleted" } });
             entity.IsActive = false;
-            entity.UpdatedAt = TimeHelper.Now;
+            entity.UpdatedAt = TimeHelper.TaipeiNow;
             await _db.SaveChangesAsync();
             return Ok(new { success = true });
         }

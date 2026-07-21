@@ -78,6 +78,11 @@
               </div>
             </div>
 
+            <div class="md:col-span-2">
+              <label class="field-label">補件日期 <span class="text-slate-400 text-[10px] font-normal">（案件實際發生日；留空則同建立日期）</span></label>
+              <input v-model="form.occurred_at" type="date" class="input-base !w-auto min-w-[180px]" />
+            </div>
+
             <div>
               <label class="field-label">問題分類 <span class="req">*</span></label>
               <select v-model="form.category_id" class="input-base" required>
@@ -372,6 +377,7 @@ const form = ref({
   case_type: 'REQUEST',
   category_id: null,
   module_id: null,
+  occurred_at: '',
   due_at: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }) + 'T09:00',
   description: ''
 })
@@ -788,6 +794,8 @@ async function submit() {
   try {
     const payload = {
       ...form.value,
+      // 補件日期以台北時間(UTC+8) 00:00 送出；留空則由後端帶入建立時間
+      occurred_at: form.value.occurred_at ? new Date(form.value.occurred_at + 'T00:00:00+08:00').toISOString() : null,
       due_at: form.value.due_at || null
     }
     const { data: res } = await api.post('/cases', payload)

@@ -237,6 +237,26 @@ namespace CaseFlow.Server
             app.UseMiddleware<ExceptionLoggingMiddleware>();
 
             app.UseDefaultFiles();
+
+            app.Use(async (context, next) =>
+            {
+                var acceptsHtml = context.Request.Headers.Accept
+                    .Any(value => value?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true);
+
+                if (HttpMethods.IsGet(context.Request.Method) && acceptsHtml)
+                {
+                    context.Response.OnStarting(() =>
+                    {
+                        context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+                        context.Response.Headers.Pragma = "no-cache";
+                        context.Response.Headers.Expires = "0";
+                        return Task.CompletedTask;
+                    });
+                }
+
+                await next();
+            });
+
             app.MapStaticAssets();
 
             if (app.Environment.IsDevelopment())

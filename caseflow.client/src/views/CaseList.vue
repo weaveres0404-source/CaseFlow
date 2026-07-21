@@ -644,8 +644,8 @@ function formatDateTimeForExport(dt) {
   if (!dt) return ''
   const d = new Date(dt)
   if (Number.isNaN(d.getTime())) return ''
-  // 使用 Intl API 確保以 Asia/Taipei 時區格式化，避免受瀏覽器本地時區影響
-  return d.toLocaleString('sv-SE', { timeZone: 'Asia/Taipei' }).slice(0, 16).replace('T', ' ').replace(/-/g, '/')
+  // 以 Asia/Taipei 格式化，取日期部分（yyyy/MM/dd），不含時間
+  return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }).replace(/-/g, '/')
 }
 
 function buildCaseQueryParams(pageNumber = page.value, size = pageSize.value) {
@@ -788,7 +788,7 @@ async function exportCases() {
       views: [{ state: 'frozen', ySplit: 1 }]
     })
 
-    const headers = ['案件編號', '客戶', '所屬專案', '案件類型', '問題分類', '報修人', '問題描述', '立案人', '案件狀態', '案件總工時', '更新時間']
+    const headers = ['案件編號', '客戶', '所屬專案', '案件類型', '問題分類', '報修人', '問題描述', '立案人', '案件狀態', '案件總工時', '提出日期', '補件日期', '結案日期', '更新日期']
 
     sheet.columns = [
       { width: 18 },
@@ -801,6 +801,9 @@ async function exportCases() {
       { width: 14 },
       { width: 14 },
       { width: 12 },
+      { width: 14 },
+      { width: 14 },
+      { width: 14 },
       { width: 14 }
     ]
 
@@ -844,6 +847,9 @@ async function exportCases() {
         item.created_by?.full_name || '',
         statusText,
         Number(item.total_hours || 0),
+        formatDateTimeForExport(item.created_at),
+        formatDateTimeForExport(item.occurred_at || item.created_at),
+        formatDateTimeForExport(item.closed_at),
         formatDateTimeForExport(item.updated_at)
       ])
 
@@ -872,7 +878,7 @@ async function exportCases() {
 
     sheet.autoFilter = {
       from: 'A1',
-      to: 'K1'
+      to: 'N1'
     }
 
     const buffer = await workbook.xlsx.writeBuffer()

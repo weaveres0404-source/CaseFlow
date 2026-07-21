@@ -137,6 +137,7 @@ public partial class CaseFlowDbContext : DbContext, IDataProtectionKeyContext
             entity.Property(e => e.CaseId).UseIdentityAlwaysColumn();
             entity.Property(e => e.CaseType).HasDefaultValueSql("'REPAIR'::character varying");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.OccurredAt).HasColumnType("timestamp without time zone");
             entity.Property(e => e.Priority).HasDefaultValueSql("'MEDIUM'::character varying");
             entity.Property(e => e.Status).HasDefaultValue((short)10);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");

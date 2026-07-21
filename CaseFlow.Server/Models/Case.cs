@@ -87,6 +87,13 @@ public partial class Case
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
 
+    /// <summary>
+    /// 案件實際發生時間（補件用）。可為 null；未填時視同建立時間 <see cref="CreatedAt"/>。
+    /// 儲存為 UTC（timestamp without time zone，與其它時間欄位一致）。
+    /// </summary>
+    [Column("occurred_at")]
+    public DateTime? OccurredAt { get; set; }
+
     [Column("total_hours")]
     [Microsoft.EntityFrameworkCore.Precision(7, 2)]
     public decimal TotalHours { get; set; }

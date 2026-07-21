@@ -92,7 +92,7 @@ namespace CaseFlow.Server.Controllers
             if (string.IsNullOrWhiteSpace(dto.Code) || string.IsNullOrWhiteSpace(dto.Label))
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "code and label are required" } });
 
-            var now = TimeHelper.Now;
+            var now = TimeHelper.TaipeiNow;
             var entity = new ProjectCode
             {
                 Code = dto.Code.Trim().ToUpperInvariant(),
@@ -121,7 +121,7 @@ namespace CaseFlow.Server.Controllers
             entity.Description = dto.Description;
             entity.SortOrder = dto.SortOrder;
             entity.IsActive = dto.IsActive;
-            entity.UpdatedAt = TimeHelper.Now;
+            entity.UpdatedAt = TimeHelper.TaipeiNow;
 
             try { await _db.SaveChangesAsync(); }
             catch (DbUpdateException ex) { return Conflict(new { success = false, error = new { code = "CONFLICT", message = "Could not update project code", details = ex.Message } }); }
@@ -135,7 +135,7 @@ namespace CaseFlow.Server.Controllers
             var entity = await _db.ProjectCodes.FirstOrDefaultAsync(x => x.CodeId == id);
             if (entity == null) return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Project code not found" } });
             entity.IsActive = false;
-            entity.UpdatedAt = TimeHelper.Now;
+            entity.UpdatedAt = TimeHelper.TaipeiNow;
             await _db.SaveChangesAsync();
             return Ok(new { success = true });
         }

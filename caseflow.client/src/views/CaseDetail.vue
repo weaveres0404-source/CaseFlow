@@ -88,6 +88,10 @@
               <span class="w-14 shrink-0">立案時間</span>
               <span>{{ caseData.created_at ? new Date(caseData.created_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—' }}</span>
             </div>
+            <div v-if="caseData.occurred_at || caseData.created_at" class="flex gap-1">
+              <span class="w-14 shrink-0">補件日期</span>
+              <span class="text-amber-600 font-medium">{{ new Date(caseData.occurred_at || caseData.created_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}) }}</span>
+            </div>
             <div v-if="caseData.due_at" class="flex gap-1">
               <span class="w-14 shrink-0">SLA 截止</span>
               <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ new Date(caseData.due_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
