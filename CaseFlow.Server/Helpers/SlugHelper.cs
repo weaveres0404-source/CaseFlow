@@ -30,7 +30,7 @@ public static class SlugHelper
     private static SqidsEncoder<int> CreateEncoder(string? alphabet)
         => new SqidsEncoder<int>(new SqidsOptions
         {
-            Alphabet  = string.IsNullOrWhiteSpace(alphabet) ? DefaultAlphabet : alphabet,
+            Alphabet = string.IsNullOrWhiteSpace(alphabet) ? DefaultAlphabet : alphabet,
             MinLength = 8
         });
 

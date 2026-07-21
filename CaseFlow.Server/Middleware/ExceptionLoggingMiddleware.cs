@@ -25,7 +25,7 @@ public class ExceptionLoggingMiddleware
     public ExceptionLoggingMiddleware(RequestDelegate next,
                                       ILogger<ExceptionLoggingMiddleware> logger)
     {
-        _next   = next;
+        _next = next;
         _logger = logger;
     }
 
@@ -37,10 +37,10 @@ public class ExceptionLoggingMiddleware
         }
         catch (Exception ex)
         {
-            var method  = context.Request.Method;
-            var path    = context.Request.Path.Value ?? "/";
+            var method = context.Request.Method;
+            var path = context.Request.Path.Value ?? "/";
             var traceId = context.TraceIdentifier;
-            var exType  = ex.GetType().FullName ?? "Exception";
+            var exType = ex.GetType().FullName ?? "Exception";
 
             // ── PATH 1: Direct stderr write (Cloud Run always captures this) ──
             // Write a single-line JSON that Cloud Logging parses as severity=ERROR.
@@ -50,15 +50,15 @@ public class ExceptionLoggingMiddleware
             // https://cloud.google.com/logging/docs/structured-logging
             var stderrEntry = JsonSerializer.Serialize(new
             {
-                severity  = "ERROR",
-                message   = $"[UNHANDLED] {method} {path} | {exType}: {ex.Message}",
+                severity = "ERROR",
+                message = $"[UNHANDLED] {method} {path} | {exType}: {ex.Message}",
                 exception = ex.ToString(),          // full stack trace in one field
                 http_request = new
                 {
                     request_method = method,
-                    request_url    = path
+                    request_url = path
                 },
-                trace_id  = traceId,
+                trace_id = traceId,
                 timestamp = DateTime.UtcNow.ToString("O")
             });
             Console.Error.WriteLine(stderrEntry);   // single line → single Cloud Logging entry
