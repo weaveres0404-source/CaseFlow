@@ -364,6 +364,7 @@ import { useMetaStore } from '../stores/meta'
 import { useAuthStore } from '../stores/auth'
 import api from '../utils/api'
 import SeChips from '../components/SeChips.vue'
+import { parseServerDateTime } from '../utils/date'
 
 defineOptions({
   name: 'CaseListView'
@@ -629,7 +630,7 @@ function statusDot(status) {
 
 function relativeTime(dt) {
   if (!dt) return ''
-  const ms = Date.now() - new Date(dt)
+  const ms = Date.now() - parseServerDateTime(dt)
   const mins = Math.floor(ms / 60000)
   if (mins < 1) return '剛剛'
   if (mins < 60) return `${mins} 分鐘前`
@@ -637,12 +638,12 @@ function relativeTime(dt) {
   if (hrs < 24) return `${hrs} 小時前`
   const days = Math.floor(hrs / 24)
   if (days < 3) return `${days} 天前`
-  return new Date(dt).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit' })
+  return parseServerDateTime(dt).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit' })
 }
 
 function formatDateTimeForExport(dt) {
   if (!dt) return ''
-  const d = new Date(dt)
+  const d = parseServerDateTime(dt)
   if (Number.isNaN(d.getTime())) return ''
   // 以 Asia/Taipei 格式化，取日期部分（yyyy/MM/dd），不含時間
   return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }).replace(/-/g, '/')

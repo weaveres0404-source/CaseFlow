@@ -79,7 +79,7 @@
             </div>
 
             <div class="md:col-span-2">
-              <label class="field-label">案件發生日期 <span class="text-slate-400 text-[10px] font-normal">（補件用；留空則同建立日期）</span></label>
+              <label class="field-label">補件日期 <span class="text-slate-400 text-[10px] font-normal">（留空則同建立日期）</span></label>
               <input v-model="form.occurred_at" type="date" class="input-base !w-auto min-w-[180px]" />
             </div>
 
@@ -299,6 +299,7 @@ import { useRouter } from 'vue-router'
 import { useMetaStore } from '../stores/meta'
 import { useAuthStore } from '../stores/auth'
 import api from '../utils/api'
+import { parseServerDateTime } from '../utils/date'
 
 const router = useRouter()
 const meta = useMetaStore()
@@ -483,7 +484,7 @@ function formatFileSize(bytes) {
 
 function formatDate(value) {
   if (!value) return '—'
-  return new Date(value).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' })
+  return parseServerDateTime(value).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 function caseTypeLabel(value) {

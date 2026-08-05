@@ -86,19 +86,19 @@
           <div class="mt-3 pt-3 border-t border-slate-200 space-y-1.5 text-[11px] text-slate-500">
             <div class="flex gap-1">
               <span class="w-14 shrink-0">立案時間</span>
-              <span>{{ caseData.created_at ? new Date(caseData.created_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—' }}</span>
+              <span>{{ caseData.created_at ? parseServerDateTime(caseData.created_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—' }}</span>
             </div>
             <div v-if="caseData.occurred_at && caseData.occurred_at !== caseData.created_at" class="flex gap-1">
-              <span class="w-14 shrink-0">發生日期</span>
-              <span class="text-amber-600 font-medium">{{ new Date(caseData.occurred_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit'}) }}</span>
+              <span class="w-14 shrink-0">補件日期</span>
+              <span class="text-amber-600 font-medium">{{ parseServerDateTime(caseData.occurred_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit'}) }}</span>
             </div>
             <div v-if="caseData.due_at" class="flex gap-1">
               <span class="w-14 shrink-0">SLA 截止</span>
-              <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ new Date(caseData.due_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
+              <span :class="slaUrgent ? 'text-rose-600 font-semibold' : ''">{{ parseServerDateTime(caseData.due_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
             </div>
             <div v-if="caseData.closed_at" class="flex gap-1">
               <span class="w-14 shrink-0">結案時間</span>
-              <span>{{ new Date(caseData.closed_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
+              <span>{{ parseServerDateTime(caseData.closed_at).toLocaleString('zh-TW', {timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) }}</span>
             </div>
           </div>
         </aside>
@@ -300,7 +300,7 @@
                 <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 tabular-nums">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   {{ log.log_date }}
-                  <span v-if="log.created_at" class="font-normal text-slate-400">{{ new Date(log.created_at).toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false }) }}</span>
+                  <span v-if="log.created_at" class="font-normal text-slate-400">{{ parseServerDateTime(log.created_at).toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false }) }}</span>
                 </span>
                 <span class="text-xs text-slate-500">{{ log.handler?.full_name }}</span>
                 <span v-if="logEstimation(log.id)" class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700">
@@ -365,7 +365,7 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-slate-900">{{ a.se?.full_name }}</p>
-                <p class="text-xs text-slate-400">派工人：{{ a.assigned_by?.full_name }} · {{ a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei'}) : '' }}</p>
+                <p class="text-xs text-slate-400">派工人：{{ a.assigned_by?.full_name }} · {{ a.assigned_at ? parseServerDateTime(a.assigned_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei'}) : '' }}</p>
               </div>
               <span v-if="a.expected_completion_date" class="text-xs text-slate-400 whitespace-nowrap">預計 {{ a.expected_completion_date }}</span>
               <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">處理中</span>
@@ -379,7 +379,7 @@
                 class="flex items-center gap-3 p-2 rounded-lg opacity-50">
                 <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-semibold">{{ (a.se?.full_name || '?').charAt(0) }}</div>
                 <span class="text-xs text-slate-500">{{ a.se?.full_name }}</span>
-                <span class="text-xs text-slate-400">{{ a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei'}) : '' }}</span>
+                <span class="text-xs text-slate-400">{{ a.assigned_at ? parseServerDateTime(a.assigned_at).toLocaleDateString('zh-TW', {timeZone:'Asia/Taipei'}) : '' }}</span>
                 <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">已解除</span>
               </div>
             </div>
@@ -681,6 +681,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMetaStore } from '../stores/meta'
 import { useAuthStore } from '../stores/auth'
 import api from '../utils/api'
+import { parseServerDateTime } from '../utils/date'
 
 const route = useRoute()
 const router = useRouter()
