@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CaseFlow.Server.Models;
@@ -316,6 +316,7 @@ namespace CaseFlow.Server.Controllers
                 closed_at = c.ClosedAt,
                 cancelled_at = c.CancelledAt,
                 created_at = c.CreatedAt,
+                occurred_at = c.OccurredAt,
                 updated_at = c.UpdatedAt,
                 assignments = c.CaseAssignments.OrderByDescending(a => a.AssignedAt).Select(a => new
                 {
@@ -461,6 +462,7 @@ namespace CaseFlow.Server.Controllers
                     CreatedBy = userId,
                     CreatedAt = now,
                     UpdatedAt = now,
+                    OccurredAt = dto.OccurredAt ?? now,
                     RelatedCaseId = dto.RelatedCaseId,
                     RelationType = dto.RelatedCaseId.HasValue ? "REOPEN" : null
                 };
@@ -535,6 +537,7 @@ namespace CaseFlow.Server.Controllers
             if (!string.IsNullOrWhiteSpace(dto.CaseType)) entity.CaseType = dto.CaseType;
             if (!string.IsNullOrWhiteSpace(dto.Priority)) entity.Priority = dto.Priority;
             if (!string.IsNullOrWhiteSpace(dto.Description)) entity.Description = dto.Description;
+            if (dto.OccurredAt.HasValue) entity.OccurredAt = dto.OccurredAt.Value;
             entity.UpdatedAt = TimeHelper.Now;
 
             await _db.SaveChangesAsync();
@@ -1111,6 +1114,7 @@ namespace CaseFlow.Server.Controllers
         public string? Priority { get; set; }
         public string Description { get; set; } = "";
         public int? RelatedCaseId { get; set; }
+        public DateTime? OccurredAt { get; set; }
     }
 
     public class CaseUpdateDto
@@ -1123,6 +1127,7 @@ namespace CaseFlow.Server.Controllers
         public string? CaseType { get; set; }
         public string? Priority { get; set; }
         public string? Description { get; set; }
+        public DateTime? OccurredAt { get; set; }
     }
 
     public class AssignDto
