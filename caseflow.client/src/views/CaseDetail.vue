@@ -754,12 +754,9 @@ const logAttachments = ref([])
 
 function formatDateShort(v) {
   if (!v) return '-'
-  const d = new Date(v)
+  const d = parseServerDateTime(v)
   if (isNaN(d.getTime())) return '-'
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' })
 }
 
 // 引用歷史案件 modal
@@ -999,7 +996,7 @@ function openAssignModal() {
 
 const slaBadge = computed(() => {
   if (!caseData.value?.due_at) return null
-  const ms = new Date(caseData.value.due_at) - Date.now()
+  const ms = parseServerDateTime(caseData.value.due_at) - Date.now()
   if (ms < 0) return '已逆期'
   const hrs = Math.floor(ms / 3600000)
   if (hrs < 24) return `剩 ${hrs}h`
@@ -1009,7 +1006,7 @@ const slaBadge = computed(() => {
 
 const slaUrgent = computed(() => {
   if (!caseData.value?.due_at) return false
-  const ms = new Date(caseData.value.due_at) - Date.now()
+  const ms = parseServerDateTime(caseData.value.due_at) - Date.now()
   return ms < 0 || ms < 24 * 3600000
 })
 

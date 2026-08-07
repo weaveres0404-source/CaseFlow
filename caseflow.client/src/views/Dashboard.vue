@@ -167,6 +167,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useMetaStore } from '../stores/meta'
 import api from '../utils/api'
+import { parseServerDateTime } from '../utils/date'
 
 defineOptions({ name: 'DashboardView' })
 
@@ -303,7 +304,7 @@ function goToCase(caseId) {
 
 function formatTime(dt) {
   if (!dt) return ''
-  const d = new Date(dt)
+  const d = parseServerDateTime(dt)
   const diff = (Date.now() - d) / 1000
   if (diff < 60) return '剛剛'
   if (diff < 3600) return `${Math.floor(diff / 60)} 分鐘前`

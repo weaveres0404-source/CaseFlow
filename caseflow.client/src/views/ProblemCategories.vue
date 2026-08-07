@@ -215,6 +215,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import api from '../utils/api'
 import { useMetaStore } from '../stores/meta'
+import { parseServerDateTime } from '../utils/date'
 
 defineOptions({
   name: 'ProblemCategoriesAdminView'
@@ -372,7 +373,7 @@ async function confirmDelete(category) {
 
 function formatTime(iso) {
   if (!iso) return '—'
-  const date = new Date(iso)
+  const date = parseServerDateTime(iso)
   if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleString('zh-TW', {
     timeZone: 'Asia/Taipei',

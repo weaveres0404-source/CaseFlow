@@ -110,6 +110,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { parseServerDateTime } from '../utils/date'
 
 defineOptions({
   name: 'UserProfileView'
@@ -133,7 +134,7 @@ const lastLoginText = computed(() => formatTime(user.value?.last_login_at))
 
 function formatTime(iso) {
   if (!iso) return '—'
-  const date = new Date(iso)
+  const date = parseServerDateTime(iso)
   if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleString('zh-TW', {
     timeZone: 'Asia/Taipei',

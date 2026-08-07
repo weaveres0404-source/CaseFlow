@@ -111,6 +111,7 @@
 import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../utils/api'
+import { parseServerDateTime } from '../utils/date'
 
 defineOptions({
   name: 'NotificationsCenterView'
@@ -181,7 +182,7 @@ function typeColor(t) {
 }
 function formatTime(iso) {
   if (!iso) return ''
-  const d = new Date(iso)
+  const d = parseServerDateTime(iso)
   return d.toLocaleString('zh-TW', {
     timeZone: 'Asia/Taipei',
     month: '2-digit',

@@ -608,7 +608,7 @@ function activeSEs(c) {
 
 function slaText(c) {
   if (!c.due_at) return null
-  const ms = new Date(c.due_at) - Date.now()
+  const ms = parseServerDateTime(c.due_at) - Date.now()
   if (ms < 0) return '已逾期'
   const hrs = Math.floor(ms / 3600000)
   if (hrs < 24) return `剩 ${hrs}h`
@@ -619,7 +619,7 @@ function slaText(c) {
 
 function slaUrgent(c) {
   if (!c.due_at) return false
-  const ms = new Date(c.due_at) - Date.now()
+  const ms = parseServerDateTime(c.due_at) - Date.now()
   return ms < 0 || ms < 24 * 3600000
 }
 
