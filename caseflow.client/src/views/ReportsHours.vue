@@ -233,9 +233,9 @@ async function exportCustomProjectExcel(customExport) {
 function buildSudaWorkbook(sourceRows) {
   const workbook = new ExcelJS.Workbook()
   const sheet = workbook.addWorksheet('List')
-  const headers = ['提出\n日期', '系統別', '反應內容', '負責單位', '狀態', '調查結果', '改善措施', '投入工時', '結案\n日期', '編號', '需求單', '分類', '處理人員']
+  const headers = ['提出\n日期', '補件\n日期', '系統別', '反應內容', '負責單位', '狀態', '調查結果', '改善措施', '投入工時', '結案\n日期', '編號', '需求單', '分類', '處理人員']
   const headerFills = [
-    'FFDEEAF6', 'FFFFFF00', 'FFDEEAF6', 'FFFFFF00', 'FFDEEAF6', 'FFDEEAF6', 'FFFFFF00',
+    'FFDEEAF6', 'FFDEEAF6', 'FFFFFF00', 'FFDEEAF6', 'FFFFFF00', 'FFDEEAF6', 'FFDEEAF6', 'FFFFFF00',
     'FFDEEAF6', 'FFA8D08D', 'FFA8D08D', 'FFA8D08D', 'FFA8D08D', 'FFA8D08D'
   ]
   const baseFont = { name: 'PMingLiu', family: 1, charset: 136, size: 12, color: { theme: 1 } }
@@ -246,6 +246,7 @@ function buildSudaWorkbook(sourceRows) {
   sourceRows.forEach(row => {
     sheet.addRow([
       toExcelDate(row.submitted_date),
+      toExcelDate(row.occurred_date),
       row.system || '客服',
       row.response_content || '',
       row.owner_unit || '矩明',
@@ -262,6 +263,7 @@ function buildSudaWorkbook(sourceRows) {
   })
 
   sheet.columns = [
+    { width: 7.125 },
     { width: 7.125 },
     { width: 6.875 },
     { width: 24.75 },
@@ -280,12 +282,12 @@ function buildSudaWorkbook(sourceRows) {
   sheet.getRow(1).height = 8.25
   sheet.getRow(2).height = 37.5
 
-  for (let columnNumber = 1; columnNumber <= 13; columnNumber += 1) {
+  for (let columnNumber = 1; columnNumber <= 14; columnNumber += 1) {
     const topCell = sheet.getCell(1, columnNumber)
     topCell.font = baseFont
-    topCell.alignment = columnNumber <= 5 || columnNumber === 9 || columnNumber === 12
+    topCell.alignment = columnNumber <= 6 || columnNumber === 10 || columnNumber === 13
       ? { horizontal: 'center', vertical: 'middle' }
-      : { vertical: 'middle', wrapText: columnNumber === 6 || columnNumber === 7 }
+      : { vertical: 'middle', wrapText: columnNumber === 7 || columnNumber === 8 }
 
     const headerCell = sheet.getCell(2, columnNumber)
     headerCell.font = baseFont
@@ -295,18 +297,18 @@ function buildSudaWorkbook(sourceRows) {
       fgColor: { argb: headerFills[columnNumber - 1] },
       bgColor: { argb: headerFills[columnNumber - 1] }
     }
-    headerCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: headers[columnNumber - 1].includes('\n') || [2, 3, 4, 6, 7, 9].includes(columnNumber) }
+    headerCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: headers[columnNumber - 1].includes('\n') || [3, 4, 5, 7, 8, 10].includes(columnNumber) }
     headerCell.border = tableBorder()
-    if (columnNumber === 8) headerCell.numFmt = '0.0_);[Red](0.0)'
+    if (columnNumber === 9) headerCell.numFmt = '0.0_);[Red](0.0)'
   }
 
   for (let rowNumber = 3; rowNumber <= sheet.rowCount; rowNumber += 1) {
     const row = sheet.getRow(rowNumber)
     row.height = sudaRowHeight(row)
 
-    for (let columnNumber = 1; columnNumber <= 13; columnNumber += 1) {
+    for (let columnNumber = 1; columnNumber <= 14; columnNumber += 1) {
       const cell = row.getCell(columnNumber)
-      cell.font = columnNumber === 11
+      cell.font = columnNumber === 12
         ? { name: 'Calibri', family: 2, size: 12, color: { theme: 1 } }
         : baseFont
       cell.fill = { type: 'pattern', pattern: 'none' }
@@ -315,16 +317,17 @@ function buildSudaWorkbook(sourceRows) {
     }
 
     row.getCell(1).numFmt = 'mm/dd'
-    row.getCell(8).numFmt = '0.0_);[Red](0.0)'
-    row.getCell(9).numFmt = 'm/d'
+    row.getCell(2).numFmt = 'mm/dd'
+    row.getCell(9).numFmt = '0.0_);[Red](0.0)'
+    row.getCell(10).numFmt = 'm/d'
   }
 
-  sheet.autoFilter = 'A2:M2'
+  sheet.autoFilter = 'A2:N2'
   sheet.views = [{
     state: 'frozen',
     xSplit: 1,
     ySplit: 2,
-    topLeftCell: 'B5',
+    topLeftCell: 'C5',
     activeCell: 'A2',
     showGridLines: true
   }]
@@ -341,20 +344,20 @@ function tableBorder() {
 }
 
 function sudaCellAlignment(columnNumber) {
-  if ([1, 2, 4, 5, 9, 12].includes(columnNumber)) {
+  if ([1, 2, 3, 5, 6, 10, 13].includes(columnNumber)) {
     return { horizontal: 'center', vertical: 'middle' }
   }
-  if ([3, 6, 10].includes(columnNumber)) {
-    return { horizontal: 'left', vertical: 'middle', wrapText: columnNumber === 6 }
+  if ([4, 7, 11].includes(columnNumber)) {
+    return { horizontal: 'left', vertical: 'middle', wrapText: columnNumber === 7 }
   }
-  if ([7, 13].includes(columnNumber)) {
+  if ([8, 14].includes(columnNumber)) {
     return { vertical: 'middle', wrapText: true }
   }
   return { vertical: 'middle' }
 }
 
 function sudaRowHeight(row) {
-  const lineCount = [3, 6, 7, 13].reduce((maxLines, columnNumber) => {
+  const lineCount = [4, 7, 8, 14].reduce((maxLines, columnNumber) => {
     const value = row.getCell(columnNumber).value
     const text = value == null ? '' : String(value)
     return Math.max(maxLines, text.split('\n').length)
