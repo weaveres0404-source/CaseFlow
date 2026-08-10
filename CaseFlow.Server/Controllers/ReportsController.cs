@@ -145,13 +145,13 @@ namespace CaseFlow.Server.Controllers
             var dateFilteredQuery = logsQuery;
             if (dto.DateFrom.HasValue)
             {
-                var from = DateOnly.FromDateTime(dto.DateFrom.Value);
-                dateFilteredQuery = dateFilteredQuery.Where(l => l.LogDate >= from);
+                var fromDt = dto.DateFrom.Value.Date;
+                dateFilteredQuery = dateFilteredQuery.Where(l => (l.Case.OccurredAt ?? l.Case.CreatedAt) >= fromDt);
             }
             if (dto.DateTo.HasValue)
             {
-                var to = DateOnly.FromDateTime(dto.DateTo.Value);
-                dateFilteredQuery = dateFilteredQuery.Where(l => l.LogDate <= to);
+                var toDt = dto.DateTo.Value.Date.AddDays(1);
+                dateFilteredQuery = dateFilteredQuery.Where(l => (l.Case.OccurredAt ?? l.Case.CreatedAt) < toDt);
             }
             var matchedCaseIds = await dateFilteredQuery.Select(l => l.CaseId).Distinct().ToListAsync();
 
@@ -299,18 +299,24 @@ namespace CaseFlow.Server.Controllers
             if (created_by.HasValue) logsQuery = logsQuery.Where(l => l.Case.CreatedBy == created_by.Value);
             if (assigned_pm_id.HasValue) logsQuery = logsQuery.Where(l => l.Case.AssignedPmId == assigned_pm_id.Value);
             if (handler_user_id.HasValue) logsQuery = logsQuery.Where(l => l.HandlerUserId == handler_user_id.Value);
+
+            // Date range matches cases by Case.OccurredAt (fallback CreatedAt), not CaseLog.LogDate,
+            // then pulls ALL of that case's logs so totals match the case detail page (consistent
+            // with /reports/export and /reports/custom/suda-hours).
+            var dateFilteredQuery = logsQuery;
             if (date_from.HasValue)
             {
-                var from = DateOnly.FromDateTime(date_from.Value);
-                logsQuery = logsQuery.Where(l => l.LogDate >= from);
+                var fromDt = date_from.Value.Date;
+                dateFilteredQuery = dateFilteredQuery.Where(l => (l.Case.OccurredAt ?? l.Case.CreatedAt) >= fromDt);
             }
             if (date_to.HasValue)
             {
-                var to = DateOnly.FromDateTime(date_to.Value);
-                logsQuery = logsQuery.Where(l => l.LogDate <= to);
+                var toDt = date_to.Value.Date.AddDays(1);
+                dateFilteredQuery = dateFilteredQuery.Where(l => (l.Case.OccurredAt ?? l.Case.CreatedAt) < toDt);
             }
+            var matchedCaseIds = await dateFilteredQuery.Select(l => l.CaseId).Distinct().ToListAsync();
 
-            var logs = await logsQuery.ToListAsync();
+            var logs = await logsQuery.Where(l => matchedCaseIds.Contains(l.CaseId)).ToListAsync();
 
             object result;
 
@@ -455,6 +461,7 @@ namespace CaseFlow.Server.Controllers
                     return new
                     {
                         submitted_date = caseEntity.CreatedAt.ToString("yyyy-MM-dd"),
+                        occurred_date = caseEntity.OccurredAt.HasValue ? caseEntity.OccurredAt.Value.ToString("yyyy-MM-dd") : "",
                         system = "客服",
                         response_content = caseEntity.Description,
                         owner_unit = "矩明",
@@ -478,6 +485,7 @@ namespace CaseFlow.Server.Controllers
                 var xlsxRows = rows.Select(r => (object)new Dictionary<string, object>
                 {
                     ["提報日期"] = r.submitted_date,
+                    ["補件日期"] = r.occurred_date,
                     ["系統"] = r.system,
                     ["問題內容"] = r.response_content,
                     ["負責單位"] = r.owner_unit,
@@ -490,7 +498,8 @@ namespace CaseFlow.Server.Controllers
                     ["需求單號"] = r.request_no,
                     ["分類"] = r.category,
                     ["處理人員"] = r.handlers
-                }).ToList();
+                }
+                ).ToList();
 
                 var xlsxStream = new MemoryStream();
                 await xlsxStream.SaveAsAsync(xlsxRows);
