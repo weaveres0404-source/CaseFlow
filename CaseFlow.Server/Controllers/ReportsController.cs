@@ -461,7 +461,7 @@ namespace CaseFlow.Server.Controllers
                     return new
                     {
                         submitted_date = caseEntity.CreatedAt.ToString("yyyy-MM-dd"),
-                        occurred_date = caseEntity.OccurredAt.HasValue ? caseEntity.OccurredAt.Value.ToString("yyyy-MM-dd") : "",
+                        occurred_date = (caseEntity.OccurredAt ?? caseEntity.CreatedAt).ToString("yyyy-MM-dd"),
                         system = "客服",
                         response_content = caseEntity.Description,
                         owner_unit = "矩明",
