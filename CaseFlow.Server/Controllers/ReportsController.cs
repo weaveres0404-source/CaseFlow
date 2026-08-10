@@ -395,8 +395,13 @@ namespace CaseFlow.Server.Controllers
             }
 
             // 日期區間先找出「命中的 CaseId」，再撈出該案件所有 log（使工時 = 詳情頁工時）
+            // Date range now matches on Case.OccurredAt (fallback CreatedAt) instead of
+            // CaseLog.LogDate, per customer requirement to bucket cases by occurred/submission date.
+            var fromDt = from.ToDateTime(TimeOnly.MinValue);
+            var toExclusiveDt = toExclusive.ToDateTime(TimeOnly.MinValue);
             var matchedCaseIds = await baseQuery
-                .Where(l => l.LogDate >= from && l.LogDate < toExclusive)
+                .Where(l => (l.Case.OccurredAt ?? l.Case.CreatedAt) >= fromDt
+                    && (l.Case.OccurredAt ?? l.Case.CreatedAt) < toExclusiveDt)
                 .Select(l => l.CaseId)
                 .Distinct()
                 .ToListAsync();
