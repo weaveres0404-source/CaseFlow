@@ -350,7 +350,8 @@ namespace CaseFlow.Server.Controllers
         public async Task<IActionResult> GetSudaHoursExport(
             [FromQuery] int project_id,
             [FromQuery] DateTime? date_from = null,
-            [FromQuery] DateTime? date_to = null)
+            [FromQuery] DateTime? date_to = null,
+            [FromQuery] string format = "json")
         {
             if (project_id <= 0)
                 return BadRequest(new { success = false, error = new { code = "VALIDATION_ERROR", message = "project_id is required" } });
@@ -471,6 +472,32 @@ namespace CaseFlow.Server.Controllers
                 .OrderBy(r => r.submitted_date)
                 .ThenBy(r => r.case_number)
                 .ToList();
+
+            if (string.Equals(format, "xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                var xlsxRows = rows.Select(r => (object)new Dictionary<string, object>
+                {
+                    ["提報日期"] = r.submitted_date,
+                    ["系統"] = r.system,
+                    ["問題內容"] = r.response_content,
+                    ["負責單位"] = r.owner_unit,
+                    ["狀態"] = r.status,
+                    ["調查結果"] = r.investigation_result,
+                    ["改善對策"] = r.improvement_action,
+                    ["工時"] = r.hours_spent,
+                    ["結案日期"] = r.closed_date,
+                    ["案件編號"] = r.case_number,
+                    ["需求單號"] = r.request_no,
+                    ["分類"] = r.category,
+                    ["處理人員"] = r.handlers
+                }).ToList();
+
+                var xlsxStream = new MemoryStream();
+                await xlsxStream.SaveAsAsync(xlsxRows);
+                xlsxStream.Position = 0;
+                var xlsxFilename = string.Format("SudaHours_{0}_{1}.xlsx", project.code, TimeHelper.Now.ToString("yyyyMMdd_HHmmss"));
+                return File(xlsxStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", xlsxFilename);
+            }
 
             return Ok(new
             {
