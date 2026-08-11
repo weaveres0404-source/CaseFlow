@@ -327,7 +327,7 @@ function buildSudaWorkbook(sourceRows) {
     state: 'frozen',
     xSplit: 1,
     ySplit: 2,
-    topLeftCell: 'C5',
+    topLeftCell: 'B5',
     activeCell: 'A2',
     showGridLines: true
   }]
