@@ -169,7 +169,7 @@ public class ProblemCategoriesControllerTests : ControllerTestBase
     public async Task Create_BlankCategoryName_ReturnsBadRequest()
     {
         // Arrange
-        var dto = new ProblemCategory { CategoryName = "  " };
+        var dto = new ProblemCategoriesController.CategoryDto { CategoryName = "  " };
 
         // Act
         var result = await _sut.Create(dto);
@@ -183,7 +183,7 @@ public class ProblemCategoriesControllerTests : ControllerTestBase
     public async Task Create_ValidDto_ReturnsCreated()
     {
         // Arrange
-        var dto = new ProblemCategory
+        var dto = new ProblemCategoriesController.CategoryDto
         {
             CategoryName = "Hardware Failure",
             Description = "Any hardware related",
@@ -208,7 +208,7 @@ public class ProblemCategoriesControllerTests : ControllerTestBase
     public async Task Update_NonExistentId_ReturnsNotFound()
     {
         // Arrange
-        var dto = new ProblemCategory { CategoryName = "Anything", SortOrder = 1, IsActive = true };
+        var dto = new ProblemCategoriesController.CategoryDto { CategoryName = "Anything", SortOrder = 1, IsActive = true };
 
         // Act
         var result = await _sut.Update(99999, dto);
@@ -223,7 +223,7 @@ public class ProblemCategoriesControllerTests : ControllerTestBase
     {
         // Arrange
         await SeedCategoryAsync(categoryId: 10, name: "OldName", sortOrder: 1);
-        var dto = new ProblemCategory
+        var dto = new ProblemCategoriesController.CategoryDto
         {
             CategoryName = "UpdatedName",
             Description = "New desc",
