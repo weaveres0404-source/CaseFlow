@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("temp_list_types")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb8626c755fcb86648b82454473fd58d53862f5d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f492196ddb4070ceacf046937ee2cdf6a20d9d46")]
 [assembly: System.Reflection.AssemblyProductAttribute("temp_list_types")]
 [assembly: System.Reflection.AssemblyTitleAttribute("temp_list_types")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
