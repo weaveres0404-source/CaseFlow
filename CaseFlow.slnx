@@ -1,5 +1,4 @@
 <Solution>
-  <Project Path="c:/Users/User/AppData/Local/Temp/dbcheck/jsontest/jsontest.csproj" />
   <Project Path="caseflow.client/caseflow.client.esproj">
     <Build />
     <Deploy />

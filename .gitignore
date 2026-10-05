@@ -1,0 +1,23 @@
+# Build outputs
+**/bin/
+**/obj/
+**/.vs/
+**/[Dd]ebug/
+**/[Rr]elease/
+
+# Node / Vite
+node_modules/
+**/dist/
+**/.vite/
+
+# Logs
+*.log
+
+# User-specific / local
+*.user
+.env
+.env.*
+
+# Temp/scratch folders used during debugging
+.tmp-dbprobe/
+.build-validation/
