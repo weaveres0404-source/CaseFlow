@@ -123,7 +123,8 @@ const roleLabel = computed(() => ({
   ADMIN: '系統管理員',
   SysAdmin: '系統管理員',
   PM: '專案經理',
-  SE: '專案成員'
+  SE: '專案成員',
+  Customer: '客戶使用者'
 }[user.value?.role] || user.value?.role || '未定義角色'))
 
 const displayName = computed(() => user.value?.full_name || user.value?.username || '未命名使用者')

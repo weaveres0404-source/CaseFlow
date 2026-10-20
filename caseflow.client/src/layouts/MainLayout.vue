@@ -13,7 +13,7 @@
         </div>
 
         <div class="flex items-center gap-5 lg:gap-7 shrink-0">
-          <router-link to="/notifications" class="relative text-slate-500 transition-colors hover:text-slate-700">
+          <router-link v-if="auth.role !== 'Customer'" to="/notifications" class="relative text-slate-500 transition-colors hover:text-slate-700">
             <svg class="h-[22px] w-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.25 18.75a2.25 2.25 0 01-4.5 0M4.5 16.5h15c-.75-.75-1.5-2.625-1.5-6a6 6 0 10-12 0c0 3.375-.75 5.25-1.5 6z" />
             </svg>
@@ -92,8 +92,8 @@
           </div>
 
           <!-- 報表 group -->
-          <div v-if="!sidebarCollapsed" class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">報表</div>
-          <div :class="sidebarCollapsed ? 'flex flex-col items-center gap-1 w-full mt-2' : 'space-y-0.5'">
+          <div v-if="reportItems.length > 0 && !sidebarCollapsed" class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">報表</div>
+          <div v-if="reportItems.length > 0" :class="sidebarCollapsed ? 'flex flex-col items-center gap-1 w-full mt-2' : 'space-y-0.5'">
             <router-link
               v-for="item in reportItems"
               :key="item.path"
@@ -188,8 +188,8 @@
                   <span class="flex-1">{{ item.label }}</span>
                 </router-link>
               </div>
-              <div class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">報表</div>
-              <div class="space-y-0.5">
+              <div v-if="reportItems.length > 0" class="px-3 pt-4 pb-1 text-[10px] font-medium text-slate-400 tracking-wider uppercase">報表</div>
+              <div v-if="reportItems.length > 0" class="space-y-0.5">
                 <router-link v-for="item in reportItems" :key="`mobile-report-${item.path}`" :to="item.path"
                   class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all" :class="navItemClass(item)" @click="closeMobileMenu">
                   <span v-if="isActive(item)" class="nav-active-bar"></span>
@@ -249,6 +249,10 @@ const unreadCount = ref(0)
 let pollTimer = null
 
 const primaryItems = computed(() => {
+  if (auth.user?.role === 'Customer') {
+    return [{ path: '/cases', label: '案件列表', icon: 'cases', exact: true }]
+  }
+
   const items = [
     { path: '/dashboard', label: '儀表板', icon: 'dashboard', match: 'dashboard' },
     { path: '/cases', label: '案件列表', icon: 'cases', exact: true }
@@ -261,17 +265,21 @@ const primaryItems = computed(() => {
   return items
 })
 
-const reportItems = [
-  { path: '/reports/hours', label: '工時統計', icon: 'hours', exact: true }
-]
+const reportItems = computed(() => auth.user?.role === 'Customer'
+  ? []
+  : [{ path: '/reports/hours', label: '工時統計', icon: 'hours', exact: true }]
+)
 
-const systemItems = [
-  { path: '/notifications', label: '通知中心', icon: 'notifications', exact: true },
-  { path: '/profile', label: '個人設定', icon: 'profile', exact: true }
-]
+const systemItems = computed(() => auth.user?.role === 'Customer'
+  ? [{ path: '/profile', label: '個人設定', icon: 'profile', exact: true }]
+  : [
+      { path: '/notifications', label: '通知中心', icon: 'notifications', exact: true },
+      { path: '/profile', label: '個人設定', icon: 'profile', exact: true }
+    ]
+)
 
 const allNavItems = computed(() => {
-  return [...primaryItems.value, ...reportItems, ...systemItems]
+  return [...primaryItems.value, ...reportItems.value, ...systemItems.value]
 })
 
 const pageTitle = computed(() => {
@@ -280,7 +288,7 @@ const pageTitle = computed(() => {
 })
 
 const roleLabel = computed(() =>
-  ({ ADMIN: '系統管理員', SysAdmin: '系統管理員', PM: '專案經理', SE: '專案成員' }[auth.user?.role] || auth.user?.role || '未登入')
+  ({ ADMIN: '系統管理員', SysAdmin: '系統管理員', PM: '專案經理', SE: '專案成員', Customer: '客戶使用者' }[auth.user?.role] || auth.user?.role || '未登入')
 )
 
 const displayName = computed(() => auth.user?.full_name || auth.user?.username || '使用者')
@@ -357,8 +365,10 @@ onMounted(async () => {
     }
   }
 
-  fetchUnread()
-  pollTimer = setInterval(fetchUnread, 30000)
+  if (auth.role !== 'Customer') {
+    fetchUnread()
+    pollTimer = setInterval(fetchUnread, 30000)
+  }
 })
 
 onUnmounted(() => {

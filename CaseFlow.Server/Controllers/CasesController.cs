@@ -109,6 +109,15 @@ namespace CaseFlow.Server.Controllers
                     .Select(a => a.CaseId).Distinct().ToListAsync();
                 query = query.Where(c => assignedCaseIdsForCurrentUser.Contains(c.CaseId));
             }
+            else if (role == "Customer")
+            {
+                var myProjectIds = await _db.ProjectMembers.AsNoTracking()
+                    .Where(pm => pm.UserId == userId && pm.IsActive)
+                    .Select(pm => pm.ProjectId)
+                    .Distinct()
+                    .ToListAsync();
+                query = query.Where(c => myProjectIds.Contains(c.ProjectId));
+            }
 
             // 篩選條件
             if (project_id.HasValue) query = query.Where(c => c.ProjectId == project_id.Value);
@@ -259,6 +268,13 @@ namespace CaseFlow.Server.Controllers
                     allowedView = c.CaseAssignments.Any(a => a.SeUserId == userId && a.IsActive);
                 }
             }
+            else if (!allowedView && role == "Customer")
+            {
+                allowedView = await _db.ProjectMembers.AsNoTracking()
+                    .AnyAsync(pm => pm.UserId == userId
+                        && pm.ProjectId == c.ProjectId
+                        && pm.IsActive);
+            }
 
             if (!allowedView)
             {
@@ -269,6 +285,17 @@ namespace CaseFlow.Server.Controllers
                 if (hadAccess)
                     return StatusCode(403, new { success = false, error = new { code = "ACCESS_REVOKED", message = "該案件已取消轉派給您" } });
                 return StatusCode(403, new { success = false, error = new { code = "FORBIDDEN", message = "您沒有權限查看此案件" } });
+            }
+
+            HashSet<int>? customerProjectIds = null;
+            if (role == "Customer")
+            {
+                customerProjectIds = (await _db.ProjectMembers.AsNoTracking()
+                    .Where(pm => pm.UserId == userId && pm.IsActive)
+                    .Select(pm => pm.ProjectId)
+                    .Distinct()
+                    .ToListAsync())
+                    .ToHashSet();
             }
 
             // 附件需另查 (多態關聯)
@@ -311,7 +338,10 @@ namespace CaseFlow.Server.Controllers
                 assigned_pm = c.AssignedPm != null ? new { id = c.AssignedPm.UserId, full_name = c.AssignedPm.FullName } : null,
                 closed_by = c.ClosedByNavigation != null ? new { id = c.ClosedByNavigation.UserId, full_name = c.ClosedByNavigation.FullName } : null,
                 cancelled_by = c.CancelledByNavigation != null ? new { id = c.CancelledByNavigation.UserId, full_name = c.CancelledByNavigation.FullName } : null,
-                related_case = c.RelatedCase != null ? new { id = c.RelatedCase.CaseId, short_id = SlugHelper.Encode(c.RelatedCase.CaseId), case_number = c.RelatedCase.CaseNumber } : null,
+                related_case = c.RelatedCase != null
+                    && (customerProjectIds == null || customerProjectIds.Contains(c.RelatedCase.ProjectId))
+                    ? new { id = c.RelatedCase.CaseId, short_id = SlugHelper.Encode(c.RelatedCase.CaseId), case_number = c.RelatedCase.CaseNumber }
+                    : null,
                 relation_type = c.RelationType,
                 closed_at = c.ClosedAt,
                 cancelled_at = c.CancelledAt,
@@ -340,7 +370,10 @@ namespace CaseFlow.Server.Controllers
                     headcount = l.Headcount,
                     status_after = l.StatusAfter,
                     created_at = l.CreatedAt,
-                    ref_case = l.RefCase == null ? null : new { id = l.RefCase.CaseId, short_id = SlugHelper.Encode(l.RefCase.CaseId), case_number = l.RefCase.CaseNumber }
+                    ref_case = l.RefCase != null
+                        && (customerProjectIds == null || customerProjectIds.Contains(l.RefCase.ProjectId))
+                        ? new { id = l.RefCase.CaseId, short_id = SlugHelper.Encode(l.RefCase.CaseId), case_number = l.RefCase.CaseNumber }
+                        : null
                 }),
                 estimations = c.CaseEstimations.OrderBy(e => e.SeqNo).Select(e => new
                 {

@@ -197,12 +197,12 @@
                 <span class="text-slate-400">({{ repliedEstimationCount }} 項)</span>
               </template>
             </div>
-            <button @click="showLogForm = !showLogForm"
+            <button v-if="!isReadOnlyCustomer" @click="showLogForm = !showLogForm"
               class="inline-flex h-8 items-center rounded-lg border border-brand-700 bg-brand-700 px-3 text-xs font-medium text-white shadow-sm transition hover:border-brand-800 hover:bg-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">
               + 新增紀錄
             </button>
           </div>
-            <div v-if="showLogForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div v-if="showLogForm && !isReadOnlyCustomer" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
             <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">新增處理紀錄</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div><label class="label">處理日期 *</label><input v-model="logForm.log_date" type="date" class="input-base" /></div>
@@ -392,12 +392,12 @@
         <div v-if="activeTab === 'replies'" class="space-y-4">
           <div class="flex items-center justify-between">
             <p class="text-sm text-slate-500">回覆客戶紀錄</p>
-            <button @click="showReplyForm = !showReplyForm"
+            <button v-if="!isReadOnlyCustomer" @click="showReplyForm = !showReplyForm"
               class="h-8 px-3 rounded-lg text-xs font-medium bg-brand-700 text-white hover:bg-brand-800">
               + 新增回覆
             </button>
           </div>
-          <div v-if="showReplyForm" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <div v-if="showReplyForm && !isReadOnlyCustomer" class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
             <div><label class="label">回覆日期</label><input v-model="replyForm.reply_date" type="date" class="input-base" /></div>
             <div><label class="label">回覆內容 *</label><textarea v-model="replyForm.reply_content" rows="5" class="input-base resize-y" placeholder="回覆內容…"></textarea></div>
             <div class="flex justify-end gap-2">
@@ -687,6 +687,7 @@ const route = useRoute()
 const router = useRouter()
 const meta = useMetaStore()
 const auth = useAuthStore()
+const isReadOnlyCustomer = computed(() => auth.role === 'Customer')
 
 const caseData = ref(null)
 const isLoading = ref(true)

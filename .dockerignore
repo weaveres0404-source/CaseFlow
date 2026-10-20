@@ -1,5 +1,8 @@
 **/bin/
 **/obj/
 **/.vs/
-node_modules/
+**/node_modules/
+**/dist/
+**/.vite/
+**/.ignored/
 .git/

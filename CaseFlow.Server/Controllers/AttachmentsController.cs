@@ -86,6 +86,9 @@ namespace CaseFlow.Server.Controllers
             if (att == null)
                 return NotFound(new { success = false, error = new { code = "NOT_FOUND", message = "Attachment not found" } });
 
+            if (User.GetRole() == "Customer" && !await CanCustomerAccessAsync(att))
+                return StatusCode(403, new { success = false, error = new { code = "FORBIDDEN", message = "您沒有權限下載此附件" } });
+
             var stream = await _gcsStorageService.DownloadAsync(att.StoredName);
 
             return File(
@@ -110,6 +113,38 @@ namespace CaseFlow.Server.Controllers
             await _db.SaveChangesAsync();
 
             return Ok(new { success = true });
+        }
+
+        private async Task<bool> CanCustomerAccessAsync(Attachment attachment)
+        {
+            int? projectId = attachment.EntityType switch
+            {
+                "case" => await _db.Cases.AsNoTracking()
+                    .Where(c => c.CaseId == attachment.EntityId)
+                    .Select(c => (int?)c.ProjectId)
+                    .FirstOrDefaultAsync(),
+                "case_log" => await _db.CaseLogs.AsNoTracking()
+                    .Where(log => log.LogId == attachment.EntityId)
+                    .Select(log => (int?)log.Case.ProjectId)
+                    .FirstOrDefaultAsync(),
+                "case_estimation" => await _db.CaseEstimations.AsNoTracking()
+                    .Where(estimation => estimation.EstimationId == attachment.EntityId)
+                    .Select(estimation => (int?)estimation.Case.ProjectId)
+                    .FirstOrDefaultAsync(),
+                "case_reply" => await _db.CaseReplies.AsNoTracking()
+                    .Where(reply => reply.ReplyId == attachment.EntityId)
+                    .Select(reply => (int?)reply.Case.ProjectId)
+                    .FirstOrDefaultAsync(),
+                _ => null
+            };
+
+            if (!projectId.HasValue) return false;
+
+            var userId = User.GetUserId();
+            return await _db.ProjectMembers.AsNoTracking()
+                .AnyAsync(member => member.UserId == userId
+                    && member.ProjectId == projectId.Value
+                    && member.IsActive);
         }
     }
 }

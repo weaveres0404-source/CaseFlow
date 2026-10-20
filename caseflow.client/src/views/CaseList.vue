@@ -4,8 +4,8 @@
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="text-xs text-slate-500 mb-1 flex items-center gap-1">
-          <router-link to="/dashboard" class="hover:text-slate-700">儀表板</router-link>
-          <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <router-link v-if="!isReadOnlyCustomer" to="/dashboard" class="hover:text-slate-700">儀表板</router-link>
+          <svg v-if="!isReadOnlyCustomer" class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           <span class="text-slate-700">案件列表</span>
         </div>
         <div class="flex items-center gap-3">
@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button @click="exportCases" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm text-slate-700">
+        <button v-if="!isReadOnlyCustomer" @click="exportCases" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm text-slate-700">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           <span class="hidden sm:inline">匯出</span>
         </button>
@@ -136,10 +136,10 @@
       </div>
     </section>
 
-    <div v-if="selectedCount > 0" class="rounded-xl bg-brand-700 px-4 py-2.5 text-sm text-white shadow-sm flex items-center gap-3">
+    <div v-if="selectedCount > 0 && !isReadOnlyCustomer" class="rounded-xl bg-brand-700 px-4 py-2.5 text-sm text-white shadow-sm flex items-center gap-3">
       <span class="tabular-nums">{{ selectedCount }} 件已選取</span>
       <div class="flex-1"></div>
-      <button v-if="auth.role !== 'SE'" type="button" @click="openAssignModal" class="px-2.5 h-8 rounded-md bg-white/10 hover:bg-white/20 inline-flex items-center gap-1.5">
+      <button v-if="auth.role !== 'SE' && !isReadOnlyCustomer" type="button" @click="openAssignModal" class="px-2.5 h-8 rounded-md bg-white/10 hover:bg-white/20 inline-flex items-center gap-1.5">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h6m6-5v6m3-3h-6"/></svg>
         批次派工
       </button>
@@ -175,7 +175,7 @@
             <tr class="[&_th]:px-3 [&_th]:py-2.5 [&_th]:font-medium [&_th]:whitespace-nowrap">
               <th class="min-w-[150px] sticky left-0 bg-slate-50 z-10">
                 <label class="inline-flex items-center gap-2 cursor-pointer">
-                  <input :checked="allSelectedOnPage" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600" @change="toggleSelectAllPage" />
+                  <input v-if="!isReadOnlyCustomer" :checked="allSelectedOnPage" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600" @change="toggleSelectAllPage" />
                   <span>案件編號</span>
                   <svg class="w-3 h-3 inline text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
                 </label>
@@ -199,7 +199,7 @@
               @click="$router.push(`/cases/${c.short_id || c.id}`)">
               <td class="sticky left-0 bg-white group-hover:bg-slate-50 transition z-[1]">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <input :checked="selectedIds.includes(c.id)" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600" @click.stop @change="toggleRowSelection(c.id)" />
+                  <input v-if="!isReadOnlyCustomer" :checked="selectedIds.includes(c.id)" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600" @click.stop @change="toggleRowSelection(c.id)" />
                   <span class="tabular-nums text-indigo-700 font-medium text-[13px]">{{ c.case_number }}</span>
                   <span v-if="c.status === 40 && isCreator(c)" class="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap ml-1"
                     :class="'bg-green-50 text-green-700 ring-1 ring-green-200'">待確認</span>
@@ -373,6 +373,7 @@ defineOptions({
 const route = useRoute()
 const meta = useMetaStore()
 const auth = useAuthStore()
+const isReadOnlyCustomer = computed(() => auth.role === 'Customer')
 
 const isCreator = (item) => {
   const myId = auth.user?.id ?? auth.user?.user_id
@@ -424,9 +425,13 @@ const baseQuickTabs = [
   { key: 'open', label: '未結案' }
 ]
 
-const quickTabs = computed(() => [...baseQuickTabs])
+const quickTabs = computed(() => isReadOnlyCustomer.value
+  ? baseQuickTabs.filter(tab => ['all', 'open'].includes(tab.key))
+  : [...baseQuickTabs]
+)
 
 const roleBadgeText = computed(() => {
+  if (auth.role === 'Customer') return `專案案件 ${totalCount.value} 件`
   if (auth.role === 'SE') return `我的案件 ${totalCount.value} 件`
   if (auth.role === 'PM') return `專案內 ${totalCount.value} 件`
   return `全系統 ${totalCount.value} 件`

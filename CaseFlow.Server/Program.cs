@@ -273,6 +273,7 @@ namespace CaseFlow.Server
 
             // Authentication must come before Authorization
             app.UseAuthentication();
+            app.UseMiddleware<CustomerReadOnlyMiddleware>();
             app.UseAuthorization();
 
             app.MapControllers();

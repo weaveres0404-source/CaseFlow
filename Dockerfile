@@ -3,7 +3,7 @@ WORKDIR /src
 
 COPY caseflow.client/package*.json ./caseflow.client/
 WORKDIR /src/caseflow.client
-RUN npm install --ignore-scripts=false
+RUN npm ci --ignore-scripts=false
 
 COPY caseflow.client/ ./
 RUN npm run build

@@ -64,7 +64,8 @@ function memberRoleClass(role) {
   const roleClassMap = {
     SysAdmin: 'bg-violet-50 text-violet-700 ring-violet-200',
     PM: 'bg-amber-50 text-amber-700 ring-amber-200',
-    SE: 'bg-sky-50 text-sky-700 ring-sky-200'
+    SE: 'bg-sky-50 text-sky-700 ring-sky-200',
+    Customer: 'bg-slate-50 text-slate-700 ring-slate-200'
   }
   return roleClassMap[role] || 'bg-slate-100 text-slate-700 ring-slate-200'
 }
@@ -73,7 +74,8 @@ function memberRoleDotClass(role) {
   const roleDotMap = {
     SysAdmin: 'bg-violet-400',
     PM: 'bg-amber-400',
-    SE: 'bg-sky-400'
+    SE: 'bg-sky-400',
+    Customer: 'bg-slate-400'
   }
   return roleDotMap[role] || 'bg-slate-400'
 }

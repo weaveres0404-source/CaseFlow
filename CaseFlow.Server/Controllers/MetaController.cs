@@ -28,19 +28,49 @@ namespace CaseFlow.Server.Controllers
         {
             try
             {
-                var customers = await _db.Customers.AsNoTracking()
+                var role = User.GetRole();
+                var userId = User.GetUserId();
+                List<int>? customerProjectIds = null;
+
+                if (role == "Customer")
+                {
+                    customerProjectIds = await _db.ProjectMembers.AsNoTracking()
+                        .Where(pm => pm.UserId == userId && pm.IsActive)
+                        .Select(pm => pm.ProjectId)
+                        .Distinct()
+                        .ToListAsync();
+                }
+
+                var projectsQuery = _db.Projects.AsNoTracking()
+                    .Where(p => p.IsActive);
+                if (customerProjectIds != null)
+                    projectsQuery = projectsQuery.Where(p => customerProjectIds.Contains(p.ProjectId));
+
+                var projects = await projectsQuery
+                    .OrderBy(p => p.ProjectCode)
+                    .Select(p => new { id = p.ProjectId, code = p.ProjectCode, name = p.ProjectName, customer_id = p.CustomerId, allowed_case_types = p.AllowedCaseTypes })
+                    .ToListAsync();
+
+                var visibleProjectIds = projects.Select(p => p.id).ToList();
+                var visibleCustomerIds = projects.Select(p => p.customer_id).Distinct().ToList();
+
+                var customersQuery = _db.Customers.AsNoTracking()
+                    .Where(c => c.IsActive);
+                if (customerProjectIds != null)
+                    customersQuery = customersQuery.Where(c => visibleCustomerIds.Contains(c.CustomerId));
+
+                var customers = await customersQuery
                     .Where(c => c.IsActive)
                     .OrderBy(c => c.CustomerName)
                     .Select(c => new { id = c.CustomerId, name = c.CustomerName })
                     .ToListAsync();
 
-                var projects = await _db.Projects.AsNoTracking()
-                    .Where(p => p.IsActive)
-                    .OrderBy(p => p.ProjectCode)
-                    .Select(p => new { id = p.ProjectId, code = p.ProjectCode, name = p.ProjectName, customer_id = p.CustomerId, allowed_case_types = p.AllowedCaseTypes })
-                    .ToListAsync();
+                var categoriesQuery = _db.ProblemCategories.AsNoTracking()
+                    .Where(c => c.IsActive);
+                if (customerProjectIds != null)
+                    categoriesQuery = categoriesQuery.Where(c => c.ProjectLinks.Any(l => visibleProjectIds.Contains(l.ProjectId)));
 
-                var categories = await _db.ProblemCategories.AsNoTracking()
+                var categories = await categoriesQuery
                     .Where(c => c.IsActive)
                     .OrderBy(c => c.SortOrder)
                     .Select(c => new
@@ -53,13 +83,23 @@ namespace CaseFlow.Server.Controllers
                     })
                     .ToListAsync();
 
-                var projectCodes = await _db.ProjectCodes.AsNoTracking()
+                var projectCodesQuery = _db.ProjectCodes.AsNoTracking()
+                    .Where(p => p.IsActive);
+                if (customerProjectIds != null)
+                    projectCodesQuery = projectCodesQuery.Where(code => _db.Projects.Any(project => visibleProjectIds.Contains(project.ProjectId) && project.ProjectCodeId == code.CodeId));
+
+                var projectCodes = await projectCodesQuery
                     .Where(p => p.IsActive)
                     .OrderBy(p => p.SortOrder).ThenBy(p => p.Code)
                     .Select(p => new { id = p.CodeId, code = p.Code, label = p.Label })
                     .ToListAsync();
 
-                var caseTypes = await _db.CaseTypes.AsNoTracking()
+                var caseTypesQuery = _db.CaseTypes.AsNoTracking()
+                    .Where(t => t.IsActive);
+                if (customerProjectIds != null)
+                    caseTypesQuery = caseTypesQuery.Where(t => t.ProjectLinks.Any(l => visibleProjectIds.Contains(l.ProjectId)));
+
+                var caseTypes = await caseTypesQuery
                     .Where(t => t.IsActive)
                     .OrderBy(t => t.SortOrder).ThenBy(t => t.Code)
                     .Select(t => new
@@ -73,19 +113,34 @@ namespace CaseFlow.Server.Controllers
                     })
                     .ToListAsync();
 
-                var modules = await _db.SystemModules.AsNoTracking()
+                var modulesQuery = _db.SystemModules.AsNoTracking()
+                    .Where(m => m.IsActive);
+                if (customerProjectIds != null)
+                    modulesQuery = modulesQuery.Where(m => visibleProjectIds.Contains(m.ProjectId));
+
+                var modules = await modulesQuery
                     .Where(m => m.IsActive)
                     .OrderBy(m => m.ModuleName)
                     .Select(m => new { id = m.ModuleId, name = m.ModuleName, project_id = m.ProjectId })
                     .ToListAsync();
 
-                var users = await _db.Users.AsNoTracking()
+                var usersQuery = _db.Users.AsNoTracking()
+                    .Where(u => u.IsActive);
+                if (customerProjectIds != null)
+                    usersQuery = usersQuery.Where(u => u.ProjectMembers.Any(pm => pm.IsActive && visibleProjectIds.Contains(pm.ProjectId)));
+
+                var users = await usersQuery
                     .Where(u => u.IsActive)
                     .OrderBy(u => u.FullName)
                     .Select(u => new { id = u.UserId, username = u.Username, full_name = u.FullName, role = u.Role })
                     .ToListAsync();
 
-                var projectMembers = await _db.ProjectMembers.AsNoTracking()
+                var projectMembersQuery = _db.ProjectMembers.AsNoTracking()
+                    .Where(pm => pm.IsActive);
+                if (customerProjectIds != null)
+                    projectMembersQuery = projectMembersQuery.Where(pm => visibleProjectIds.Contains(pm.ProjectId));
+
+                var projectMembers = await projectMembersQuery
                     .Where(pm => pm.IsActive)
                     .Select(pm => new { project_id = pm.ProjectId, user_id = pm.UserId, role = pm.MemberRole })
                     .ToListAsync();
